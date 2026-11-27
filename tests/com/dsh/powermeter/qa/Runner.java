@@ -23,6 +23,7 @@ public final class Runner {
         run("ChargeNormalizer 电流单位识别（µA / mA）", UnitDetectionTests::run);
         run("ChargeNormalizer 越界与异常读数过滤", BoundsTests::run);
         run("ChargeMeter 兼容功率算法", ReferenceAlgorithmTests::run);
+        run("双芯/单芯自动识别", CellDetectorTests::run);
         run("PowerSmoother 展示值平滑", PowerSmootherTests::run);
         run("PeakTracker 平滑峰值", PeakTrackerTests::run);
         run("ChargeTimeEstimator 充满预估", ChargeTimeEstimatorTests::run);

@@ -166,8 +166,14 @@ public final class ChargeEngine {
         RawBattery raw = reader.read(prefs.enhancedReadEnabled(), prefs.shizukuReadEnabled());
         int dualMode = prefs.dualCellMode();
         int override = prefs.cellCountOverride();
-        // 参考 ChargeMeter：电芯数只由“品牌推荐值 / 手动覆盖”决定，不再有第二套双电芯修正。
-        int cells = override > 0 ? override : BrandCompat.recommendedCellCount();
+        // 自动识别：voltage_max → 整包电压 → 已知双芯机型 → 品牌默认；
+        // 用户手动选择始终优先。
+        CellDetector.Result cellDetect = CellDetector.detect(raw,
+                BrandCompat.isKnownDualCellDevice(), BrandCompat.recommendedCellCount());
+        int cells = override > 0 ? override : cellDetect.cells;
+        String cellReason = override > 0
+                ? "手动设置 · " + cells + " 芯"
+                : "自动 · " + cellDetect.reason;
         NormalizedReading n = normalizer.normalize(raw, dualMode, BrandCompat.dualCellFamily(), cells);
 
         int unit = normalizer.preferredUnit();
@@ -310,6 +316,7 @@ public final class ChargeEngine {
                 .temperatureC(n.temperatureC)
                 .level(n.level)
                 .cells(n.cells)
+                .cellDetectReason(cellReason)
                 .voltageCorrected(n.voltageCorrected)
                 .peakW(currentPeak)
                 .remainingSeconds(remain)

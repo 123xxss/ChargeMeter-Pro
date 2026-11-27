@@ -34,6 +34,8 @@ public final class BatteryReader {
     private String miuiQuickChargeType;
     private SysfsReader.Values sysfsCache;
     private long sysfsCacheAt;
+    private double voltageMaxCache = Double.NaN;
+    private long voltageMaxCacheAt;
     private boolean started;
     private Runnable onEvent;
 
@@ -245,15 +247,19 @@ public final class BatteryReader {
         }
         b.powerMaxW(powerMaxW).quickChargeType(miuiQuickChargeType);
 
+        // 自动电芯识别需要 voltage_max；即使未开启增强读取，也尝试只读一次。
+        // 读不到返回 NaN，不影响标准路径。
+        double voltageMaxHint = readVoltageMaxCached();
+
         // 增强读取（只读标准 sysfs 节点）
         if (enhanced) {
             SysfsReader.Values v = readSysfsCached();
             if (v != null) {
+                if (!Double.isNaN(v.voltageMaxV)) voltageMaxHint = v.voltageMaxV;
                 b.sysfsVoltageV(v.voltageV)
                         .sysfsCurrentA(v.currentA)
                         .sysfsTempC(v.tempC)
-                        .sysfsStatus(v.status)
-                        .sysfsVoltageMaxV(v.voltageMaxV);
+                        .sysfsStatus(v.status);
                 if (counter < 0 && v.chargeCounterUah > 0) {
                     b.chargeCounterUah(v.chargeCounterUah);
                 }
@@ -273,12 +279,28 @@ public final class BatteryReader {
                     if (counter < 0 && v.chargeCounterUah > 0) {
                         b.chargeCounterUah(v.chargeCounterUah);
                     }
+                    if (!Double.isNaN(v.voltageMaxV)) voltageMaxHint = v.voltageMaxV;
                 }
             } catch (Throwable ignored) {
                 // fail-closed：Shizuku 不可用时完全走标准路径
             }
         }
+        b.sysfsVoltageMaxV(voltageMaxHint);
         return b.build();
+    }
+
+    private double readVoltageMaxCached() {
+        long now = System.currentTimeMillis();
+        if (!Double.isNaN(voltageMaxCache) && now - voltageMaxCacheAt < 3000) {
+            return voltageMaxCache;
+        }
+        try {
+            voltageMaxCache = SysfsReader.readVoltageMax();
+            voltageMaxCacheAt = now;
+        } catch (Throwable ignored) {
+            voltageMaxCache = Double.NaN;
+        }
+        return voltageMaxCache;
     }
 
     private SysfsReader.Values readSysfsCached() {

@@ -6,13 +6,27 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.6.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.6.1/WattLens-Pro-v2.6.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.7.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.7.0/WattLens-Pro-v2.7.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.6.1.png)
+![主页、详情、应用耗电排行](docs/preview-v2.7.0.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.7.0 更新（双芯/单芯自动识别）
+
+- 新增电芯数自动识别，不需要用户先手动选：
+  1. `voltage_max ≥ 6V` → 双芯；整包电压 >5V → 双芯；
+  2. 已知双电芯机型优先；
+  3. `voltage_max 3–5V` → 单芯；
+  4. 无特征时按品牌默认，并标注为低置信度。
+- 双芯：主界面显示「总压 / 单芯」，例如 `8.25 / 4.13`；详情拆成「总电压 / 单芯电压」。
+- 单芯：只显示单芯电压，不再多余乘 2。
+- 主界面新增「电芯：自动 · …」判定依据，点开有完整解释；详情显示判定依据。
+- 功率仍按整包电压 × 电流，单芯电压只展示，不重复乘电芯数。
+- 设置 → 电芯数仍可手动覆盖自动识别。
+- 版本 36 / 2.7.0；测试 328 项通过。
 
 ## 2.6.1 更新（双电芯总压 / 单芯电压）
 

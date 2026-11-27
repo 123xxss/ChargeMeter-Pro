@@ -31,6 +31,8 @@ public final class PowerSnapshot {
     public final double temperatureC;
     public final int level;
     public final int cells;
+    /** 自动/手动电芯判定依据，用于主界面和详情解释。 */
+    public final String cellDetectReason;
     public final boolean voltageCorrected;
 
     public final double peakW;
@@ -82,6 +84,7 @@ public final class PowerSnapshot {
         this.temperatureC = b.temperatureC;
         this.level = b.level;
         this.cells = b.cells;
+        this.cellDetectReason = b.cellDetectReason;
         this.voltageCorrected = b.voltageCorrected;
         this.peakW = b.peakW;
         this.remainingSeconds = b.remainingSeconds;
@@ -131,6 +134,7 @@ public final class PowerSnapshot {
         public double temperatureC = Double.NaN;
         public int level = -1;
         public int cells = 1;
+        public String cellDetectReason;
         public boolean voltageCorrected = false;
         public double peakW = 0;
         public long remainingSeconds = -1;
@@ -174,6 +178,7 @@ public final class PowerSnapshot {
         public Builder temperatureC(double v) { temperatureC = v; return this; }
         public Builder level(int v) { level = v; return this; }
         public Builder cells(int v) { cells = v; return this; }
+        public Builder cellDetectReason(String v) { cellDetectReason = v; return this; }
         public Builder voltageCorrected(boolean v) { voltageCorrected = v; return this; }
         public Builder peakW(double v) { peakW = v; return this; }
         public Builder remainingSeconds(long v) { remainingSeconds = v; return this; }

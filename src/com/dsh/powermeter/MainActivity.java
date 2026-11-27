@@ -114,6 +114,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private UiKit.Metric cellCurrent;
     private UiKit.Metric cellTemp;
     private UiKit.Metric cellPeak;
+    private TextView gridAutoInfo;
 
     private LinearLayout sessionCard;
     private TextView sessionHeading;
@@ -296,6 +297,10 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         setMetricValue(cellTemp, s == null || hideForIdle ? "--" : UiKit.temp(s.temperatureC));
         boolean noPeak = s == null || !s.sessionActive || s.peakW <= 0.01;
         setMetricValue(cellPeak, hideForIdle || noPeak ? "--" : UiKit.watts(s.peakW));
+        if (gridAutoInfo != null) {
+            gridAutoInfo.setText(s == null ? "电芯自动识别中…"
+                    : "电芯：" + (s.cellDetectReason == null ? "--" : s.cellDetectReason));
+        }
     }
 
     private void renderChart(PowerSnapshot s) {
@@ -398,6 +403,29 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         updateBanner();
         Toast.makeText(this, next ? "状态栏通知已开启" : "状态栏通知已关闭",
                 Toast.LENGTH_SHORT).show();
+    }
+
+    private void showCellDetectDialog() {
+        try {
+            PowerSnapshot s = StateStore.get().latest();
+            String now = s == null ? "尚无读数" : s.cellDetectReason;
+            String msg = "当前判定：" + (now == null ? "--" : now) + "\n\n"
+                    + "自动识别顺序：\n"
+                    + "1. sysfs voltage_max ≥ 6V → 双芯；\n"
+                    + "2. 系统上报整包电压 > 5V → 按双芯；\n"
+                    + "3. 已知双电芯机型表（优先于 3–5V 的 voltage_max 提示）；\n"
+                    + "4. voltage_max 3–5V → 单芯；\n"
+                    + "5. 品牌默认（vivo/OPPO/小米等 2 芯，其余 1 芯）。\n\n"
+                    + "Android 没有公开电芯数 API；如果系统只上报单芯电压且 voltage_max 读不到，"
+                    + "单芯/双芯无法仅凭电压区分，此时用品牌默认，可在设置 → 电芯数手动覆盖。\n\n"
+                    + "单芯电压只用于展示；功率始终按整包电压 × 电流计算，不会重复乘电芯数。";
+            new AlertDialog.Builder(this)
+                    .setTitle("电芯自动识别说明")
+                    .setMessage(msg)
+                    .setPositiveButton("知道了", null)
+                    .show();
+        } catch (Throwable ignored) {
+        }
     }
 
     private void openShizukuForStats() {
@@ -859,6 +887,13 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         addFlatCell(gridRow2, cellPeak);
         gridCard.addView(gridRow1, UiKit.top(this, UiKit.matchWrap(), 8));
         gridCard.addView(gridRow2, UiKit.matchWrap());
+        gridAutoInfo = UiKit.textColor(this, "电芯自动识别中…", 10.5f,
+                getColor(R.color.text_muted), false);
+        gridAutoInfo.setMaxLines(2);
+        gridAutoInfo.setEllipsize(TextUtils.TruncateAt.END);
+        gridAutoInfo.setPadding(0, UiKit.dp(this, 6), 0, 0);
+        gridAutoInfo.setOnClickListener(v -> showCellDetectDialog());
+        gridCard.addView(gridAutoInfo, UiKit.matchWrap());
         root.addView(gridCard, UiKit.top(this, UiKit.matchWrap(), 12));
 
         // 实时功率曲线（最近 2 分钟）

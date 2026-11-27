@@ -98,6 +98,7 @@ public final class DetailDialog {
         addRow(c, chargeCard, rows, "电量");
         addRow(c, chargeCard, rows, "数据来源");
         addRow(c, chargeCard, rows, "电芯数");
+        addRow(c, chargeCard, rows, "电芯判定");
         addRow(c, chargeCard, rows, "电芯数设置");
         page.addView(chargeCard, UiKit.matchWrap());
 
@@ -137,6 +138,8 @@ public final class DetailDialog {
         notes.setPadding(np, np, np, np);
         addNote(c, notes, "功率为进入电池的估算值，边充边用可能低于充电器实际输出功率。");
         addNote(c, notes, "CPU/内存/存储来自系统公开接口；GPU/系统温度部分机型只允许 Shizuku 读取。");
+        addNote(c, notes, "电芯数自动识别：voltage_max ≥6V 或整包电压 >5V 判双芯；已知双芯机型优先；"
+                + "voltage_max 3–5V 判单芯；否则品牌默认。可手动覆盖。单芯电压只展示，功率按整包 × 电流。");
         addNote(c, notes, DeviceInfo.compatibilityNote());
         page.addView(notes, UiKit.top(c, UiKit.matchWrap(), 16));
 
@@ -251,6 +254,7 @@ public final class DetailDialog {
         set(rows, "电量", s.level >= 0 ? s.level + "%" : "--");
         set(rows, "数据来源", safe(s.sourceLabel));
         set(rows, "电芯数", s.cells + " 芯" + (s.voltageCorrected ? "（按 2 芯合并）" : ""));
+        set(rows, "电芯判定", s.cellDetectReason == null ? "--" : s.cellDetectReason);
         set(rows, "电芯数设置", cellCountLabel(prefs));
 
         SystemStats st = s.systemStats;
@@ -383,7 +387,7 @@ public final class DetailDialog {
     private static String cellCountLabel(Prefs prefs) {
         int override = prefs.cellCountOverride();
         if (override > 0) return override + " 芯（手动）";
-        return "自动（推荐 " + com.dsh.powermeter.BrandCompat.recommendedCellCount() + " 芯）";
+        return "自动（按电压/机型识别）";
     }
 
     private static String safe(String value) {
