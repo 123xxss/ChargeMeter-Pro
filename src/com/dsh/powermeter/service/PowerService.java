@@ -7,7 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 
 import com.dsh.powermeter.Prefs;
@@ -41,6 +43,24 @@ public final class PowerService extends Service implements StateStore.Listener {
     private String lastKey;
     /** 仅用于状态切换日志。 */
     private ChargeState lastState;
+    private final Handler watchdogHandler = new Handler(Looper.getMainLooper());
+    private long lastSnapshotAt;
+    private final Runnable watchdog = new Runnable() {
+        @Override
+        public void run() {
+            if (stopping) return;
+            try {
+                long now = System.currentTimeMillis();
+                if (foreground && engine != null && now - lastSnapshotAt > 4000L) {
+                    // 后台定时器被系统/ROM 打断时，服务侧兜底再触发一次采样。
+                    Log.w(TAG, "后台采样超时，watchdog 重新采样");
+                    engine.sampleNow();
+                }
+            } catch (Throwable ignored) {
+            }
+            watchdogHandler.postDelayed(this, 5000L);
+        }
+    };
 
     // ------------------------------------------------------------ 静态入口
 
@@ -114,6 +134,9 @@ public final class PowerService extends Service implements StateStore.Listener {
             engine = ChargeEngine.get(this);
             engine.retain();
             StateStore.get().addListener(this);
+            lastSnapshotAt = System.currentTimeMillis();
+            watchdogHandler.removeCallbacks(watchdog);
+            watchdogHandler.postDelayed(watchdog, 5000L);
         } catch (Throwable t) {
             Log.w(TAG, "启动采样引擎失败：" + t.getClass().getSimpleName());
         }
@@ -148,6 +171,7 @@ public final class PowerService extends Service implements StateStore.Listener {
     @Override
     public void onDestroy() {
         stopping = true;
+        watchdogHandler.removeCallbacksAndMessages(null);
         StateStore.get().removeListener(this);
         if (foreground) {
             try {
@@ -172,6 +196,7 @@ public final class PowerService extends Service implements StateStore.Listener {
 
     @Override
     public void onSnapshot(PowerSnapshot snapshot) {
+        lastSnapshotAt = System.currentTimeMillis();
         refresh(snapshot);
     }
 
@@ -251,6 +276,7 @@ public final class PowerService extends Service implements StateStore.Listener {
     private void shutdown() {
         if (stopping) return;
         stopping = true;
+        watchdogHandler.removeCallbacksAndMessages(null);
         Log.i(TAG, "总开关已关闭，停止服务");
         StateStore.get().removeListener(this);
         if (foreground) {

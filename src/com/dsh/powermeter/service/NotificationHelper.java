@@ -296,9 +296,8 @@ public final class NotificationHelper {
         if (content.text.length() > BIG_TEXT_THRESHOLD) {
             builder.setStyle(new Notification.BigTextStyle().bigText(content.text));
         }
-        if (content.progress >= 0 && content.progress <= 100) {
-            builder.setProgress(100, content.progress, false);
-        }
+        // 状态栏卡片不再使用系统进度条；用副标题和 BigText 填充信息区。
+        builder.setSubText("实时监测 · 入电池功率");
         // 前台服务通知立即展示，避免系统延迟显示导致被判定为「未进入前台」
         if (Build.VERSION.SDK_INT >= 31) {
             builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);

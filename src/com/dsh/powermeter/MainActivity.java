@@ -190,6 +190,14 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     @Override
     protected void onStop() {
         main.removeCallbacks(usageTicker);
+        // 切到别的应用前后台时，确保常驻服务仍在运行；否则状态栏会停在最后一帧。
+        try {
+            Prefs prefs = Prefs.get(this);
+            if (prefs.masterEnabled() && prefs.notificationEnabled()) {
+                PowerService.startFromActivity(this);
+            }
+        } catch (Throwable ignored) {
+        }
         StateStore.get().removeListener(this);
         if (engine != null) {
             engine.release();

@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.7.2（versionCode 38）
+- 版本：2.8.0（versionCode 39）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，367,725 bytes
-- SHA-256：`85974d337eea6081b4c5609796f27d976759b12d47a3fdc5a304d4ef27e11fdc`
+- SHA-256：`efbe8f7426f2264e41e596d9a4c2bc43ac8699b1c997d45bb614cb674e33b582`
 
-> 2.7.2 增强/Shizuku 电压实时兜底；测试 328 项全通过。
+> 2.8.0 后台状态栏同步、watchdog 与通知布局；测试 328 项全通过。
 
 ## 1. 自动化测试结果
 
