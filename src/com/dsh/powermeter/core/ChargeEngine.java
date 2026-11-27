@@ -165,12 +165,9 @@ public final class ChargeEngine {
 
         RawBattery raw = reader.read(prefs.enhancedReadEnabled(), prefs.shizukuReadEnabled());
         int dualMode = prefs.dualCellMode();
-        int cells;
         int override = prefs.cellCountOverride();
-        if (override > 0) cells = override;
-        else if (dualMode == Prefs.DUAL_FORCE) cells = 2;
-        else if (dualMode == Prefs.DUAL_OFF) cells = 1;
-        else cells = BrandCompat.recommendedCellCount();
+        // 参考 ChargeMeter：电芯数只由“品牌推荐值 / 手动覆盖”决定，不再有第二套双电芯修正。
+        int cells = override > 0 ? override : BrandCompat.recommendedCellCount();
         NormalizedReading n = normalizer.normalize(raw, dualMode, BrandCompat.dualCellFamily(), cells);
 
         int unit = normalizer.preferredUnit();

@@ -22,6 +22,7 @@ public final class Runner {
         run("ChargeNormalizer 双电芯功率修正（67W / 18W）", DualCellTests::run);
         run("ChargeNormalizer 电流单位识别（µA / mA）", UnitDetectionTests::run);
         run("ChargeNormalizer 越界与异常读数过滤", BoundsTests::run);
+        run("ChargeMeter 兼容功率算法", ReferenceAlgorithmTests::run);
         run("PowerSmoother 展示值平滑", PowerSmootherTests::run);
         run("PeakTracker 平滑峰值", PeakTrackerTests::run);
         run("ChargeTimeEstimator 充满预估", ChargeTimeEstimatorTests::run);

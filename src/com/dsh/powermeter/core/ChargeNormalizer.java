@@ -68,14 +68,30 @@ public final class ChargeNormalizer {
         boolean fullStatus = raw.isFullStatus();
         boolean full = fullStatus || (plugged && raw.level >= 100);
 
-        if (!(raw.voltageMv >= 2500 && raw.voltageMv <= 5000)) {
+        // 标准路径优先；标准接口缺失/电压异常时，允许 Shizuku/sysfs 兜底（仍然只读）。
+        boolean enhanced = false;
+        int voltageMv = raw.voltageMv;
+        if (!(voltageMv >= 2500 && voltageMv <= 5000)
+                && raw.hasSysfs() && raw.sysfsVoltageV * 1000.0 >= 2500
+                && raw.sysfsVoltageV * 1000.0 <= 5000) {
+            voltageMv = (int) Math.round(raw.sysfsVoltageV * 1000.0);
+            enhanced = true;
+        }
+        if (!(voltageMv >= 2500 && voltageMv <= 5000)) {
             return referenceInvalid(out, plugged, full, "电压超出单电芯参考范围");
         }
-        if (!raw.currentSupported) {
+        boolean currentSupported = raw.currentSupported;
+        double amps;
+        if (currentSupported) {
+            amps = raw.currentRaw / 1_000_000.0;
+        } else if (raw.hasSysfs() && !Double.isNaN(raw.sysfsCurrentA)) {
+            amps = Math.abs(raw.sysfsCurrentA);
+            currentSupported = true;
+            enhanced = true;
+        } else {
             return referenceInvalid(out, plugged, full, "本机未开放电流接口");
         }
-        double amps = raw.currentRaw / 1_000_000.0;
-        double packV = raw.voltageMv / 1000.0 * recommendedCells;
+        double packV = voltageMv / 1000.0 * recommendedCells;
         double provisional = Math.abs(amps) * packV;
         if (provisional > 400.0) {
             amps = amps / 1000.0; // 极少数 ROM 以 mA 上报
@@ -108,7 +124,7 @@ public final class ChargeNormalizer {
                 .voltageV(packV)
                 .cells(recommendedCells)
                 .voltageCorrected(recommendedCells > 1)
-                .enhanced(false)
+                .enhanced(enhanced)
                 .currentSupported(true)
                 .currentA(signedA)
                 .chargeW(valid ? chargeW : 0)

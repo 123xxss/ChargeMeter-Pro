@@ -248,9 +248,6 @@ public final class SettingsActivity extends Activity {
 
         // 数据口径
         content.addView(UiKit.section(this, "数据口径"), UiKit.matchWrap());
-        addCard(UiKit.actionRow(this, "双电芯修正",
-                "部分双电芯机型只上报单电芯电压，需要 ×2 修正才接近实际功率",
-                dualLabel(prefs.dualCellMode()), v -> showDualDialog()));
         addCard(UiKit.actionRow(this, "电芯数",
                 "参照 ChargeMeter：vivo/OPPO/小米默认 2 电芯；单电芯异常机型可手动改为 1",
                 cellCountLabel(prefs), v -> showCellDialog()));
@@ -301,7 +298,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.5.0");
+        addInfo(about, "版本", "1.5.1");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
         addInfo(about, "口径", "功率为进入电池的功率估算值；边充边用时可能低于充电器实际输出功率。");
         addInfo(about, "权限", "不申请定位、存储、悬浮窗、无障碍等权限。");

@@ -100,7 +100,7 @@ public final class DetailDialog {
         addRow(c, card, "电芯数", hasSnapshot
                 ? snapshot.cells + " 芯" + (snapshot.voltageCorrected ? "（电压按 ×2 修正）" : "")
                 : "--");
-        addRow(c, card, "双电芯修正", dualLabel(Prefs.get(c).dualCellMode()));
+        addRow(c, card, "电芯数设置", cellCountLabel(Prefs.get(c)));
 
         // 口径说明
         LinearLayout notes = UiKit.column(c);
@@ -177,10 +177,10 @@ public final class DetailDialog {
         return "估算中";
     }
 
-    private static String dualLabel(int mode) {
-        if (mode == Prefs.DUAL_FORCE) return "强制 ×2";
-        if (mode == Prefs.DUAL_OFF) return "关闭";
-        return "自动（推荐）";
+    private static String cellCountLabel(Prefs prefs) {
+        int override = prefs.cellCountOverride();
+        if (override > 0) return override + " 芯（手动）";
+        return "自动（推荐 " + com.dsh.powermeter.BrandCompat.recommendedCellCount() + " 芯）";
     }
 
     private static String safe(String value) {
