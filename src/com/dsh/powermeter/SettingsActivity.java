@@ -8,6 +8,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dsh.powermeter.core.ChargeEngine;
+import com.dsh.powermeter.core.StateStore;
 import com.dsh.powermeter.service.PowerService;
 import com.dsh.powermeter.shizuku.ShizukuBatterySource;
 import com.dsh.powermeter.ui.UiKit;
@@ -78,6 +80,36 @@ public final class SettingsActivity extends Activity {
             ChargeEngine.get(this).sampleNow();
             dialog.dismiss();
             rebuildContent();
+        });
+        builder.setNegativeButton("取消", null);
+        builder.show();
+    }
+
+    private void showCalibrationDialog() {
+        EditText input = new EditText(this);
+        input.setHint("输入当前功率 W，例如 22.91");
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
+                | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        com.dsh.powermeter.core.PowerSnapshot latest = StateStore.get().latest();
+        double current = latest == null ? 0 : latest.powerW;
+        AlertDialog.Builder builder = dialogBuilder("功率校准");
+        builder.setMessage("输入另一台设备或系统显示的当前功率，App 会反推出倍率。\n当前显示："
+                + (current > 0.05 ? String.format(java.util.Locale.ROOT, "%.2f W", current) : "暂无"));
+        builder.setView(input);
+        builder.setPositiveButton("校准", (dialog, which) -> {
+            try {
+                double target = Double.parseDouble(input.getText().toString().trim());
+                if (target <= 0 || current <= 0.05) {
+                    Toast.makeText(this, "当前功率过小，暂时无法校准", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Prefs.get(this).setPowerRatio(target / current);
+                ChargeEngine.get(this).sampleNow();
+                Toast.makeText(this, "校准完成", Toast.LENGTH_SHORT).show();
+                rebuildContent();
+            } catch (Throwable t) {
+                Toast.makeText(this, "请输入有效数字", Toast.LENGTH_SHORT).show();
+            }
         });
         builder.setNegativeButton("取消", null);
         builder.show();
@@ -198,6 +230,10 @@ public final class SettingsActivity extends Activity {
         addCard(UiKit.actionRow(this, "双电芯修正",
                 "部分双电芯机型只上报单电芯电压，需要 ×2 修正才接近实际功率",
                 dualLabel(prefs.dualCellMode()), v -> showDualDialog()));
+        addCard(UiKit.actionRow(this, "功率校准",
+                "参照系统/功率计读数校准倍率（参考 ChargeMeter 的校准方式）",
+                String.format(java.util.Locale.ROOT, "倍率 %.2f", prefs.powerRatio()),
+                v -> showCalibrationDialog()));
         addCard(new UiKit.SwitchRow(this, "增强读取（实验性）",
                 "默认关闭。只通过系统标准 sysfs 只读读取电池节点，部分机型不可用，不申请额外权限。",
                 prefs.enhancedReadEnabled(), true,
@@ -241,7 +277,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.3.1");
+        addInfo(about, "版本", "1.4.0");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
         addInfo(about, "口径", "功率为进入电池的功率估算值；边充边用时可能低于充电器实际输出功率。");
         addInfo(about, "权限", "不申请定位、存储、悬浮窗、无障碍等权限。");

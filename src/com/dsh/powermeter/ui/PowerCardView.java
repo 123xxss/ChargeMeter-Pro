@@ -402,7 +402,7 @@ public final class PowerCardView extends View {
     }
 
     private static String fmt(double value) {
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Locale.ROOT, "%.2f", value);
     }
 
     private static String fmt1(double value) {

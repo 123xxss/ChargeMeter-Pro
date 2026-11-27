@@ -189,8 +189,9 @@ public final class ChargeEngine {
         double smoothedW = 0;
         double smoothedV = n.voltageV;
         double smoothedA = n.currentA;
+        double powerRatio = prefs.powerRatio();
         if (n.valid && charging) {
-            smoothedW = smoother.addPower(n.chargeW);
+            smoothedW = smoother.addPower(n.chargeW) * powerRatio;
             smoothedV = smoother.addVoltage(n.voltageV);
             smoothedA = smoother.addCurrent(n.currentA);
             lastValidAt = now;

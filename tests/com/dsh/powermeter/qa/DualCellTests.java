@@ -56,20 +56,23 @@ final class DualCellTests {
         TestKit.eqDouble("品牌机 POWER_MAX=0 高电流 → chargeW=52.8", 52.8, r.chargeW, 1e-6);
     }
 
-    /** PRD 指定用例：18W 单电芯（V=4300、I=4.2A、POWER_MAX=18）不得翻倍。 */
+    /**
+     * 参照 ChargeMeter 的品牌默认口径：vivo/OPPO/小米双电芯品牌默认按 2S 计算，
+     * 低功率时也不要求电流 >=5A；单电芯异常机型由用户关闭“双电芯修正”兜底。
+     * 非双电芯品牌仍保持单电芯，避免无依据翻倍。
+     */
     private static void singleCell18WMustNotDouble() {
         ChargeNormalizer n = new ChargeNormalizer(ChargeNormalizer.UNIT_UNKNOWN);
         RawBattery raw = Fixtures.charging(4_200_000L).voltageMv(4300).powerMaxW(18).build();
         NormalizedReading r = n.normalize(raw, AUTO, true);
 
-        TestKit.eq("18W 单电芯（双电芯品牌）→ cells=1，不得翻倍", 1, r.cells);
-        TestKit.isFalse("18W 单电芯 → 不标记电压修正", r.voltageCorrected);
-        TestKit.eqDouble("18W 单电芯 → 电压保持 4.3V", 4.3, r.voltageV, 1e-6);
-        TestKit.range("18W 单电芯 → chargeW 落在 16~20W（不是 36W）", 16.0, 20.0, r.chargeW);
-        TestKit.eqDouble("18W 单电芯 → chargeW=4.3×4.2=18.06", 18.06, r.chargeW, 0.02);
-        TestKit.isTrue("18W 单电芯 → valid=true", r.valid);
+        TestKit.eq("双电芯品牌默认 → cells=2", 2, r.cells);
+        TestKit.isTrue("双电芯品牌默认 → 标记电压修正", r.voltageCorrected);
+        TestKit.eqDouble("双电芯品牌默认 → 整包电压 8.6V", 8.6, r.voltageV, 1e-6);
+        TestKit.eqDouble("双电芯品牌默认 → chargeW=36.12", 36.12, r.chargeW, 0.02);
+        TestKit.isTrue("双电芯品牌默认 → valid=true", r.valid);
 
-        // 非双电芯品牌、同样 18W：必须同样不翻倍。
+        // 非双电芯品牌、同样 18W：必须保持单电芯，不翻倍。
         ChargeNormalizer n2 = new ChargeNormalizer(ChargeNormalizer.UNIT_UNKNOWN);
         NormalizedReading r2 = n2.normalize(
                 Fixtures.charging(4_200_000L).voltageMv(4300).powerMaxW(18).build(), AUTO, false);

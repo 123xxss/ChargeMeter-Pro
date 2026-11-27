@@ -382,7 +382,7 @@ public final class UiKit {
     // ---------------------------------------------------------------- 数值格式化
 
     public static String watts(double value) {
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Locale.ROOT, "%.2f", value);
     }
 
     public static String volts(double value) {

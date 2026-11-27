@@ -142,6 +142,19 @@ public final class Prefs {
         setBool("shizuku_read_enabled", enabled);
     }
 
+    /** 功率校准倍率（参考 ChargeMeter 的校准思路），默认 1.0。 */
+    public double powerRatio() {
+        return getFloat("power_ratio", 1.0f);
+    }
+
+    public void setPowerRatio(double ratio) {
+        try {
+            float r = (float) Math.max(0.2, Math.min(5.0, ratio));
+            sp.edit().putFloat("power_ratio", r).apply();
+        } catch (Throwable ignored) {
+        }
+    }
+
     /** 电流单位记忆：0 未知，1 µA，2 mA。用于修正少数 ROM 的电流单位上报差异。 */
     public int currentUnitHint() {
         try {

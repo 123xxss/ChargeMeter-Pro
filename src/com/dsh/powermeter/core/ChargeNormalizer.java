@@ -240,13 +240,10 @@ public final class ChargeNormalizer {
         if (raw.powerMaxW >= 50) return true;
         if (!dualCellBrand) return false;
         if (cellV < MIN_CELL_V || cellV > MAX_CELL_V) return false;
-        // 用两种单位分别估算，只有高电流解释才触发 2S
-        double rawAbs = Math.abs((double) raw.currentRaw);
-        if (rawAbs <= 0) return false;
-        double micro = rawAbs / 1_000_000.0;
-        double milli = rawAbs / 1_000.0;
-        double amps = plausibleAmps(micro, cellV) ? micro : milli;
-        return amps >= 5.0;
+        // 参考 ChargeMeter 的已验证做法：vivo/OPPO/小米双电芯品牌默认按 2S 计算，
+        // 不再要求当前电流必须 >=5A（低功率充电时也能给出整包功率）。
+        // 单电芯异常机型可在设置中关闭“双电芯修正”。
+        return true;
     }
 
     private boolean plausibleAmps(double amps, double cellV) {

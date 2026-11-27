@@ -38,6 +38,7 @@ import com.dsh.powermeter.core.StateStore;
 import com.dsh.powermeter.service.PowerService;
 import com.dsh.powermeter.ui.DetailDialog;
 import com.dsh.powermeter.ui.PowerCardView;
+import com.dsh.powermeter.ui.PowerChartView;
 import com.dsh.powermeter.ui.UiKit;
 
 /**
@@ -68,6 +69,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private LinearLayout masterOffCard;
 
     private PowerCardView heroCard;
+    private PowerChartView chart;
+    private LinearLayout chartCard;
     private TextView pillState;
     private TextView pillTier;
     private TextView pillMode;
@@ -193,12 +196,14 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         gridRow1.setVisibility(master ? View.VISIBLE : View.GONE);
         gridRow2.setVisibility(master ? View.VISIBLE : View.GONE);
         sessionCard.setVisibility(master ? View.VISIBLE : View.GONE);
+        chartCard.setVisibility(master ? View.VISIBLE : View.GONE);
         footerCard.setVisibility(master ? View.VISIBLE : View.GONE);
         updateBanner();
         if (!master) return;
 
         renderHero(snapshot);
         renderGrid(snapshot);
+        renderChart(snapshot);
         renderSession(snapshot);
     }
 
@@ -218,6 +223,14 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         cellCurrent.value.setText(s == null || hideForIdle ? "--" : UiKit.amps(s.currentA));
         cellTemp.value.setText(s == null || hideForIdle ? "--" : UiKit.temp(s.temperatureC));
         cellPeak.value.setText(s == null || hideForIdle ? "--" : UiKit.watts(s.peakW));
+    }
+
+    private void renderChart(PowerSnapshot s) {
+        if (chart == null) return;
+        if (s == null) return;
+        if (s.charging && s.valid && s.chargeW > 0) {
+            chart.add(s.chargeW);
+        }
     }
 
     private void renderSession(PowerSnapshot s) {
@@ -562,6 +575,19 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         root.addView(gridTitle, UiKit.matchWrap());
         root.addView(gridRow1, UiKit.matchWrap());
         root.addView(gridRow2, UiKit.matchWrap());
+
+        // 实时功率曲线（最近 2 分钟）
+        chartCard = UiKit.card(this);
+        LinearLayout chartHead = UiKit.row(this);
+        TextView chartTitle = UiKit.text(this, "功率曲线", 14f, R.color.text_primary, true);
+        chartHead.addView(chartTitle, UiKit.weighted(1f));
+        TextView chartHint = UiKit.text(this, "最近 2 分钟", 11f, R.color.text_muted, false);
+        chartHead.addView(chartHint);
+        chartCard.addView(chartHead, UiKit.matchWrap());
+        chart = new PowerChartView(this);
+        chartCard.addView(chart, UiKit.top(this, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, UiKit.dp(this, 132)), 6));
+        root.addView(chartCard, UiKit.top(this, UiKit.matchWrap(), 12));
 
         // 本次 / 上次充电
         buildSessionCard();
