@@ -34,6 +34,7 @@ import android.widget.Toast;
 import com.dsh.powermeter.core.AppUsageRanker;
 import com.dsh.powermeter.core.ChargeEngine;
 import com.dsh.powermeter.core.ChargeState;
+import com.dsh.powermeter.core.DeviceInfo;
 import com.dsh.powermeter.core.PowerSnapshot;
 import com.dsh.powermeter.core.SessionTracker;
 import com.dsh.powermeter.core.StateStore;
@@ -721,8 +722,21 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
         // 顶栏
         LinearLayout header = UiKit.row(this);
+        LinearLayout titleBlock = UiKit.column(this);
         TextView title = UiKit.text(this, getString(R.string.app_name), 23f, R.color.text_primary, true);
-        header.addView(title, UiKit.weighted(1f));
+        title.setSingleLine(true);
+        title.setEllipsize(TextUtils.TruncateAt.END);
+        titleBlock.addView(title, UiKit.matchWrap());
+        // 设备信息放在顶栏副标题：比额外一张卡更轻，不打断主页视觉节奏。
+        String deviceLine = DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
+                + " " + DeviceInfo.model() + " · Android " + DeviceInfo.androidVersion();
+        TextView device = UiKit.text(this, deviceLine, 11f, R.color.text_muted, false);
+        device.setSingleLine(true);
+        device.setEllipsize(TextUtils.TruncateAt.END);
+        device.setPadding(0, UiKit.dp(this, 2), 0, 0);
+        titleBlock.addView(device, UiKit.matchWrap());
+        titleBlock.setOnClickListener(v -> DetailDialog.show(this, StateStore.get().latest()));
+        header.addView(titleBlock, UiKit.weighted(1f));
         headerStatus = UiKit.pill(this, "待机", getColor(R.color.text_secondary),
                 getColor(R.color.card_alt));
         headerStatus.setTextSize(11f);

@@ -6,13 +6,21 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.2.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.2/WattLens-Pro-v2.2.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.2.3](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.3/WattLens-Pro-v2.2.3.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.2.2.png)
+![主页、详情、应用耗电排行](docs/preview-v2.2.3.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.2.3 更新（设备信息移到主页顶栏）
+
+- 厂商 / 品牌 / 型号 / Android 版本移到 **主页标题下方副标题**，不增加卡片、不打断视觉节奏。
+- 点击标题区域仍可打开完整设备信息详情。
+- 统一检查：排行汇总换行、主界面/排行/详情/系统状态/通知/设置的空值与文字溢出。
+- 安全复查：无 INTERNET、无 shell、无多余危险权限；`PACKAGE_USAGE_STATS` 是应用排行可选特殊权限；导出组件仍只有启动页和受系统权限保护的 Shizuku Provider。
+- 版本 25 / 2.2.3；测试 312 项通过。
 
 ## 2.2.2 更新（统一检查与汇总换行）
 
