@@ -42,6 +42,7 @@ import com.dsh.powermeter.service.NotificationHelper;
 import com.dsh.powermeter.service.PowerService;
 import com.dsh.powermeter.shizuku.ShizukuBatterySource;
 import com.dsh.powermeter.ui.DetailDialog;
+import com.dsh.powermeter.ui.MotionKit;
 import com.dsh.powermeter.ui.PowerCardView;
 import com.dsh.powermeter.ui.PowerChartView;
 import com.dsh.powermeter.ui.UiKit;
@@ -238,16 +239,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         int delay = vivo ? 44 : (rich ? 42 : 28);
         int duration = vivo ? 340 : (rich ? 320 : (ios ? 260 : 220));
         for (int i = 0; i < views.length; i++) {
-            View v = views[i];
-            if (v == null) continue;
-            v.setAlpha(0f);
-            v.setTranslationY(step);
-            android.view.ViewPropertyAnimator anim = v.animate()
-                    .alpha(1f).translationY(0f)
-                    .setStartDelay(i * (long) delay);
-            if (vivo) anim.setInterpolator(new android.view.animation.OvershootInterpolator(0.7f));
-            if (ios) anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
-            anim.setDuration(duration).start();
+            MotionKit.enterCard(views[i], i * delay, step, duration, motion);
         }
     }
 
@@ -1080,13 +1072,16 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         int motion = Prefs.get(this).motionStyle();
         if (motion == 2) {
             metric.value.setAlpha(1f);
+            metric.value.setTranslationY(0f);
             metric.value.setText(next);
             return;
         }
-        metric.value.setAlpha(0.5f);
+        metric.value.setAlpha(0.55f);
+        metric.value.setTranslationY(UiKit.dp(this, 3));
         metric.value.setText(next);
-        metric.value.animate().alpha(1f)
-                .setDuration(motion == 3 || motion == 1 ? 240 : (motion == 4 ? 200 : 160)).start();
+        metric.value.animate().alpha(1f).translationY(0f)
+                .setInterpolator(MotionKit.value(motion))
+                .setDuration(motion == 3 || motion == 1 ? 240 : (motion == 4 ? 210 : 180)).start();
     }
 
     private void updateHeaderStatus(boolean master, PowerSnapshot s) {

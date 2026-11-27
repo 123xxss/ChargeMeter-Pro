@@ -6,13 +6,21 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.9.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.9.0/WattLens-Pro-v2.9.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.10.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.10.1/WattLens-Pro-v2.10.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.9.0.png)
+![主页、详情、应用耗电排行、离线帮助](docs/preview-v2.10.1.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.10.1 更新（完整内容包 + 动画统一）
+
+- 新增 **离线图文帮助中心**：40 张高清插画，覆盖功率口径、双芯/单芯、电压、后台、历史、品牌适配、权限、排障等。
+- 新增 **5 套主题背景预览**；内置 Noto Sans CJK 字体子集，用于帮助中心；全部资源随 APK 离线提供。
+- 统一动画节奏：主界面分批入场 + 轻微缩放、数值淡入上移、详情/历史错峰出现，降低每秒刷新的生硬感。
+- 保留 2.9.0 本地充电历史、2.8.0 后台 watchdog、2.7.x 电压实时读取和双芯/单芯自动识别。
+- APK 约 **5.45MB**；测试 328 项通过；无网络权限。
 
 ## 2.9.0 更新（本地充电历史 + 完整优化）
 

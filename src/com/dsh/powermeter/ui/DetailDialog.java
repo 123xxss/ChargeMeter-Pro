@@ -327,15 +327,7 @@ public final class DetailDialog {
         int delay = vivo ? 40 : (rich ? 34 : 22);
         int duration = vivo ? 320 : (rich ? 300 : (ios ? 250 : 200));
         for (int i = from; i < page.getChildCount(); i++) {
-            View v = page.getChildAt(i);
-            v.setAlpha(0f);
-            v.setTranslationY(step);
-            android.view.ViewPropertyAnimator anim = v.animate()
-                    .alpha(1f).translationY(0f)
-                    .setStartDelay((i - from) * (long) delay);
-            if (vivo) anim.setInterpolator(new android.view.animation.OvershootInterpolator(0.7f));
-            if (ios) anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
-            anim.setDuration(duration).start();
+            MotionKit.fadeUp(page.getChildAt(i), (i - from) * delay, step, duration, motion);
         }
     }
 
@@ -361,12 +353,16 @@ public final class DetailDialog {
         int motion = Prefs.get(v.getContext()).motionStyle();
         if (motion == 2) {
             v.setAlpha(1f);
+            v.setTranslationY(0f);
             v.setText(next);
             return;
         }
-        v.setAlpha(0.55f);
+        v.setAlpha(0.6f);
+        v.setTranslationY(UiKit.dp(v.getContext(), 2));
         v.setText(next);
-        v.animate().alpha(1f).setDuration(motion == 1 ? 240 : 160).start();
+        v.animate().alpha(1f).translationY(0f)
+                .setInterpolator(MotionKit.value(motion))
+                .setDuration(motion == 1 ? 230 : (motion == 4 ? 200 : 170)).start();
     }
 
     private static void addNote(Context c, LinearLayout parent, String text) {

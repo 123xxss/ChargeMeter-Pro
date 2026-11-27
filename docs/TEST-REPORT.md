@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.9.0（versionCode 40）
+- 版本：2.10.1（versionCode 42）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
-- APK：`powermeter.apk`，371,821 bytes
-- SHA-256：`df7d166413b07037bfcc64bce1aab9fd53a5859da5c3521a509adaf02df51240`
+- APK：`powermeter.apk`，5,454,503 bytes（约 5.2 MiB）
+- SHA-256：`7583f7e9337df26f989ece0481c87a020e0213a25a57eec6cdcd1bd6fcfff386`
 
-> 2.9.0 本地充电历史与完整优化；测试 328 项全通过。
+> 2.10.1 离线图文帮助、完整内容包与动画统一；测试 328 项全通过。
 
 ## 1. 自动化测试结果
 

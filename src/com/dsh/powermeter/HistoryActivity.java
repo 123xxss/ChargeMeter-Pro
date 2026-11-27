@@ -11,6 +11,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.dsh.powermeter.core.HistoryDb;
+import com.dsh.powermeter.ui.MotionKit;
 import com.dsh.powermeter.ui.UiKit;
 
 import java.text.SimpleDateFormat;
@@ -117,10 +118,11 @@ public final class HistoryActivity extends Activity {
             subView.setEllipsize(android.text.TextUtils.TruncateAt.END);
             card.addView(subView, UiKit.top(this, UiKit.matchWrap(), 3));
             list.addView(card, UiKit.top(this, UiKit.matchWrap(), 8));
+            int motion = com.dsh.powermeter.Prefs.get(this).motionStyle();
+            if (motion != 2) {
+                MotionKit.fadeUp(card, i * 26, UiKit.dp(this, 8), 220, motion);
+            }
         }
-        list.setAlpha(0f);
-        list.setTranslationY(UiKit.dp(this, 8));
-        list.animate().alpha(1f).translationY(0f).setDuration(180).start();
     }
 
     private void confirmClear() {

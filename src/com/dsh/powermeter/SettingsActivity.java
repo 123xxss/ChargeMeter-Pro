@@ -299,6 +299,9 @@ public final class SettingsActivity extends Activity {
         addCard(UiKit.actionRow(this, "充电历史",
                 "本机保存的充电摘要，最多 500 条；不联网、不上传",
                 "查看", v -> startActivity(new Intent(this, HistoryActivity.class))));
+        addCard(UiKit.actionRow(this, "使用帮助",
+                "完全离线的图文手册：功率口径、权限、品牌适配、排障",
+                "打开", v -> startActivity(new Intent(this, HelpActivity.class))));
         addCard(new UiKit.SwitchRow(this, "增强读取（实验性）",
                 "默认关闭。只通过系统标准 sysfs 只读读取电池节点，部分机型不可用，不申请额外权限。",
                 prefs.enhancedReadEnabled(), true,
@@ -360,7 +363,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "2.9.0");
+        addInfo(about, "版本", "2.10.1");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
                 + " · " + DeviceInfo.model());
