@@ -1,7 +1,7 @@
 package com.dsh.powermeter.core;
 
 import android.app.AppOpsManager;
-import android.app.usage.UsageStats;
+import android.app.usage.UsageEvents;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
@@ -12,19 +12,23 @@ import android.provider.Settings;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * 应用使用排行（前台时长占比）与耗电估算。
+ * 最近前台应用排行（默认最近 10 分钟）。
  *
- * Android 不向普通第三方应用开放 BatteryStats 的精确每应用耗电数据；
- * 这里使用用户主动授予的「使用情况访问」权限，按最近 24 小时前台时长占全部
- * 前台时长的比例，结合当前电池功率给出“估算耗电”，页面必须明确标注为估算。
- * 系统应用也一并列出；不做后台精确耗电的承诺。
+ * 使用 UsageEvents（ACTIVITY_RESUMED/PAUSED）计算窗口内的前台区间，
+ * 只列出窗口内真正在前台出现过的应用，避免 queryUsageStats 24 小时聚合
+ * 把很久以前启动过、当前早已不在前台的软件也列出来。
+ *
+ * 精确每应用耗电仍需 BatteryStats 权限；这里按前台时长占比估算并明确标注。
  */
 public final class AppUsageRanker {
 
-    private static final long WINDOW_MS = 24L * 60L * 60L * 1000L;
+    /** 最近窗口：5 分钟，避免“没启动的旧应用”混进排行。 */
+    public static final long WINDOW_MS = 5L * 60L * 1000L;
 
     private AppUsageRanker() {
     }
@@ -53,12 +57,19 @@ public final class AppUsageRanker {
         public final long totalForegroundMs;
         public final List<Entry> entries;
         public final long generatedAt;
+        public final long windowMs;
+        public final String currentPackage;
+        public final String currentLabel;
 
-        Result(boolean hasAccess, long total, List<Entry> entries) {
+        Result(boolean hasAccess, long total, List<Entry> entries,
+               long windowMs, String currentPackage, String currentLabel) {
             this.hasAccess = hasAccess;
             this.totalForegroundMs = total;
             this.entries = entries;
             this.generatedAt = System.currentTimeMillis();
+            this.windowMs = windowMs;
+            this.currentPackage = currentPackage;
+            this.currentLabel = currentLabel;
         }
     }
 
@@ -96,49 +107,103 @@ public final class AppUsageRanker {
 
     public static Result load(Context context, double batteryWatts) {
         boolean access = hasAccess(context);
-        if (!access) return new Result(false, 0, Collections.emptyList());
+        if (!access) {
+            return new Result(false, 0, Collections.emptyList(),
+                    WINDOW_MS, null, null);
+        }
         long end = System.currentTimeMillis();
         long start = end - WINDOW_MS;
-        List<UsageStats> stats = null;
+        UsageEvents events = null;
         try {
             UsageStatsManager usm = (UsageStatsManager)
                     context.getSystemService(Context.USAGE_STATS_SERVICE);
-            if (usm == null) return new Result(true, 0, Collections.emptyList());
-            stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
-            if (stats == null || stats.isEmpty()) {
-                stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_BEST, start, end);
-            }
+            if (usm != null) events = usm.queryEvents(start, end);
         } catch (Throwable ignored) {
         }
-        if (stats == null || stats.isEmpty()) {
-            return new Result(true, 0, Collections.emptyList());
+        if (events == null) {
+            return new Result(true, 0, Collections.emptyList(), WINDOW_MS, null, null);
+        }
+
+        String self = context.getPackageName();
+        Map<String, Long> totals = new HashMap<>();
+        String current = null;
+        long currentStart = 0;
+        UsageEvents.Event e = new UsageEvents.Event();
+        while (events.hasNextEvent()) {
+            try {
+                events.getNextEvent(e);
+            } catch (Throwable t) {
+                break;
+            }
+            String pkg = e.getPackageName();
+            if (pkg == null) continue;
+            long ts = Math.max(start, Math.min(end, e.getTimeStamp()));
+            // 打开本应用时先结束上一个应用的前台区间；本应用自身不参与排行。
+            if (pkg.equals(self)) {
+                if (current != null) {
+                    add(totals, current, Math.max(0, ts - currentStart));
+                    current = null;
+                    currentStart = 0;
+                }
+                continue;
+            }
+            int type = e.getEventType();
+            boolean foreground = type == UsageEvents.Event.ACTIVITY_RESUMED
+                    || type == UsageEvents.Event.MOVE_TO_FOREGROUND;
+            boolean background = type == UsageEvents.Event.ACTIVITY_PAUSED
+                    || type == UsageEvents.Event.MOVE_TO_BACKGROUND
+                    || type == UsageEvents.Event.ACTIVITY_STOPPED;
+            if (foreground) {
+                if (current != null && !current.equals(pkg)) {
+                    add(totals, current, Math.max(0, ts - currentStart));
+                }
+                if (current == null || !current.equals(pkg) || currentStart == 0) {
+                    current = pkg;
+                    currentStart = ts;
+                }
+            } else if (background && pkg.equals(current)) {
+                add(totals, pkg, Math.max(0, ts - currentStart));
+                current = null;
+                currentStart = 0;
+            }
+        }
+        if (current != null) {
+            add(totals, current, Math.max(0, end - currentStart));
         }
 
         PackageManager pm = context.getPackageManager();
-        String self = context.getPackageName();
         List<Entry> raw = new ArrayList<>();
         long total = 0;
-        for (UsageStats u : stats) {
-            if (u == null || u.getPackageName() == null) continue;
-            String pkg = u.getPackageName();
-            if (pkg.equals(self)) continue;
-            long fg = u.getTotalTimeInForeground();
-            if (fg <= 0) continue;
-            total += fg;
-            raw.add(new Entry(pkg, labelOf(pm, pkg), isSystem(pm, pkg), fg, 0, Double.NaN));
+        for (Map.Entry<String, Long> me : totals.entrySet()) {
+            if (self.equals(me.getKey())) continue;
+            long ms = me.getValue() == null ? 0 : me.getValue();
+            if (ms < 500) continue; // 过滤瞬间切前台
+            total += ms;
+            raw.add(new Entry(me.getKey(), labelOf(pm, me.getKey()),
+                    isSystem(pm, me.getKey()), ms, 0, Double.NaN));
         }
-        if (total <= 0) return new Result(true, 0, Collections.emptyList());
+        if (total <= 0) {
+            return new Result(true, 0, Collections.emptyList(), WINDOW_MS, current,
+                    current == null ? null : labelOf(pm, current));
+        }
 
         List<Entry> out = new ArrayList<>(raw.size());
-        for (Entry e : raw) {
-            double pct = e.foregroundMs * 100.0 / total;
+        for (Entry x : raw) {
+            double pct = x.foregroundMs * 100.0 / total;
             double watts = Double.isFinite(batteryWatts) && batteryWatts > 0
-                    ? batteryWatts * e.foregroundMs / total : Double.NaN;
-            out.add(new Entry(e.packageName, e.label, e.system,
-                    e.foregroundMs, pct, watts));
+                    ? batteryWatts * x.foregroundMs / total : Double.NaN;
+            out.add(new Entry(x.packageName, x.label, x.system,
+                    x.foregroundMs, pct, watts));
         }
         Collections.sort(out, (a, b) -> Long.compare(b.foregroundMs, a.foregroundMs));
-        return new Result(true, total, out);
+        String currentLabel = current == null ? null : labelOf(pm, current);
+        return new Result(true, total, out, WINDOW_MS, current, currentLabel);
+    }
+
+    private static void add(Map<String, Long> map, String pkg, long ms) {
+        if (pkg == null || ms <= 0) return;
+        Long old = map.get(pkg);
+        map.put(pkg, (old == null ? 0 : old) + ms);
     }
 
     private static String labelOf(PackageManager pm, String pkg) {

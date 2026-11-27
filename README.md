@@ -6,13 +6,22 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.2.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.0/WattLens-Pro-v2.2.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.2.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.1/WattLens-Pro-v2.2.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.2.0.png)
+![主页、详情、应用耗电排行](docs/preview-v2.2.1.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.2.1 更新（排行改为最近 5 分钟前台）
+
+- 修复应用排行把“很久以前打开过、当前早已不在前台”的软件列出来的问题。
+- 排行改用 Android `UsageEvents`，只统计**最近 5 分钟**真正进入前台的应用，避免 24 小时聚合数据污染。
+- 打开瓦镜自身时结束上一个应用的前台区间，不把已经离开的应用继续算进去。
+- 每 2 秒重新查询事件；主界面 Top 3 每 3 秒刷新。
+- 仍明确标注：普通 Android 无法精确读取 BatteryStats，耗电是前台时长占比估算；后台真实耗电无法读取。
+- 版本 23 / 2.2.1；测试 312 项通过。
 
 ## 2.2.0 更新（主界面内嵌应用排行）
 

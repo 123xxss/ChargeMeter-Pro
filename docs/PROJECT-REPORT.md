@@ -1,13 +1,13 @@
 # 瓦镜 Pro · 项目报告
 
-> 版本：2.2.0（versionCode 22）  
+> 版本：2.2.1（versionCode 23）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[WattLens-Pro-v2.2.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.0/WattLens-Pro-v2.2.0.apk)
+> 下载：[WattLens-Pro-v2.2.1.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.1/WattLens-Pro-v2.2.1.apk)
 
 ---
 
@@ -162,7 +162,11 @@
 
 ### 2.1.0 — 应用耗电排行
 
-### 2.2.0 — 主界面应用排行（当前版本）
+### 2.2.0 — 主界面应用排行
+
+### 2.2.1 — 排行窗口修正（当前版本）
+
+- 改用 UsageEvents 只统计最近 5 分钟前台；切到瓦镜时结束上一个应用。
 
 - 主界面 Top 3（3 秒），完整页前 30（2 秒）；
 - 可选使用情况访问；非精确 BatteryStats 的估算边界。
