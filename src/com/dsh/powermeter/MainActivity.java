@@ -71,18 +71,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private PowerCardView heroCard;
     private PowerChartView chart;
     private LinearLayout chartCard;
-    private TextView pillState;
-    private TextView pillTier;
-    private TextView pillMode;
-    private TextView heroNumber;
-    private TextView heroPlaceholder;
-    private TextView heroPlaceholderSub;
-    private TextView heroNote;
-    private ProgressBar levelBar;
-    private TextView levelText;
-    private TextView heroTemp;
-    private TextView heroEta;
-    private TextView heroSource;
+    private long lastChartTimestamp = -1;
+    private boolean lastSessionActive;
 
     private TextView gridTitle;
     private LinearLayout gridRow1;
@@ -199,7 +189,12 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         chartCard.setVisibility(master ? View.VISIBLE : View.GONE);
         footerCard.setVisibility(master ? View.VISIBLE : View.GONE);
         updateBanner();
-        if (!master) return;
+        if (!master) {
+            if (chart != null) chart.clear();
+            lastChartTimestamp = -1;
+            lastSessionActive = false;
+            return;
+        }
 
         renderHero(snapshot);
         renderGrid(snapshot);
@@ -228,7 +223,15 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private void renderChart(PowerSnapshot s) {
         if (chart == null) return;
         if (s == null) return;
+        if (s.sessionActive && !lastSessionActive) {
+            // 新的一次充电从空曲线开始，避免上一次的旧数据干扰判断。
+            chart.clear();
+            lastChartTimestamp = -1;
+        }
+        lastSessionActive = s.sessionActive;
+        if (s.timestampMs == lastChartTimestamp) return;
         if (s.charging && s.valid && s.chargeW > 0) {
+            lastChartTimestamp = s.timestampMs;
             chart.add(s.chargeW);
         }
     }
@@ -623,6 +626,13 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         heroCard = new PowerCardView(this);
         heroCard.setOnClickListener(v -> DetailDialog.show(MainActivity.this,
                 StateStore.get().latest()));
+        heroCard.setOnLongClickListener(v -> {
+            PowerSnapshot latest = StateStore.get().latest();
+            if (latest != null) {
+                copyText(String.format(java.util.Locale.ROOT, "%.2f W", latest.powerW));
+            }
+            return true;
+        });
     }
 
     private void buildSessionCard() {
@@ -671,16 +681,5 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         int m = UiKit.dp(this, 5);
         lp.setMargins(m, m, m, m);
         row.addView(cell.root, lp);
-    }
-
-    private void setHeroPower(String value) {
-        SpannableStringBuilder builder = new SpannableStringBuilder(value + " W");
-        int start = value.length();
-        int end = builder.length();
-        builder.setSpan(new RelativeSizeSpan(0.36f), start, end,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        builder.setSpan(new ForegroundColorSpan(0xCCFFFFFF), start, end,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        heroNumber.setText(builder);
     }
 }
