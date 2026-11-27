@@ -4,6 +4,8 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.os.StatFs;
 
+import com.dsh.powermeter.shizuku.ShizukuBatterySource;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -62,6 +64,22 @@ public final class SystemStats {
         readStorage(context, b);
         readGpu(b);
         readThermal(b);
+        if (Double.isNaN(b.gpuPercent) || Double.isNaN(b.thermalMaxC)) {
+            try {
+                ShizukuBatterySource.SystemValues v = ShizukuBatterySource.readSystem();
+                if (v != null) {
+                    if (Double.isNaN(b.gpuPercent) && !Double.isNaN(v.gpuPercent)) {
+                        b.gpuPercent = v.gpuPercent;
+                        b.gpuSource = "shizuku";
+                    }
+                    if (Double.isNaN(b.thermalMaxC) && !Double.isNaN(v.thermalC)) {
+                        b.thermalMaxC = v.thermalC;
+                        b.thermalSource = "shizuku";
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+        }
         return new SystemStats(b);
     }
 

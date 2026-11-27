@@ -14,6 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.dsh.powermeter.Prefs;
 import com.dsh.powermeter.R;
@@ -21,6 +22,7 @@ import com.dsh.powermeter.core.ChargeState;
 import com.dsh.powermeter.core.PowerSnapshot;
 import com.dsh.powermeter.core.StateStore;
 import com.dsh.powermeter.core.SystemStats;
+import com.dsh.powermeter.shizuku.ShizukuBatterySource;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -93,6 +95,29 @@ public final class DetailDialog {
         addNote(c, notes, "所有数据仅在本机处理，不上传、不联网。");
         card.addView(notes, UiKit.top(c, UiKit.matchWrap(), 16));
 
+        TextView shizukuHint = UiKit.textColor(c,
+                "GPU/系统温度系统未开放？点此用 Shizuku 尝试读取", 11.5f, accent, true);
+        shizukuHint.setPadding(0, UiKit.dp(c, 10), 0, 0);
+        shizukuHint.setOnClickListener(v -> {
+            try {
+                if (!ShizukuBatterySource.isAvailable()) {
+                    Toast.makeText(c, "未检测到 Shizuku，请先安装并启动 Shizuku",
+                            Toast.LENGTH_LONG).show();
+                } else if (!ShizukuBatterySource.hasPermission()) {
+                    ShizukuBatterySource.requestPermission(activity);
+                    Toast.makeText(c, "请在 Shizuku 弹窗中允许本应用",
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Prefs.get(c).setShizukuReadEnabled(true);
+                    ShizukuBatterySource.bindIfPossible();
+                    Toast.makeText(c, "正在用 Shizuku 读取系统状态",
+                            Toast.LENGTH_SHORT).show();
+                }
+            } catch (Throwable ignored) {
+            }
+        });
+        card.addView(shizukuHint, UiKit.matchWrap());
+
         TextView close = UiKit.primaryButton(c, "关闭", v -> dialog.dismiss());
         LinearLayout.LayoutParams closeLp = UiKit.matchWrap();
         closeLp.height = UiKit.dp(c, 46);
@@ -102,19 +127,28 @@ public final class DetailDialog {
         ScrollView scroll = new ScrollView(c);
         scroll.setClipToPadding(false);
         scroll.setBackgroundColor(Color.TRANSPARENT);
+        scroll.setFillViewport(false);
+        scroll.setVerticalScrollBarEnabled(true);
+        scroll.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
         int margin = UiKit.dp(c, 20);
         scroll.setPadding(margin, margin, margin, margin);
         scroll.addView(card, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        // 关键：给 Dialog 内容一个确定的高度，ScrollView 才真正获得可滚动视口，
+        // 否则内容会按 wrap_content 测量，窗口/顶部会被系统裁掉。
+        scroll.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         dialog.setContentView(scroll);
         dialog.setCanceledOnTouchOutside(true);
 
         // 实时刷新：每帧直接更新行文本，不重建弹窗。
         updateRows(c, rows, initial != null ? initial : StateStore.get().latest());
+        updateSystemHint(shizukuHint, initial != null ? initial : StateStore.get().latest());
         StateStore.Listener listener = snapshot -> {
             try {
                 updateRows(c, rows, snapshot);
+                updateSystemHint(shizukuHint, snapshot);
             } catch (Throwable ignored) {
             }
         };
@@ -128,8 +162,11 @@ public final class DetailDialog {
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
             window.setDimAmount(0.55f);
-            int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.86f);
+            // 只占屏幕 78%，上下留出安全区；内容由 ScrollView 完整滚动。
+            int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.78f);
+            window.setGravity(android.view.Gravity.CENTER);
             window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height);
+            window.getDecorView().setPadding(0, UiKit.dp(c, 8), 0, UiKit.dp(c, 8));
         }
     }
 
@@ -192,6 +229,14 @@ public final class DetailDialog {
             set(rows, "系统温度", Double.isNaN(st.thermalMaxC) ? "系统未开放" : st.thermalSummary());
             set(rows, "存储", st.storageSummary());
         }
+    }
+
+    private static void updateSystemHint(TextView hint, PowerSnapshot s) {
+        if (hint == null) return;
+        SystemStats st = s == null ? null : s.systemStats;
+        boolean unavailable = st == null || Double.isNaN(st.gpuPercent)
+                || Double.isNaN(st.thermalMaxC);
+        hint.setVisibility(unavailable ? View.VISIBLE : View.GONE);
     }
 
     private static String powerText(PowerSnapshot s) {

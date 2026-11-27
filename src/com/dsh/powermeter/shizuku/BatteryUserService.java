@@ -36,6 +36,50 @@ public class BatteryUserService extends IBatteryUserService.Stub {
     }
 
     @Override
+    public String readSystem() {
+        double thermal = Double.NaN;
+        double gpu = Double.NaN;
+        for (int i = 0; i <= 30; i++) {
+            String raw = read("/sys/class/thermal/thermal_zone" + i + "/temp");
+            if (raw.isEmpty()) continue;
+            try {
+                double v = Double.parseDouble(raw);
+                double c = v > 2_000 ? v / 1_000.0 : (v > 200 ? v / 10.0 : v);
+                if (c > -20 && c < 120 && (Double.isNaN(thermal) || c > thermal)) thermal = c;
+            } catch (Throwable ignored) {
+            }
+        }
+        String[] gpuPaths = {
+                "/sys/class/kgsl/kgsl-3d0/gpubusy",
+                "/sys/kernel/gpu/gpu_busy",
+                "/sys/class/drm/card0/device/gpu_busy_percent"
+        };
+        for (String path : gpuPaths) {
+            String raw = read(path);
+            if (raw.isEmpty()) continue;
+            try {
+                String[] p = raw.split("\\s+");
+                if (p.length >= 2) {
+                    double busy = Double.parseDouble(p[0]);
+                    double total = Double.parseDouble(p[1]);
+                    if (total > 0) {
+                        gpu = Math.max(0, Math.min(100, busy * 100.0 / total));
+                        break;
+                    }
+                } else {
+                    double v = Double.parseDouble(p[0]);
+                    if (v >= 0 && v <= 100) {
+                        gpu = v;
+                        break;
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+        return thermal + ";" + gpu;
+    }
+
+    @Override
     public String readBattery() {
         StringBuilder sb = new StringBuilder(96);
         for (int i = 0; i < PATHS.length; i++) {

@@ -36,6 +36,7 @@ import com.dsh.powermeter.core.PowerSnapshot;
 import com.dsh.powermeter.core.SessionTracker;
 import com.dsh.powermeter.core.StateStore;
 import com.dsh.powermeter.service.PowerService;
+import com.dsh.powermeter.shizuku.ShizukuBatterySource;
 import com.dsh.powermeter.ui.DetailDialog;
 import com.dsh.powermeter.ui.PowerCardView;
 import com.dsh.powermeter.ui.PowerChartView;
@@ -78,6 +79,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private UiKit.Metric sysRam;
     private UiKit.Metric sysGpu;
     private UiKit.Metric sysThermal;
+    private TextView systemHint;
 
     private TextView gridTitle;
     private LinearLayout gridRow1;
@@ -257,7 +259,14 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             sysRam.label.setText("可用内存");
             sysGpu.label.setText("GPU");
             sysThermal.label.setText("系统温度");
+            systemHint.setVisibility(View.VISIBLE);
+            systemHint.setText("系统状态读取中 · 点此用 Shizuku 尝试读取");
             return;
+        }
+        boolean unavailable = Double.isNaN(st.gpuPercent) || Double.isNaN(st.thermalMaxC);
+        systemHint.setVisibility(unavailable ? View.VISIBLE : View.GONE);
+        if (unavailable) {
+            systemHint.setText("GPU/系统温度未开放 · 点此用 Shizuku 尝试读取");
         }
         sysCpu.value.setText(st.cpuSummary());
         sysCpu.label.setText("CPU" + (st.cpuCores > 0 ? " · " + st.cpuCores + " 核" : ""));
@@ -269,6 +278,26 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         sysGpu.label.setText(Double.isNaN(st.gpuPercent) ? "GPU（系统未开放）" : "GPU 使用率");
         sysThermal.value.setText(st.thermalSummary());
         sysThermal.label.setText(Double.isNaN(st.thermalMaxC) ? "系统温度（未开放）" : "系统最高温度");
+    }
+
+    private void openShizukuForStats() {
+        try {
+            if (!ShizukuBatterySource.isAvailable()) {
+                Toast.makeText(this, "未检测到 Shizuku，请先安装并启动 Shizuku", Toast.LENGTH_LONG).show();
+                return;
+            }
+            if (!ShizukuBatterySource.hasPermission()) {
+                ShizukuBatterySource.requestPermission(this);
+                Toast.makeText(this, "请在 Shizuku 弹窗中允许本应用", Toast.LENGTH_LONG).show();
+                return;
+            }
+            Prefs.get(this).setShizukuReadEnabled(true);
+            ShizukuBatterySource.bindIfPossible();
+            Toast.makeText(this, "正在用 Shizuku 读取系统状态", Toast.LENGTH_SHORT).show();
+            ChargeEngine.get(this).sampleNow();
+        } catch (Throwable t) {
+            Toast.makeText(this, "Shizuku 操作失败", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void renderSession(PowerSnapshot s) {
@@ -644,6 +673,10 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         addCell(sysRow2, sysThermal);
         systemCard.addView(sysRow1, UiKit.top(this, UiKit.matchWrap(), 8));
         systemCard.addView(sysRow2, UiKit.matchWrap());
+        systemHint = UiKit.textColor(this, "", 11f, getColor(R.color.accent), true);
+        systemHint.setPadding(0, UiKit.dp(this, 8), 0, 0);
+        systemHint.setOnClickListener(v -> openShizukuForStats());
+        systemCard.addView(systemHint, UiKit.matchWrap());
         root.addView(systemCard, UiKit.top(this, UiKit.matchWrap(), 12));
 
         // 本次 / 上次充电
