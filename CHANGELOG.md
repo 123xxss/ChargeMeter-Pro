@@ -1,5 +1,11 @@
 # 变更记录
 
+## 1.1.2（充电卡片布局修复）
+
+- 充电主卡片改为固定 340dp 紧凑高度、顶部对齐，修复卡片被拉满屏幕、内容不在预期位置的问题。
+- 关闭 ScrollView fillViewport，避免视口二次拉伸。
+- 版本 4 / 1.1.2。
+
 ## 1.1.1（Android 16 启动闪退修复）
 
 - 修复：Android 16 上首次打开闪退 `NullPointerException: PhoneWindow.getInsetsController() ... DecorView null`。

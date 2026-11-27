@@ -4,6 +4,11 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；并对 vivo / OPPO / 小米的电流符号、双电芯电压、单位上报差异做归一化，尽量做到「数字可解释、异常不瞎跳」。
 
+## 1.1.2 布局修复
+
+- 充电主卡片固定为 340dp 紧凑高度并顶部对齐，不再被某些 ROM 的 `ScrollView`/权重测量拉满整屏。
+- 关闭 `fillViewport`，避免内容高度被视口二次拉伸。
+
 ## 1.1.1 修复（重要）
 
 - **修复 Android 16（SDK 36）首次打开闪退**：`UiKit.styleSystemBars` 在 `setContentView` 之前调用 `Window.getInsetsController()`，此时 `DecorView` 还没创建，`PhoneWindow.getInsetsController()` 抛出 `NullPointerException`。

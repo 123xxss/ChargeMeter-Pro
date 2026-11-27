@@ -634,7 +634,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
     private void buildUi() {
         ScrollView scroll = new ScrollView(this);
-        scroll.setFillViewport(true);
+        scroll.setFillViewport(false);
         scroll.setClipToPadding(false);
         scroll.setBackgroundColor(getColor(R.color.bg));
 
@@ -685,9 +685,12 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         buildMasterOffCard();
         root.addView(masterOffCard, UiKit.top(this, UiKit.matchWrap(), 14));
 
-        // 主视觉卡片
+        // 主视觉卡片：固定紧凑高度，不再随屏幕/权重拉伸
         buildHeroCard();
-        root.addView(heroCard, UiKit.top(this, UiKit.matchWrap(), 14));
+        LinearLayout.LayoutParams heroLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, UiKit.dp(this, 340));
+        heroLp.topMargin = UiKit.dp(this, 14);
+        root.addView(heroCard, heroLp);
 
         // 四宫格指标
         gridTitle = UiKit.section(this, "实时指标");
@@ -741,6 +744,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         heroCard.setPadding(hp, UiKit.dp(this, 18), hp, UiKit.dp(this, 16));
         heroCard.setBackground(UiKit.gradient(this, getColor(R.color.hero_start),
                 getColor(R.color.hero_end), 24f));
+        // 明确顶部对齐 + 固定紧凑高度：避免某些 ROM 上横向权重/insets 导致卡片被撑满屏幕。
+        heroCard.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
 
         LinearLayout stateRow = UiKit.row(this);
         pillState = UiKit.pill(this, "读取中", 0xFFFFFFFF, 0x33FFFFFF);
