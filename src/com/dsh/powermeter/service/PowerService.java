@@ -93,6 +93,7 @@ public final class PowerService extends Service implements StateStore.Listener {
 
         // 1) 先建渠道 + 立刻进入前台（重活之后再做）
         NotificationHelper.ensureChannel(this);
+        NotificationHelper.resetArtifacts(this);
         // 先只用最基础的字段进入前台：避免自定义 action / 图标加载失败导致
         // startForeground 失败，进而触发系统级 RemoteServiceException 闪退。
         boolean ok = false;

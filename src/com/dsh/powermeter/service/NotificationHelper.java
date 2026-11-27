@@ -35,11 +35,13 @@ public final class NotificationHelper {
     private static final String TAG = "PowerNotification";
 
     /** 通知渠道 id（与 PRD 一致）。 */
-    // 2.4.1：换新 channel id，强制状态栏/通知中心丢弃旧图标缓存。
-    public static final String CHANNEL_ID = "charge_monitor_v2";
+    // 2.4.2：再次换新 channel id，并在设置中提供“重置状态栏通知”。
+    public static final String CHANNEL_ID = "charge_monitor_v3";
+    private static final String[] LEGACY_CHANNELS = {"charge_monitor", "charge_monitor_v2"};
 
     /** 常驻通知 id：前台服务与后续刷新共用同一条通知。 */
-    public static final int NOTIFICATION_ID = 0x504D; // "PM"
+    public static final int NOTIFICATION_ID = 0x504E;
+    private static final int LEGACY_NOTIFICATION_ID = 0x504D;
 
     private static final int REQ_OPEN_MAIN = 1;
     private static final int REQ_OPEN_SETTINGS = 2;
@@ -72,9 +74,30 @@ public final class NotificationHelper {
             channel.setShowBadge(false);
             channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             nm.createNotificationChannel(channel);
+            // 升级后清掉旧 channel，避免旧 channel/图标缓存继续显示。
+            for (String old : LEGACY_CHANNELS) {
+                try { nm.deleteNotificationChannel(old); } catch (Throwable ignored) { }
+            }
         } catch (Throwable t) {
             Log.w(TAG, "创建通知渠道失败：" + t.getClass().getSimpleName());
         }
+    }
+
+    /** 设置页“重置状态栏通知”：取消本应用旧通知并重建渠道。 */
+    public static void resetArtifacts(Context context) {
+        if (context == null) return;
+        try {
+            NotificationManager nm = (NotificationManager)
+                    context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm == null) return;
+            try { nm.cancel(LEGACY_NOTIFICATION_ID); } catch (Throwable ignored) { }
+            try { nm.cancel(NOTIFICATION_ID); } catch (Throwable ignored) { }
+            for (String old : LEGACY_CHANNELS) {
+                try { nm.deleteNotificationChannel(old); } catch (Throwable ignored) { }
+            }
+        } catch (Throwable ignored) {
+        }
+        ensureChannel(context);
     }
 
     // ------------------------------------------------------------------ 内容

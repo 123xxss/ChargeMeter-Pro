@@ -1,13 +1,13 @@
 # 瓦镜 Pro · 项目报告
 
-> 版本：2.4.1（versionCode 29）  
+> 版本：2.4.2（versionCode 30）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[WattLens-Pro-v2.4.1.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.1/WattLens-Pro-v2.4.1.apk)
+> 下载：[WattLens-Pro-v2.4.2.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.2/WattLens-Pro-v2.4.2.apk)
 
 ---
 
@@ -176,7 +176,11 @@
 
 ### 2.4.0 — 状态栏开关/图标/动画
 
-### 2.4.1 — 通知图标缓存修复（当前版本）
+### 2.4.1 — 通知图标缓存修复
+
+### 2.4.2 — 状态栏通知重置（当前版本）
+
+- 新 channel v3/新通知 ID；设置内一键重置状态栏通知。
 
 - 新 small icon 资源、新 channel、新 large icon，修复状态栏旧闪电缓存。
 

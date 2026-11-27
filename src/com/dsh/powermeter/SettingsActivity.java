@@ -335,6 +335,9 @@ public final class SettingsActivity extends Activity {
                 "Android 13 起需要通知权限才能显示状态栏卡片",
                 notificationsAllowed ? "已允许" : "未允许",
                 v -> BrandCompat.openNotificationSettings(this)));
+        addCard(UiKit.actionRow(this, "重置状态栏通知",
+                "升级后仍显示旧图标/通知异常时点此；会清空本应用通知并重建渠道，不影响设置和数据。",
+                "重置", v -> resetNotificationArtifacts()));
 
         LinearLayout oem = UiKit.card(this);
         oem.addView(UiKit.text(this, "机型提示 · " + BrandCompat.brandDisplayName(),
@@ -353,7 +356,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "2.4.1");
+        addInfo(about, "版本", "2.4.2");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
                 + " · " + DeviceInfo.model());
@@ -447,6 +450,27 @@ public final class SettingsActivity extends Activity {
             rebuildContent();
         } catch (Throwable t) {
             Toast.makeText(this, "Shizuku 操作失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void resetNotificationArtifacts() {
+        try {
+            PowerService.stop(this);
+            NotificationHelper.resetArtifacts(this);
+            boolean restart = Prefs.get(this).masterEnabled()
+                    && Prefs.get(this).notificationEnabled();
+            if (restart) {
+                content.postDelayed(() -> {
+                    try {
+                        NotificationHelper.ensureChannel(this);
+                        PowerService.startFromActivity(this);
+                    } catch (Throwable ignored) {
+                    }
+                }, 350L);
+            }
+            Toast.makeText(this, "状态栏通知已重置，稍后自动恢复", Toast.LENGTH_SHORT).show();
+        } catch (Throwable t) {
+            Toast.makeText(this, "重置失败，请重启应用", Toast.LENGTH_SHORT).show();
         }
     }
 

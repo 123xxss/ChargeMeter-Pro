@@ -6,13 +6,21 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.4.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.1/WattLens-Pro-v2.4.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.4.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.2/WattLens-Pro-v2.4.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.4.1.png)
+![主页、详情、应用耗电排行](docs/preview-v2.4.2.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.4.2 更新（状态栏通知重置）
+
+- 新增全新 channel `charge_monitor_v3`、新通知 ID，并在服务启动时清理旧 channel/通知。
+- 设置 → 后台运行新增「重置状态栏通知」：升级后仍显示旧图标/通知异常时可一键清空本应用通知并重建渠道，不影响数据。
+- 通知大图标使用瓦镜新图标；小图标是镜头+闪电单色剪影。
+- 如果仍然显示旧图标，请先确认设置 → 关于版本是 **2.4.2**；从旧版覆盖安装仍不生效时，卸载旧版再安装（部分厂商会缓存 App/通知图标）。
+- 版本 30 / 2.4.2；测试 313 项通过。
 
 ## 2.4.1 更新（通知图标缓存修复）
 
