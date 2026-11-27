@@ -4,9 +4,14 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v1.5.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.5.1/ChargeMeter-Pro-v1.5.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v1.5.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.5.2/ChargeMeter-Pro-v1.5.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 1.5.2 更新（关于页作者/仓库）
+
+- 设置 → 关于页新增：作者 `123xxss`、开源仓库地址，以及「打开 GitHub 仓库」按钮。
+- 版本 12 / 1.5.2；测试 312 项通过。
 
 ## 1.5.1 更新（设置清理 + 兜底修复）
 
