@@ -164,8 +164,8 @@ public final class BatteryReader {
         return lastBatteryIntent;
     }
 
-    /** @param enhanced 是否尝试只读 sysfs 增强路径 */
-    public RawBattery read(boolean enhanced) {
+    /** @param enhanced 是否尝试只读 sysfs 增强路径；@param shizuku 是否尝试 Shizuku 只读路径 */
+    public RawBattery read(boolean enhanced, boolean shizuku) {
         Intent intent = stickyIntent();
         RawBattery.Builder b = RawBattery.builder().timestampMs(System.currentTimeMillis());
 
@@ -255,6 +255,24 @@ public final class BatteryReader {
                 if (counter < 0 && v.chargeCounterUah > 0) {
                     b.chargeCounterUah(v.chargeCounterUah);
                 }
+            }
+        }
+        // Shizuku 只读 UserService（实验性）：不可用时保持标准路径
+        if (shizuku) {
+            try {
+                com.dsh.powermeter.shizuku.ShizukuBatterySource.Values v =
+                        com.dsh.powermeter.shizuku.ShizukuBatterySource.read();
+                if (v != null) {
+                    b.sysfsVoltageV(v.voltageV)
+                            .sysfsCurrentA(v.currentA)
+                            .sysfsTempC(v.tempC)
+                            .sysfsStatus(v.status);
+                    if (counter < 0 && v.chargeCounterUah > 0) {
+                        b.chargeCounterUah(v.chargeCounterUah);
+                    }
+                }
+            } catch (Throwable ignored) {
+                // fail-closed：Shizuku 不可用时完全走标准路径
             }
         }
         return b.build();

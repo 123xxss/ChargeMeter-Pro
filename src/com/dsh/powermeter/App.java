@@ -21,5 +21,11 @@ public final class App extends Application {
         } catch (Throwable t) {
             CrashReporter.record(this, t);
         }
+        // Shizuku 只读增强读取：初始化监听但不主动请求权限。
+        try {
+            com.dsh.powermeter.shizuku.ShizukuBatterySource.init(this);
+        } catch (Throwable t) {
+            CrashReporter.record(this, t);
+        }
     }
 }

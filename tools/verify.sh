@@ -23,9 +23,9 @@ echo "== 2) 导出组件"
 XML=$($AAPT2 dump xmltree --file AndroidManifest.xml "$APK" 2>/dev/null || true)
 EXPORTED_TRUE=$(echo "$XML" | grep -c 'android:exported.*=true' || true)
 # 只允许 MainActivity 导出；用组件块粗校验
-if [ "$EXPORTED_TRUE" -ne 1 ]; then
+if [ "$EXPORTED_TRUE" -ne 2 ]; then
   echo "$XML" | grep -B3 -A3 'android:exported' | head -40
-  fail "导出组件数量大于 1（仅允许 Launcher Activity）"
+  fail "导出组件数量异常（仅允许 Launcher + 受系统权限保护的 ShizukuProvider）"
 else
   note "导出组件数量: $EXPORTED_TRUE"
 fi

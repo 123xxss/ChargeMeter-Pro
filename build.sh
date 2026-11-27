@@ -22,11 +22,12 @@ Q="${QEMU:-}"
 if [ -z "$Q" ] && [ "$(uname -m)" != "x86_64" ]; then
   if command -v qemu-x86_64-static >/dev/null 2>&1; then Q="qemu-x86_64-static"; fi
 fi
-VERSION_CODE="${VERSION_CODE:-4}"
-VERSION_NAME="${VERSION_NAME:-1.1.2}"
+VERSION_CODE="${VERSION_CODE:-5}"
+VERSION_NAME="${VERSION_NAME:-1.2.0}"
 
 P="$(cd "$(dirname "$0")" && pwd)"
 OUT="$P/build"
+LIBS="$P/libs"
 KS="$P/signing.keystore"
 ALIAS="${KEY_ALIAS:-powermeter}"
 APK="$P/powermeter.apk"
@@ -45,6 +46,7 @@ fi
 rm -rf "$OUT"
 mkdir -p "$OUT/gen" "$OUT/classes"
 
+
 echo "== 1/7 编译资源"
 $Q "$BT/aapt2" compile --dir "$P/res" -o "$OUT/res.zip"
 
@@ -60,12 +62,12 @@ $Q "$BT/aapt2" link -o "$OUT/base.apk" \
 echo "== 3/7 javac"
 find "$P/src" "$OUT/gen" -name '*.java' > "$OUT/sources.txt"
 javac -nowarn -Xlint:-options -source 17 -target 17 -encoding UTF-8 \
-  -classpath "$PLAT" -d "$OUT/classes" @"$OUT/sources.txt"
+  -classpath "$PLAT:$LIBS/*" -d "$OUT/classes" @"$OUT/sources.txt"
 
 echo "== 4/7 d8"
 find "$OUT/classes" -name '*.class' > "$OUT/classes.txt"
 java -cp "$BT/lib/d8.jar" com.android.tools.r8.D8 --release --min-api 29 \
-  --lib "$PLAT" --output "$OUT" @"$OUT/classes.txt"
+  --lib "$PLAT" --output "$OUT" @"$OUT/classes.txt" "$LIBS"/*.jar
 
 echo "== 5/7 打包 classes.dex"
 python3 - "$OUT" <<'PY'

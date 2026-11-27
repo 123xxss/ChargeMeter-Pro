@@ -49,10 +49,12 @@ mkdir -p "$OUT"
 # core 的 ChargeEngine / BatteryReader 引用 App 层的 Prefs / BrandCompat（编译期符号），
 # 因此把它们一起加入 javac 源文件列表。运行时不加载这两个类，测试仍只实例化纯算法类。
 CORE_SRC="$ROOT/src/com/dsh/powermeter/core"
+SHIZUKU_SRC="$ROOT/src/com/dsh/powermeter/shizuku"
 DEP_SRCS=(
   "$ROOT/src/com/dsh/powermeter/Prefs.java"
   "$ROOT/src/com/dsh/powermeter/BrandCompat.java"
 )
+LIBS_CP="$ROOT/libs/*"
 for f in "${DEP_SRCS[@]}"; do
   if [ ! -f "$f" ]; then
     echo "FAIL 环境：缺少编译依赖 $f"
@@ -61,7 +63,7 @@ for f in "${DEP_SRCS[@]}"; do
   fi
 done
 {
-  find "$CORE_SRC" "$HERE/com" -name '*.java'
+  find "$CORE_SRC" "$SHIZUKU_SRC" "$HERE/com" -name '*.java'
   printf '%s\n' "${DEP_SRCS[@]}"
 } | sort > "$BUILD/sources.txt"
 
@@ -72,7 +74,7 @@ echo
 # ---------------------------------------------------------------- 1/3 编译
 echo "== 1/3 编译 src/com/dsh/powermeter/core + Prefs/BrandCompat + tests"
 if ! javac -nowarn -encoding UTF-8 -source 17 -target 17 \
-        -classpath "$PLAT" -d "$OUT" @"$BUILD/sources.txt" >"$BUILD/javac.log" 2>&1; then
+        -classpath "$PLAT:$LIBS_CP" -d "$OUT" @"$BUILD/sources.txt" >"$BUILD/javac.log" 2>&1; then
   echo "FAIL 编译：javac 失败"
   sed 's/^/    /' "$BUILD/javac.log" | tail -40
   echo

@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：1.1.2（versionCode 4）
+- 版本：1.2.0（versionCode 5）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
-- APK：`powermeter.apk`，190,483 bytes
-- SHA-256：`ee7cdcc405744c39618df67226397942cc76ef8285dff7a835c10d2508d3508e`
+- APK：`powermeter.apk`，215,059 bytes
+- SHA-256：`f7cb6071eb8779e90a735e5745c307ff85e501e53bf5bea3714d8fccb97fc1af`
 
-> 1.1.1 修复了 Android 16 上 `WindowInsetsController` 空指针闪退；测试仍为 301 项全通过。
+> 1.2.0 新增自绘紧凑功率卡、充电动画与 Shizuku 只读增强；测试仍为 301 项全通过。
 
 ## 1. 自动化测试结果
 

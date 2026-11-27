@@ -37,6 +37,7 @@ import com.dsh.powermeter.core.SessionTracker;
 import com.dsh.powermeter.core.StateStore;
 import com.dsh.powermeter.service.PowerService;
 import com.dsh.powermeter.ui.DetailDialog;
+import com.dsh.powermeter.ui.PowerCardView;
 import com.dsh.powermeter.ui.UiKit;
 
 /**
@@ -66,7 +67,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
     private LinearLayout masterOffCard;
 
-    private LinearLayout heroCard;
+    private PowerCardView heroCard;
     private TextView pillState;
     private TextView pillTier;
     private TextView pillMode;
@@ -202,154 +203,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     }
 
     private void renderHero(PowerSnapshot s) {
-        Prefs prefs = Prefs.get(this);
-        boolean showTemp = s != null ? s.showTemperature : prefs.showTemperature();
-        boolean showEta = s != null ? s.showEstimate : prefs.showEstimate();
-        boolean showTier = s != null ? s.showTier : prefs.showTier();
-        boolean realtime = s != null && s.realtime;
-        ChargeState state = s == null ? null : s.state;
-        boolean warn = state == ChargeState.ABNORMAL;
-
-        heroCard.setBackground(UiKit.gradient(this,
-                getColor(warn ? R.color.hero_warn_start : R.color.hero_start),
-                getColor(warn ? R.color.hero_warn_end : R.color.hero_end), 24f));
-
-        // 状态标签
-        String stateLabel;
-        if (s == null || state == null) {
-            stateLabel = "读取中";
-        } else {
-            stateLabel = state.label;
-        }
-        UiKit.stylePill(this, pillState, stateLabel, 0xFFFFFFFF, 0x33FFFFFF);
-
-        // 档位标签（实时功耗模式下档位含义不同，不展示）
-        boolean showTierPill = s != null && showTier && !realtime && s.tier != null
-                && (state == ChargeState.CHARGING || state == ChargeState.PAUSED
-                || state == ChargeState.FULL);
-        if (showTierPill) {
-            pillTier.setVisibility(View.VISIBLE);
-            pillTier.setText(s.tier.label);
-        } else {
-            pillTier.setVisibility(View.GONE);
-        }
-
-        // 模式标签
-        boolean showMode = s != null && (realtime || state == ChargeState.CHARGING
-                || state == ChargeState.PAUSED || state == ChargeState.FULL);
-        if (showMode) {
-            pillMode.setVisibility(View.VISIBLE);
-            pillMode.setText(s.modeLabel == null ? "" : s.modeLabel);
-        } else {
-            pillMode.setVisibility(View.GONE);
-        }
-
-        // 主数值 / 占位提示
-        String placeholder = null;
-        String placeholderSub = null;
-        String powerText = null;
-        if (s == null) {
-            placeholder = "功率读取中";
-            placeholderSub = "正在读取电池数据";
-        } else if (state == ChargeState.UNPLUGGED && !realtime) {
-            placeholder = "接入电源后自动显示";
-            placeholderSub = "插上充电器即可读取实时功率";
-        } else if (state == ChargeState.UNAVAILABLE) {
-            placeholder = "功率读取中/暂不可用";
-            placeholderSub = s.invalidReason != null && s.invalidReason.length() > 0
-                    ? s.invalidReason : "部分机型不支持读取充电功率";
-        } else if (realtime && !s.currentSupported) {
-            placeholder = "功率读取中/暂不可用";
-            placeholderSub = "当前机型不支持读取电流";
-        } else if (realtime && s.nearZero) {
-            placeholder = "接近零";
-            placeholderSub = "电池放电中，净功耗接近零";
-        } else if (realtime && s.powerW <= 0.05) {
-            placeholder = "接近零";
-            placeholderSub = state == ChargeState.UNPLUGGED ? "电池放电中" : "电池放电中，净功耗接近零";
-        } else if (!s.valid || s.powerW <= 0.049) {
-            if (state == ChargeState.FULL) {
-                placeholder = "已充满";
-                placeholderSub = "已连接电源";
-            } else if (state == ChargeState.PAUSED) {
-                placeholder = "充电已暂停";
-                placeholderSub = "当前未向电池充电";
-            } else {
-                placeholder = "功率读取中/暂不可用";
-                placeholderSub = null;
-            }
-        } else {
-            powerText = UiKit.watts(s.powerW);
-        }
-
-        if (powerText != null) {
-            heroNumber.setVisibility(View.VISIBLE);
-            heroPlaceholder.setVisibility(View.GONE);
-            heroPlaceholderSub.setVisibility(View.GONE);
-            setHeroPower(powerText);
-        } else {
-            heroNumber.setVisibility(View.GONE);
-            heroPlaceholder.setVisibility(View.VISIBLE);
-            heroPlaceholder.setText(placeholder);
-            if (placeholderSub != null && placeholderSub.length() > 0) {
-                heroPlaceholderSub.setVisibility(View.VISIBLE);
-                heroPlaceholderSub.setText(placeholderSub);
-            } else {
-                heroPlaceholderSub.setVisibility(View.GONE);
-            }
-        }
-
-        // 异常 / 配件提示
-        String note = null;
-        if (s != null) {
-            if (s.abnormalText != null && s.abnormalText.length() > 0) {
-                note = s.abnormalText;
-            } else if (s.accessoryText != null && s.accessoryText.length() > 0) {
-                note = s.accessoryText;
-            }
-        }
-        if (note != null) {
-            heroNote.setVisibility(View.VISIBLE);
-            heroNote.setText(note);
-        } else {
-            heroNote.setVisibility(View.GONE);
-        }
-
-        // 电量进度
-        int level = s == null ? -1 : s.level;
-        if (level >= 0) {
-            levelBar.setVisibility(View.VISIBLE);
-            levelBar.setProgress(level);
-            levelText.setText(level + "%");
-        } else {
-            levelBar.setVisibility(View.INVISIBLE);
-            levelText.setText("--%");
-        }
-
-        // 温度 / 预估充满时间
-        if (showTemp) {
-            heroTemp.setVisibility(View.VISIBLE);
-            heroTemp.setText("温度 " + (s == null ? "--" : UiKit.temp(s.temperatureC)) + " °C");
-        } else {
-            heroTemp.setVisibility(View.GONE);
-        }
-        if (showEta) {
-            String eta = "估算中";
-            if (s != null && state == ChargeState.FULL) {
-                eta = "已充满";
-            } else if (s != null && state == ChargeState.UNPLUGGED && !realtime) {
-                eta = "--";
-            } else if (s != null && s.estimateValid && s.remainingSeconds > 0) {
-                eta = UiKit.duration(s.remainingSeconds * 1000L);
-            }
-            heroEta.setVisibility(View.VISIBLE);
-            heroEta.setText("充满 " + eta);
-        } else {
-            heroEta.setVisibility(View.GONE);
-        }
-
-        String source = s == null || s.sourceLabel == null ? "读取中" : s.sourceLabel;
-        heroSource.setText("数据来源：" + source);
+        // 所有绘制在 PowerCardView 内部完成，避免子视图测量/权重导致的缺失与拉伸。
+        heroCard.setData(s);
     }
 
     private void renderGrid(PowerSnapshot s) {
@@ -685,10 +540,10 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         buildMasterOffCard();
         root.addView(masterOffCard, UiKit.top(this, UiKit.matchWrap(), 14));
 
-        // 主视觉卡片：固定紧凑高度，不再随屏幕/权重拉伸
+        // 主视觉卡片：自绘紧凑卡，固定高度，内容不会因布局测量被挤掉
         buildHeroCard();
         LinearLayout.LayoutParams heroLp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, UiKit.dp(this, 340));
+                LinearLayout.LayoutParams.MATCH_PARENT, UiKit.dp(this, 236));
         heroLp.topMargin = UiKit.dp(this, 14);
         root.addView(heroCard, heroLp);
 
@@ -739,84 +594,9 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     }
 
     private void buildHeroCard() {
-        heroCard = UiKit.column(this);
-        int hp = UiKit.dp(this, 20);
-        heroCard.setPadding(hp, UiKit.dp(this, 18), hp, UiKit.dp(this, 16));
-        heroCard.setBackground(UiKit.gradient(this, getColor(R.color.hero_start),
-                getColor(R.color.hero_end), 24f));
-        // 明确顶部对齐 + 固定紧凑高度：避免某些 ROM 上横向权重/insets 导致卡片被撑满屏幕。
-        heroCard.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
-
-        LinearLayout stateRow = UiKit.row(this);
-        pillState = UiKit.pill(this, "读取中", 0xFFFFFFFF, 0x33FFFFFF);
-        stateRow.addView(pillState);
-        View spacer = new View(this);
-        stateRow.addView(spacer, UiKit.weighted(1f));
-        pillTier = UiKit.pill(this, "", 0xFFFFFFFF, 0x26FFFFFF);
-        stateRow.addView(pillTier);
-        heroCard.addView(stateRow, UiKit.matchWrap());
-
-        heroNumber = UiKit.textColor(this, "0.0 W", 56f, 0xFFFFFFFF, true);
-        heroNumber.setIncludeFontPadding(false);
-        heroNumber.setSingleLine(true);
-        heroNumber.setEllipsize(TextUtils.TruncateAt.END);
-        heroCard.addView(heroNumber, UiKit.top(this, UiKit.matchWrap(), 8));
-
-        heroPlaceholder = UiKit.textColor(this, "功率读取中", 26f, 0xFFFFFFFF, true);
-        heroPlaceholder.setLineSpacing(UiKit.dp(this, 2), 1f);
-        heroCard.addView(heroPlaceholder, UiKit.top(this, UiKit.matchWrap(), 10));
-
-        heroPlaceholderSub = UiKit.textColor(this, "", 13f, 0xD9FFFFFF, false);
-        heroPlaceholderSub.setLineSpacing(UiKit.dp(this, 2), 1f);
-        heroPlaceholderSub.setMaxLines(2);
-        heroCard.addView(heroPlaceholderSub, UiKit.top(this, UiKit.matchWrap(), 4));
-
-        pillMode = UiKit.pill(this, "", 0xFFFFFFFF, 0x26FFFFFF);
-        heroCard.addView(pillMode, UiKit.top(this, UiKit.wrapWrap(), 10));
-
-        heroNote = UiKit.textColor(this, "", 12f, 0xFFFFFFFF, true);
-        heroNote.setLineSpacing(UiKit.dp(this, 2), 1f);
-        heroNote.setMaxLines(2);
-        heroNote.setEllipsize(TextUtils.TruncateAt.END);
-        heroCard.addView(heroNote, UiKit.top(this, UiKit.matchWrap(), 10));
-
-        LinearLayout levelRow = UiKit.row(this);
-        levelBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        levelBar.setMax(100);
-        levelBar.setMinimumHeight(UiKit.dp(this, 8));
-        levelBar.setProgressTintList(ColorStateList.valueOf(0xFFFFFFFF));
-        levelBar.setProgressBackgroundTintList(ColorStateList.valueOf(0x3DFFFFFF));
-        levelRow.addView(levelBar, new LinearLayout.LayoutParams(0, UiKit.dp(this, 8), 1f));
-        levelText = UiKit.textColor(this, "--%", 14f, 0xFFFFFFFF, true);
-        levelText.setGravity(android.view.Gravity.END);
-        levelText.setMinWidth(UiKit.dp(this, 46));
-        levelRow.addView(levelText, UiKit.left(this, UiKit.wrapWrap(), 12));
-        heroCard.addView(levelRow, UiKit.top(this, UiKit.matchWrap(), 16));
-
-        LinearLayout infoRow = UiKit.row(this);
-        heroTemp = UiKit.textColor(this, "", 12.5f, 0xE6FFFFFF, false);
-        heroTemp.setSingleLine(true);
-        heroTemp.setEllipsize(TextUtils.TruncateAt.END);
-        heroEta = UiKit.textColor(this, "", 12.5f, 0xE6FFFFFF, false);
-        heroEta.setSingleLine(true);
-        heroEta.setEllipsize(TextUtils.TruncateAt.END);
-        infoRow.addView(heroTemp, UiKit.weighted(1f));
-        infoRow.addView(heroEta, UiKit.weighted(1f));
-        heroCard.addView(infoRow, UiKit.top(this, UiKit.matchWrap(), 10));
-
-        LinearLayout footRow = UiKit.row(this);
-        heroSource = UiKit.textColor(this, "", 11.5f, 0xB3FFFFFF, false);
-        heroSource.setSingleLine(true);
-        heroSource.setEllipsize(TextUtils.TruncateAt.END);
-        footRow.addView(heroSource, UiKit.weighted(1f));
-        TextView detailButton = UiKit.textColor(this, "详情", 13f, 0xFFFFFFFF, true);
-        detailButton.setPadding(UiKit.dp(this, 12), UiKit.dp(this, 5),
-                UiKit.dp(this, 12), UiKit.dp(this, 5));
-        detailButton.setBackground(UiKit.rounded(this, 0x33FFFFFF, 100f));
-        detailButton.setOnClickListener(v -> DetailDialog.show(MainActivity.this,
+        heroCard = new PowerCardView(this);
+        heroCard.setOnClickListener(v -> DetailDialog.show(MainActivity.this,
                 StateStore.get().latest()));
-        footRow.addView(detailButton, UiKit.left(this, UiKit.wrapWrap(), 10));
-        heroCard.addView(footRow, UiKit.top(this, UiKit.matchWrap(), 14));
     }
 
     private void buildSessionCard() {

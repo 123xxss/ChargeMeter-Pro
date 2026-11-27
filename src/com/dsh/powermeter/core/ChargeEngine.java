@@ -163,7 +163,7 @@ public final class ChargeEngine {
             return;
         }
 
-        RawBattery raw = reader.read(prefs.enhancedReadEnabled());
+        RawBattery raw = reader.read(prefs.enhancedReadEnabled(), prefs.shizukuReadEnabled());
         int dualMode = prefs.dualCellMode();
         NormalizedReading n = normalizer.normalize(raw, dualMode, BrandCompat.dualCellFamily());
 

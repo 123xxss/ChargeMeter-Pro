@@ -12,9 +12,11 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.dsh.powermeter.core.ChargeEngine;
 import com.dsh.powermeter.service.PowerService;
+import com.dsh.powermeter.shizuku.ShizukuBatterySource;
 import com.dsh.powermeter.ui.UiKit;
 
 /**
@@ -38,7 +40,18 @@ public final class SettingsActivity extends Activity {
     protected void onResume() {
         super.onResume();
         applySystemBars();
+        ShizukuBatterySource.setPermissionListener(this::runOnUiThread2);
         rebuildContent();
+    }
+
+    private void runOnUiThread2() {
+        runOnUiThread(this::rebuildContent);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ShizukuBatterySource.setPermissionListener(null);
     }
 
     // ---------------------------------------------------------------- 操作
@@ -192,6 +205,13 @@ public final class SettingsActivity extends Activity {
                     Prefs.get(this).setEnhancedReadEnabled(checked);
                     ChargeEngine.get(this).sampleNow();
                 }));
+        addCard(UiKit.actionRow(this, "Shizuku 状态",
+                "只读增强读取：需要安装 Shizuku 并授权；未授权/断连时自动回退标准路径，不执行 shell、不写文件。",
+                shizukuStatus(), v -> requestShizuku()));
+        addCard(new UiKit.SwitchRow(this, "Shizuku 增强读取（实验性）",
+                "默认关闭。通过 Shizuku UserService 只读标准电池节点，提升数据置信度；失败自动回退。",
+                prefs.shizukuReadEnabled(), true,
+                (button, checked) -> setShizukuEnabled(checked)));
 
         // 后台运行
         content.addView(UiKit.section(this, "后台运行"), UiKit.matchWrap());
@@ -221,7 +241,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.1.2");
+        addInfo(about, "版本", "1.2.0");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
         addInfo(about, "口径", "功率为进入电池的功率估算值；边充边用时可能低于充电器实际输出功率。");
         addInfo(about, "权限", "不申请定位、存储、悬浮窗、无障碍等权限。");
@@ -238,6 +258,60 @@ public final class SettingsActivity extends Activity {
         TextView v = UiKit.text(this, value, 13f, R.color.text_primary, false);
         v.setLineSpacing(UiKit.dp(this, 2), 1f);
         parent.addView(v, UiKit.top(this, UiKit.matchWrap(), 3));
+    }
+
+    private String shizukuStatus() {
+        try {
+            if (!ShizukuBatterySource.isAvailable()) return "未安装/未运行";
+            if (!ShizukuBatterySource.hasPermission()) return "未授权";
+            return "已授权";
+        } catch (Throwable t) {
+            return "不可用";
+        }
+    }
+
+    private void requestShizuku() {
+        try {
+            if (!ShizukuBatterySource.isAvailable()) {
+                Toast.makeText(this, "未检测到 Shizuku，请先安装并启动 Shizuku", Toast.LENGTH_LONG).show();
+                return;
+            }
+            if (ShizukuBatterySource.hasPermission()) {
+                ShizukuBatterySource.bindIfPossible();
+                Toast.makeText(this, "已授权，正在连接只读增强读取", Toast.LENGTH_SHORT).show();
+            } else {
+                ShizukuBatterySource.requestPermission(this);
+                Toast.makeText(this, "请在 Shizuku 弹窗中允许本应用", Toast.LENGTH_LONG).show();
+            }
+            rebuildContent();
+        } catch (Throwable t) {
+            Toast.makeText(this, "Shizuku 操作失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void setShizukuEnabled(boolean enabled) {
+        Prefs prefs = Prefs.get(this);
+        if (!enabled) {
+            prefs.setShizukuReadEnabled(false);
+            ShizukuBatterySource.unbind();
+            ChargeEngine.get(this).sampleNow();
+            rebuildContent();
+            return;
+        }
+        if (!ShizukuBatterySource.isAvailable()) {
+            prefs.setShizukuReadEnabled(false);
+            Toast.makeText(this, "未检测到 Shizuku，请先安装并启动", Toast.LENGTH_LONG).show();
+            rebuildContent();
+            return;
+        }
+        prefs.setShizukuReadEnabled(true);
+        if (ShizukuBatterySource.hasPermission()) {
+            ShizukuBatterySource.bindIfPossible();
+        } else {
+            ShizukuBatterySource.requestPermission(this);
+        }
+        ChargeEngine.get(this).sampleNow();
+        rebuildContent();
     }
 
     private String dualLabel(int mode) {

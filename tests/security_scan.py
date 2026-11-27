@@ -206,7 +206,14 @@ def main():
             continue
         if declared.lower() == "true":
             exported_true.append(name)
-            if not is_launcher:
+            # ShizukuProvider 必须 exported=true，并由系统级权限保护；
+            # 这是接入 Shizuku 的官方要求，单独放行并校验权限。
+            is_shizuku_provider = (
+                name.endswith("rikka.shizuku.ShizukuProvider")
+                and (el.get(ANDROID + "permission") or "")
+                == "android.permission.INTERACT_ACROSS_USERS_FULL"
+            )
+            if not is_launcher and not is_shizuku_provider:
                 non_launcher_exported.append(name)
 
     if missing_exported:

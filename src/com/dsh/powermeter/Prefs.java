@@ -133,6 +133,15 @@ public final class Prefs {
         setBool("enhanced_read_enabled", enabled);
     }
 
+    /** Shizuku 只读增强读取（实验性，默认关闭）。 */
+    public boolean shizukuReadEnabled() {
+        return getBool("shizuku_read_enabled", false);
+    }
+
+    public void setShizukuReadEnabled(boolean enabled) {
+        setBool("shizuku_read_enabled", enabled);
+    }
+
     /** 电流单位记忆：0 未知，1 µA，2 mA。用于修正少数 ROM 的电流单位上报差异。 */
     public int currentUnitHint() {
         try {
