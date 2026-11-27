@@ -77,7 +77,19 @@ public final class ChargeNormalizer {
             voltageMv = (int) Math.round(raw.sysfsVoltageV * 1000.0);
             enhanced = true;
         }
-        if (!(voltageMv >= 2500 && voltageMv <= 5000)) {
+        // 兼容两种厂商上报：单电芯电压（常规）或整包电压（部分 OPPO/vivo/小米机型）。
+        // 整包电压时按电芯数还原单芯，功率仍等价于整包 × 电流。
+        double rawVoltageV = voltageMv / 1000.0;
+        double packV;
+        if (voltageMv >= 2500 && voltageMv <= 5000) {
+            packV = rawVoltageV * recommendedCells;
+        } else if (recommendedCells > 1 && voltageMv > 5000 && voltageMv <= 10500) {
+            double cellV = rawVoltageV / recommendedCells;
+            if (cellV < 2.5 || cellV > 5.0) {
+                return referenceInvalid(out, plugged, full, "电压超出单电芯参考范围");
+            }
+            packV = rawVoltageV;
+        } else {
             return referenceInvalid(out, plugged, full, "电压超出单电芯参考范围");
         }
         boolean currentSupported = raw.currentSupported;
@@ -91,7 +103,15 @@ public final class ChargeNormalizer {
         } else {
             return referenceInvalid(out, plugged, full, "本机未开放电流接口");
         }
-        double packV = voltageMv / 1000.0 * recommendedCells;
+        // 标准 µA 时电流通常 > 0.02A；若极小且数值/1000 落在合理 A 范围，
+        // 说明少数 ROM 以 mA 上报（OPPO/vivo/小米部分版本），做一次单位兜底。
+        double rawAbs = Math.abs(raw.currentRaw);
+        if (Math.abs(amps) < 0.02 && rawAbs >= 100 && rawAbs < 30_000) {
+            double milliAmps = raw.currentRaw / 1000.0;
+            if (Math.abs(milliAmps) >= 0.02 && Math.abs(milliAmps) <= 20.0) {
+                amps = milliAmps;
+            }
+        }
         double provisional = Math.abs(amps) * packV;
         if (provisional > 400.0) {
             amps = amps / 1000.0; // 极少数 ROM 以 mA 上报

@@ -13,7 +13,9 @@ final class ReferenceAlgorithmTests {
     static void run() {
         matchesUserScreenshot();
         singleCell();
-        invalidPackVoltage();
+        packVoltage();
+        milliAmpUnit();
+        singleCellPackVoltageInvalid();
         currentUnsupported();
         shizukuFallback();
     }
@@ -36,12 +38,28 @@ final class ReferenceAlgorithmTests {
         TestKit.eqDouble("参考算法单电芯 → 4.3×4.2=18.06W", 18.06, r.chargeW, 0.02);
     }
 
-    private static void invalidPackVoltage() {
+    private static void packVoltage() {
         ChargeNormalizer n = new ChargeNormalizer(0);
         NormalizedReading r = n.normalize(Fixtures.charging(3_000_000L).voltageMv(8600).build(),
                 ChargeNormalizer.DUAL_AUTO, true, 2);
-        TestKit.isFalse("参考算法 8.6V 整包上报 → 不可用（与 ChargeMeter 一致）", r.valid);
-        TestKit.eqDouble("参考算法 8.6V → 不输出功率", 0.0, r.chargeW, 1e-9);
+        TestKit.isTrue("部分品牌整包电压 8.6V/2 芯 → 按整包计算", r.valid);
+        TestKit.eqDouble("整包 8.6V × 3.0A = 25.8W", 25.8, r.chargeW, 0.02);
+        TestKit.eqDouble("整包电压显示仍为 8.60V", 8.60, r.voltageV, 1e-6);
+    }
+
+    private static void milliAmpUnit() {
+        ChargeNormalizer n = new ChargeNormalizer(0);
+        NormalizedReading r = n.normalize(Fixtures.charging(1_880L).voltageMv(3950).build(),
+                ChargeNormalizer.DUAL_AUTO, true, 2);
+        TestKit.isTrue("mA 上报 1880 × 3.95V × 2 芯 → valid", r.valid);
+        TestKit.eqDouble("mA 上报 → 14.85W", 14.85, r.chargeW, 0.02);
+    }
+
+    private static void singleCellPackVoltageInvalid() {
+        ChargeNormalizer n = new ChargeNormalizer(0);
+        NormalizedReading r = n.normalize(Fixtures.charging(3_000_000L).voltageMv(8600).build(),
+                ChargeNormalizer.DUAL_AUTO, true, 1);
+        TestKit.isFalse("单电芯 8.6V 整包 → 不可用", r.valid);
     }
 
     private static void currentUnsupported() {

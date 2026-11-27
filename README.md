@@ -6,13 +6,23 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.5.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.5.1/WattLens-Pro-v2.5.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.6.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.6.0/WattLens-Pro-v2.6.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.5.1.png)
+![主页、详情、应用耗电排行](docs/preview-v2.6.0.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.6.0 更新（OPPO/vivo/小米适配）
+
+- 同一个 APK 自动识别 OPPO（含一加/realme）、vivo（含 iQOO）、小米（含 Redmi/POCO），功能一致。
+- 新增品牌适配摘要：设置 → 关于显示品牌、ROM、默认电芯数与兼容策略。
+- 功率算法兼容部分 ROM 的 **mA 电流上报**和**整包电压上报**，避免功率少 1000 倍或被判不可用。
+- 各品牌后台白名单路径更新为 ColorOS/OriginOS/HyperOS 的现代路径。
+- 单电芯异常机型可用设置 → 电芯数手动改 1。
+- 版本 34 / 2.6.0；测试 317 项通过。
+- 适配矩阵见 [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)。
 
 ## 2.5.1 更新（修复未插线不刷新）
 

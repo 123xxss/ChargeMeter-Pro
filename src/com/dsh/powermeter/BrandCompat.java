@@ -70,6 +70,40 @@ public final class BrandCompat {
         return dualCellFamily();
     }
 
+    /** 粗粒度 ROM 名称（只用于展示与引导，不参与功率计算）。 */
+    public static String romName() {
+        String s = (Build.DISPLAY + " " + Build.VERSION.INCREMENTAL + " "
+                + Build.VERSION.RELEASE).toLowerCase(Locale.ROOT);
+        switch (brand()) {
+            case VIVO:
+                return s.contains("origin") ? "OriginOS" : "OriginOS / Funtouch OS";
+            case OPPO:
+                if (s.contains("oxygen")) return "OxygenOS";
+                if (s.contains("realme")) return "realme UI";
+                return "ColorOS / realme UI";
+            case XIAOMI:
+                return s.contains("hyperos") || s.contains("os2") ? "HyperOS" : "MIUI / HyperOS";
+            case HONOR:
+                return "MagicOS";
+            case HUAWEI:
+                return "HarmonyOS / EMUI";
+            case SAMSUNG:
+                return "One UI";
+            case GOOGLE:
+                return "Android";
+            default:
+                return "Android";
+        }
+    }
+
+    /** 品牌适配摘要：页面展示用，不改变功率口径。 */
+    public static String adaptationSummary() {
+        return brandDisplayName() + " · " + romName()
+                + " · 默认 " + recommendedCellCount() + " 芯"
+                + " · 电流单位/整包电压自动兼容"
+                + " · 后台白名单引导";
+    }
+
     public static String brandDisplayName() {
         switch (brand()) {
             case VIVO: return "vivo / iQOO";
@@ -126,16 +160,16 @@ public final class BrandCompat {
     public static String guideSteps() {
         switch (brand()) {
             case VIVO:
-                return "设置 → 电池 → 后台耗电管理 → 允许后台高耗电\n"
-                        + "或：设置 → 电池 → 电池优化 → 本应用设为「无限制」。\n\n"
+                return "OriginOS/Funtouch：设置 → 电池 → 后台耗电管理 → 允许后台高耗电；\n"
+                        + "并在 i 管家/自启动中允许本应用。\n\n"
                         + "不设置的话，锁屏或切后台后充电功率可能停止刷新。";
             case OPPO:
-                return "设置 → 电池 → 省电设置 → 应用耗电管理 → 本应用 → 完全允许后台行为。\n\n"
-                        + "部分 ColorOS 还需要在「应用自启动」中允许本应用。\n"
+                return "ColorOS/realme UI：设置 → 电池 → 应用耗电管理 → 本应用 → 允许后台行为；\n"
+                        + "并在「应用自启动」中允许本应用。\n\n"
                         + "不设置的话，锁屏或切后台后充电功率可能停止刷新。";
             case XIAOMI:
-                return "设置 → 电池与性能 → 省电模式 → 应用智能省电 → 本应用 → 无限制。\n"
-                        + "并关闭「神隐模式」对本应用的限制。\n\n"
+                return "HyperOS/MIUI：设置 → 应用设置 → 应用管理 → 本应用 → 省电策略 → 无限制；\n"
+                        + "并在「自启动」中允许本应用。\n\n"
                         + "不设置的话，锁屏或切后台后充电功率可能停止刷新。";
             default:
                 return "请把本应用的后台限制设为「不限制」，并在最近任务中锁定本应用。\n\n"
