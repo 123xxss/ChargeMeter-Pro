@@ -6,13 +6,22 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.0.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.0.0/WattLens-Pro-v2.0.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.1.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.1.0/WattLens-Pro-v2.1.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页与详情页预览](docs/preview-v2.0.0.png)
+![主页、详情、应用耗电排行](docs/preview-v2.1.0.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.1.0 更新（应用耗电排行 + 实时刷新）
+
+- 新增 **应用耗电排行**：主页入口 → 独立页面，列出应用/系统应用的前台使用时长、前台占比和按当前电池功率估算的耗电。
+- **每 2 秒自动刷新**，含应用图标、系统应用标记、前 30 名。
+- 可选 **使用情况访问** 权限：只读取前台使用时长，不读聊天内容、不联网；未授权时页面会引导授权。
+- **重要边界**：Android 不向普通第三方开放精确的每应用 BatteryStats；排行是“前台时长 + 电池功率占比”的估算，不代表系统后台真实耗电，页面会明确标注。
+- 无充电器时也能打开排行；用于发现前台占用高/异常活跃应用。
+- 版本 21 / 2.1.0；测试 312 项通过。
 
 ## 2.0.0 更新（瓦镜 Pro · 新图标 + 图表/系统状态优化）
 
@@ -174,7 +183,9 @@
 - **动效**：标准 / 增强 / 关闭三档，可独立控制入场、分组、数值、弹窗动画。
 - **数据口径**：ChargeMeter 兼容的 `P = |I| × V × 电芯数 × 校准倍率`；电芯数品牌推荐 + 手动覆盖；功率校准；2 分钟曲线。
 - **系统状态**：CPU 使用率/频率、可用内存、GPU、系统温度、存储；不可读时可用 Shizuku 只读兜底。
-- **隐私**：无 INTERNET、无广告、数据仅本机处理。
+- **应用耗电排行**：可选使用情况访问；按前台时长和电池功率估算，含系统应用，2 秒刷新。
+- **应用排行限制**：普通 Android 应用无法读取精确每应用 BatteryStats，排行是估算，不是系统后台耗电账单。
+- **隐私**：无 INTERNET、无广告、数据仅本机处理；使用情况访问是可选特殊权限，只读前台时长。
 
 ## 功能
 

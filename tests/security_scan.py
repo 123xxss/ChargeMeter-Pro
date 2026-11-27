@@ -137,7 +137,7 @@ def main():
         "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "ACCESS_BACKGROUND_LOCATION",
         "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE", "MANAGE_EXTERNAL_STORAGE",
         "READ_PHONE_STATE", "READ_PHONE_NUMBERS", "BATTERY_STATS", "SYSTEM_ALERT_WINDOW",
-        "PACKAGE_USAGE_STATS", "QUERY_ALL_PACKAGES", "READ_CONTACTS", "CAMERA",
+        "QUERY_ALL_PACKAGES", "READ_CONTACTS", "CAMERA",
         "RECORD_AUDIO", "RECEIVE_SMS", "READ_SMS", "SEND_SMS", "READ_CALL_LOG",
         "ACCESS_WIFI_STATE", "BLUETOOTH_CONNECT",
     ]
@@ -146,7 +146,7 @@ def main():
     if perm_hits:
         bad("清单不申请敏感 / 危险权限（隐私最小化）", "发现: " + ", ".join(perm_hits))
     else:
-        ok("清单不申请敏感 / 危险权限（隐私最小化）")
+        ok("清单不申请敏感 / 危险权限（隐私最小化；使用情况访问为可选特殊权限）")
 
     shared_uid = manifest.get(ANDROID + "sharedUserId")
     if shared_uid:

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dsh.powermeter"
-    android:versionCode="20"
-    android:versionName="2.0.0">
+    android:versionCode="21"
+    android:versionName="2.1.0">
 
     <uses-sdk android:minSdkVersion="29" android:targetSdkVersion="36" />
 
@@ -11,9 +11,18 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 可选：应用使用排行需要用户在系统设置里手动授予“使用情况访问”，不是运行时弹窗 -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
     <!-- Shizuku 客户端标记（可选增强能力，未安装时完全不影响标准路径） -->
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
     <!-- 不申请 INTERNET / 定位 / 存储 / 电话状态 / BATTERY_STATS / 悬浮窗 -->
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
 
     <application
         android:name=".App"
@@ -54,6 +63,11 @@
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/settings_title" />
+
+        <activity
+            android:name=".AppUsageActivity"
+            android:exported="false"
+            android:label="应用耗电排行" />
 
         <service
             android:name=".service.PowerService"

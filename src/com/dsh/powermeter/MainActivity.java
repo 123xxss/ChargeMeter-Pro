@@ -77,6 +77,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private boolean lastSessionActive;
     private boolean entranceAnimated;
     private LinearLayout systemCard;
+    private LinearLayout usageCard;
     private UiKit.Metric sysCpu;
     private UiKit.Metric sysRam;
     private UiKit.Metric sysGpu;
@@ -198,7 +199,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         boolean vivo = motion == 3;
         boolean ios = motion == 4;
         View[] views = {heroCard, gridCard, chartCard,
-                systemCard, sessionCard, footerCard};
+                systemCard, usageCard, sessionCard, footerCard};
         int step = UiKit.dp(this, vivo ? 18 : (rich ? 14 : 10));
         int delay = vivo ? 44 : (rich ? 42 : 28);
         int duration = vivo ? 340 : (rich ? 320 : (ios ? 260 : 220));
@@ -226,6 +227,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         sessionCard.setVisibility(master ? View.VISIBLE : View.GONE);
         chartCard.setVisibility(master ? View.VISIBLE : View.GONE);
         systemCard.setVisibility(master ? View.VISIBLE : View.GONE);
+        usageCard.setVisibility(master ? View.VISIBLE : View.GONE);
         footerCard.setVisibility(master ? View.VISIBLE : View.GONE);
         updateBanner();
         updateHeaderStatus(master, snapshot);
@@ -746,6 +748,12 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         systemHint.setOnClickListener(v -> openShizukuForStats());
         systemCard.addView(systemHint, UiKit.matchWrap());
         root.addView(systemCard, UiKit.top(this, UiKit.matchWrap(), 12));
+
+        // 应用耗电排行（使用情况访问可选授权；按前台时长估算）
+        usageCard = UiKit.actionRow(this, "应用耗电排行",
+                "按前台使用时长估算，含系统应用；不是系统精确 BatteryStats 数值",
+                "查看", v -> startActivity(new Intent(this, AppUsageActivity.class)));
+        root.addView(usageCard, UiKit.top(this, UiKit.matchWrap(), 12));
 
         // 本次 / 上次充电
         buildSessionCard();

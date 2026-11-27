@@ -1,13 +1,13 @@
 # 瓦镜 Pro · 项目报告
 
-> 版本：2.0.0（versionCode 20）  
+> 版本：2.1.0（versionCode 21）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[WattLens-Pro-v2.0.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.0.0/WattLens-Pro-v2.0.0.apk)
+> 下载：[WattLens-Pro-v2.1.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.1.0/WattLens-Pro-v2.1.0.apk)
 
 ---
 
@@ -158,7 +158,12 @@
 
 ### 1.9.1 — 详情圆角底板 + 动效选项 + 通知同步
 
-### 2.0.0 — 瓦镜 Pro 品牌与 UI 优化（当前版本）
+### 2.0.0 — 瓦镜 Pro 品牌与 UI 优化
+
+### 2.1.0 — 应用耗电排行（当前版本）
+
+- 应用/系统应用前台时长与耗电估算排行，2 秒刷新；
+- 可选使用情况访问；明确说明非系统精确 BatteryStats。
 
 - 新名称/图标；曲线空态、系统状态排版、实时数据空值优化；
 - 全局防溢出；5 档动效；通知同步。
@@ -300,6 +305,7 @@ PowerSnapshot → StateStore
 - `FOREGROUND_SERVICE`、`FOREGROUND_SERVICE_SPECIAL_USE`：常驻监测；
 - `POST_NOTIFICATIONS`：状态栏/锁屏卡片；
 - `RECEIVE_BOOT_COMPLETED`：开机恢复；
+- `PACKAGE_USAGE_STATS`：可选特殊访问，用于应用耗电排行（只读前台时长）；
 - `moe.shizuku.manager.permission.API_V23`：Shizuku 授权（可选功能，默认关）。
 
 **没有** `INTERNET`、定位、存储、通讯录、电话状态、`BATTERY_STATS`、悬浮窗权限。

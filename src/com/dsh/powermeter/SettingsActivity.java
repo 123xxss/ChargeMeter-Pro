@@ -338,7 +338,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "2.0.0");
+        addInfo(about, "版本", "2.1.0");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
                 + " · " + DeviceInfo.model());
@@ -347,6 +347,7 @@ public final class SettingsActivity extends Activity {
         addInfo(about, "适配", DeviceInfo.compatibilityNote());
         addInfo(about, "开源仓库", "github.com/123xxss/ChargeMeter-Pro");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
+        addInfo(about, "应用排行", "需要可选的使用情况访问权限；只读前台时长，按电池功率估算，不是系统精确每应用耗电。");
         addInfo(about, "口径", "功率为进入电池的功率估算值；边充边用时可能低于充电器实际输出功率。");
         addInfo(about, "权限", "不申请定位、存储、悬浮窗、无障碍等权限。");
         LinearLayout repoRow = UiKit.row(this);
