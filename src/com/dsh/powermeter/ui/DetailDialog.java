@@ -96,7 +96,7 @@ public final class DetailDialog {
         card.addView(notes, UiKit.top(c, UiKit.matchWrap(), 16));
 
         TextView shizukuHint = UiKit.textColor(c,
-                "GPU/系统温度系统未开放？点此用 Shizuku 尝试读取", 11.5f, accent, true);
+                "CPU/GPU/系统温度系统未开放？点此用 Shizuku 尝试读取", 11.5f, accent, true);
         shizukuHint.setPadding(0, UiKit.dp(c, 10), 0, 0);
         shizukuHint.setOnClickListener(v -> {
             try {
@@ -234,8 +234,8 @@ public final class DetailDialog {
     private static void updateSystemHint(TextView hint, PowerSnapshot s) {
         if (hint == null) return;
         SystemStats st = s == null ? null : s.systemStats;
-        boolean unavailable = st == null || Double.isNaN(st.gpuPercent)
-                || Double.isNaN(st.thermalMaxC);
+        boolean unavailable = st == null || Double.isNaN(st.cpuPercent)
+                || Double.isNaN(st.gpuPercent) || Double.isNaN(st.thermalMaxC);
         hint.setVisibility(unavailable ? View.VISIBLE : View.GONE);
     }
 

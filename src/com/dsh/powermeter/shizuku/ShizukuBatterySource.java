@@ -171,6 +171,11 @@ public final class ShizukuBatterySource {
             SystemValues v = new SystemValues();
             v.thermalC = num(p[0]);
             v.gpuPercent = num(p[1]);
+            if (p.length >= 3) v.cpuLine = p[2];
+            if (p.length >= 4) {
+                double khz = num(p[3]);
+                if (Double.isFinite(khz) && khz > 0) v.cpuFreqGhz = khz / 1_000_000.0;
+            }
             return v;
         } catch (Throwable t) {
             connected = false;
@@ -233,6 +238,8 @@ public final class ShizukuBatterySource {
     public static final class SystemValues {
         public double thermalC = Double.NaN;
         public double gpuPercent = Double.NaN;
+        public String cpuLine;
+        public double cpuFreqGhz = Double.NaN;
     }
 
     public static final class Values {

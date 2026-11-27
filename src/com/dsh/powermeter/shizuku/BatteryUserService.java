@@ -76,7 +76,16 @@ public class BatteryUserService extends IBatteryUserService.Stub {
             } catch (Throwable ignored) {
             }
         }
-        return thermal + ";" + gpu;
+        String cpuLine = read("/proc/stat");
+        if (cpuLine != null && !cpuLine.isEmpty()) {
+            int nl = cpuLine.indexOf('\n');
+            if (nl > 0) cpuLine = cpuLine.substring(0, nl);
+        } else {
+            cpuLine = "";
+        }
+        String freq = read("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq");
+        if (freq == null) freq = "";
+        return thermal + ";" + gpu + ";" + cpuLine + ";" + freq;
     }
 
     @Override
@@ -93,7 +102,7 @@ public class BatteryUserService extends IBatteryUserService.Stub {
         File f = new File(path);
         if (!f.isFile() || !f.canRead()) return "";
         try (FileInputStream in = new FileInputStream(f)) {
-            byte[] buf = new byte[64];
+            byte[] buf = new byte[256];
             int n = in.read(buf);
             if (n <= 0) return "";
             return new String(buf, 0, n, "UTF-8").trim();

@@ -1,13 +1,13 @@
 # 充电功率 Pro · 项目报告
 
-> 版本：1.7.1（versionCode 15）  
+> 版本：1.7.2（versionCode 16）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[ChargeMeter-Pro-v1.7.1.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.7.1/ChargeMeter-Pro-v1.7.1.apk)
+> 下载：[ChargeMeter-Pro-v1.7.2.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.7.2/ChargeMeter-Pro-v1.7.2.apk)
 
 ---
 
@@ -148,7 +148,12 @@
 
 ### 1.7.0 — 系统状态 + Apple UI + 实时详情
 
-### 1.7.1 — 详情滚动 + Shizuku 系统读取（当前版本）
+### 1.7.1 — 详情滚动 + Shizuku 系统读取
+
+### 1.7.2 — CPU 兜底（当前版本）
+
+- CPU 统计直读失败时通过 Shizuku UserService 兜底；
+- 详情滚动修复保留。
 
 - 详情弹窗固定视口 + ScrollView，关闭按钮/说明可完整滚动；
 - GPU/系统温度未开放时提供 Shizuku 授权与读取入口；

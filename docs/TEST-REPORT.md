@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：1.7.1（versionCode 15）
+- 版本：1.7.2（versionCode 16）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，227,347 bytes
-- SHA-256：`610e4e95cd7143e310f2889a95cf6188ac1f1486866d21ce17d19a57a89c2839`
+- SHA-256：`a2b2df0891c8b0f9042f61fc2a42705bd8541dde1f74d4619a8a33911529eb01`
 
-> 1.7.1 修复详情弹窗滚动并加入 Shizuku 系统状态读取提示；测试 312 项全通过。
+> 1.7.2 增加 CPU 的 Shizuku 兜底并保留详情滚动修复；测试 312 项全通过。
 
 ## 1. 自动化测试结果
 

@@ -64,7 +64,8 @@ public final class SystemStats {
         readStorage(context, b);
         readGpu(b);
         readThermal(b);
-        if (Double.isNaN(b.gpuPercent) || Double.isNaN(b.thermalMaxC)) {
+        if (Double.isNaN(b.gpuPercent) || Double.isNaN(b.thermalMaxC)
+                || Double.isNaN(b.cpuPercent)) {
             try {
                 ShizukuBatterySource.SystemValues v = ShizukuBatterySource.readSystem();
                 if (v != null) {
@@ -75,6 +76,12 @@ public final class SystemStats {
                     if (Double.isNaN(b.thermalMaxC) && !Double.isNaN(v.thermalC)) {
                         b.thermalMaxC = v.thermalC;
                         b.thermalSource = "shizuku";
+                    }
+                    if (Double.isNaN(b.cpuPercent) && v.cpuLine != null) {
+                        parseCpuLine(v.cpuLine, b);
+                    }
+                    if (Double.isNaN(b.cpuFreqGhz) && !Double.isNaN(v.cpuFreqGhz)) {
+                        b.cpuFreqGhz = v.cpuFreqGhz;
                     }
                 }
             } catch (Throwable ignored) {
@@ -118,6 +125,27 @@ public final class SystemStats {
                 } catch (Throwable ignored) {
                 }
             }
+        }
+    }
+
+    private static void parseCpuLine(String line, Builder b) {
+        try {
+            String[] p = line.trim().split("\s+");
+            if (p.length < 5) return;
+            long total = 0;
+            for (int i = 1; i < p.length && i <= 8; i++) total += Long.parseLong(p[i]);
+            long idle = Long.parseLong(p[4]);
+            if (p.length > 5) idle += Long.parseLong(p[5]);
+            if (prevTotal > 0 && total > prevTotal) {
+                long dt = total - prevTotal;
+                long di = Math.max(0, idle - prevIdle);
+                b.cpuPercent = Math.max(0, Math.min(100, (dt - di) * 100.0 / dt));
+            } else {
+                b.cpuPercent = 0;
+            }
+            prevTotal = total;
+            prevIdle = idle;
+        } catch (Throwable ignored) {
         }
     }
 
