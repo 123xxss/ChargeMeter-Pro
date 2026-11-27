@@ -1,13 +1,13 @@
 # 充电功率 Pro · 项目报告
 
-> 版本：1.6.0（versionCode 13）  
+> 版本：1.7.0（versionCode 14）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[ChargeMeter-Pro-v1.6.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.6.0/ChargeMeter-Pro-v1.6.0.apk)
+> 下载：[ChargeMeter-Pro-v1.7.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.7.0/ChargeMeter-Pro-v1.7.0.apk)
 
 ---
 
@@ -144,7 +144,14 @@
 
 ### 1.5.1 — 清理重复设置 + Shizuku 兜底
 
-### 1.6.0 — UI 与细节优化（当前版本）
+### 1.6.0 — UI 与细节优化
+
+### 1.7.0 — 系统状态 + Apple UI + 实时详情（当前版本）
+
+- 系统状态卡：CPU/内存/GPU/温度/存储；
+- 详情弹窗实时订阅刷新；
+- Apple 极简（默认）/经典渐变/深色霓虹三种风格；
+- 长按复制功率、曲线当前值/新会话清空。
 
 - 曲线铺满、时间/当前值标注、新会话清空；
 - 充电动画不可见时停止；长按卡片复制功率；通知两位小数；

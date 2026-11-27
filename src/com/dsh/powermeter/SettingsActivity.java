@@ -73,6 +73,25 @@ public final class SettingsActivity extends Activity {
         }
     }
 
+    private void showStyleDialog() {
+        final Prefs prefs = Prefs.get(this);
+        final String[] items = {"Apple 极简", "经典渐变", "深色霓虹"};
+        AlertDialog.Builder builder = dialogBuilder("界面风格");
+        builder.setSingleChoiceItems(items, prefs.uiStyle(), (dialog, which) -> {
+            prefs.setUiStyle(which);
+            dialog.dismiss();
+            rebuildContent();
+        });
+        builder.setNegativeButton("取消", null);
+        builder.show();
+    }
+
+    private String styleLabel(int style) {
+        if (style == 2) return "深色霓虹";
+        if (style == 1) return "经典渐变";
+        return "Apple 极简";
+    }
+
     private void showCellDialog() {
         final Prefs prefs = Prefs.get(this);
         final String[] items = {"自动（品牌推荐）", "1 电芯", "2 电芯", "3 电芯", "4 电芯"};
@@ -209,6 +228,9 @@ public final class SettingsActivity extends Activity {
 
         // 显示与通知
         content.addView(UiKit.section(this, "显示与通知"), UiKit.matchWrap());
+        addCard(UiKit.actionRow(this, "界面风格",
+                "Apple 极简 / 经典渐变 / 深色霓虹；功率卡与曲线同步切换",
+                styleLabel(prefs.uiStyle()), v -> showStyleDialog()));
         String notifSubtitle = notificationsAllowed
                 ? "在状态栏常驻显示充电功率与电量"
                 : "系统未允许通知，开启后才能显示状态栏卡片";
@@ -286,7 +308,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.6.0");
+        addInfo(about, "版本", "1.7.0");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "开源仓库", "github.com/123xxss/ChargeMeter-Pro");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
