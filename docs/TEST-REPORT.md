@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.1.0（versionCode 21）
+- 版本：2.2.0（versionCode 22）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，285,040 bytes
-- SHA-256：`bd7a7a3e4661d0d04f266ab0a0388ef03d29371a54d2ed69332ead7de9c3535e`
+- SHA-256：`f592700d825d0cb5d3c0b962976a017ccf52715c83afab479f3cf9abd4cd4288`
 
-> 2.1.0 新增应用耗电排行（可选使用情况访问）与 2 秒刷新；测试 312 项全通过。
+> 2.2.0 主界面内嵌 Top3 与应用排行完整页；测试 312 项全通过。
 
 ## 1. 自动化测试结果
 

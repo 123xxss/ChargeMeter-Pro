@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,6 +31,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dsh.powermeter.core.AppUsageRanker;
 import com.dsh.powermeter.core.ChargeEngine;
 import com.dsh.powermeter.core.ChargeState;
 import com.dsh.powermeter.core.PowerSnapshot;
@@ -41,6 +43,11 @@ import com.dsh.powermeter.ui.DetailDialog;
 import com.dsh.powermeter.ui.PowerCardView;
 import com.dsh.powermeter.ui.PowerChartView;
 import com.dsh.powermeter.ui.UiKit;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * 主界面：实时充电功率 + 指标 + 本次/上次充电统计 + 详情入口。
@@ -78,6 +85,17 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private boolean entranceAnimated;
     private LinearLayout systemCard;
     private LinearLayout usageCard;
+    private LinearLayout usageList;
+    private TextView usageHint;
+    private final Map<String, Drawable> usageIconCache = new HashMap<>();
+    private long lastUsageLoad;
+    private final Runnable usageTicker = new Runnable() {
+        @Override
+        public void run() {
+            refreshUsagePreview();
+            main.postDelayed(this, 3000L);
+        }
+    };
     private UiKit.Metric sysCpu;
     private UiKit.Metric sysRam;
     private UiKit.Metric sysGpu;
@@ -143,6 +161,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             engine.sampleNow();
             render(StateStore.get().latest());
             requestNotificationPermissionIfNeeded();
+            main.removeCallbacks(usageTicker);
+            main.post(usageTicker);
         } catch (Throwable t) {
             showSafeFallback(t);
         }
@@ -164,6 +184,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
     @Override
     protected void onStop() {
+        main.removeCallbacks(usageTicker);
         StateStore.get().removeListener(this);
         if (engine != null) {
             engine.release();
@@ -243,6 +264,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         renderGrid(snapshot);
         renderChart(snapshot);
         renderSystem(snapshot);
+        refreshUsagePreview();
         renderSession(snapshot);
     }
 
@@ -349,6 +371,69 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             ChargeEngine.get(this).sampleNow();
         } catch (Throwable t) {
             Toast.makeText(this, "Shizuku 操作失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void refreshUsagePreview() {
+        if (usageList == null || usageHint == null) return;
+        long now = System.currentTimeMillis();
+        if (now - lastUsageLoad < 2500L) return;
+        lastUsageLoad = now;
+        try {
+            PowerSnapshot snapshot = StateStore.get().latest();
+            double watts = snapshot != null ? snapshot.powerW : Double.NaN;
+            AppUsageRanker.Result result = AppUsageRanker.load(this, watts);
+            usageList.removeAllViews();
+            if (!result.hasAccess) {
+                usageHint.setText("未授权 · 点击进入授权后显示前台时长和耗电估算");
+                return;
+            }
+            if (result.entries.isEmpty()) {
+                usageHint.setText("过去 24 小时暂无使用记录 · 2 秒刷新");
+                return;
+            }
+            usageHint.setText("前台时长估算 · 含系统应用 · 3 秒刷新");
+            List<AppUsageRanker.Entry> entries = result.entries;
+            int count = Math.min(3, entries.size());
+            for (int i = 0; i < count; i++) {
+                AppUsageRanker.Entry e = entries.get(i);
+                LinearLayout row = UiKit.row(this);
+                row.setPadding(0, UiKit.dp(this, 4), 0, UiKit.dp(this, 4));
+                TextView rank = UiKit.textColor(this, String.valueOf(i + 1), 13f,
+                        getColor(i == 0 ? R.color.accent : R.color.text_muted), true);
+                row.addView(rank, new LinearLayout.LayoutParams(
+                        UiKit.dp(this, 20), UiKit.dp(this, 28)));
+                ImageView icon = new ImageView(this);
+                Drawable d = usageIconCache.get(e.packageName);
+                if (d == null) {
+                    try {
+                        d = getPackageManager().getApplicationIcon(e.packageName);
+                    } catch (Throwable ignored) {
+                    }
+                    if (d != null) usageIconCache.put(e.packageName, d);
+                }
+                if (d != null) icon.setImageDrawable(d);
+                row.addView(icon, new LinearLayout.LayoutParams(
+                        UiKit.dp(this, 24), UiKit.dp(this, 24)));
+                TextView name = UiKit.text(this, e.label + (e.system ? " · 系统" : ""),
+                        12.5f, R.color.text_primary, true);
+                name.setSingleLine(true);
+                name.setEllipsize(TextUtils.TruncateAt.END);
+                LinearLayout.LayoutParams nameLp = UiKit.weighted(1f);
+                nameLp.leftMargin = UiKit.dp(this, 8);
+                row.addView(name, nameLp);
+                String val = Double.isFinite(e.estimatedW) && e.estimatedW > 0
+                        ? String.format(Locale.ROOT, "≈%.2f W", e.estimatedW)
+                        : String.format(Locale.ROOT, "%.0f%%", e.percent);
+                TextView w = UiKit.textColor(this, val, 11.5f,
+                        getColor(i == 0 ? R.color.accent : R.color.text_secondary), true);
+                w.setSingleLine(true);
+                w.setEllipsize(TextUtils.TruncateAt.END);
+                row.addView(w, UiKit.left(this, UiKit.wrapWrap(), 8));
+                usageList.addView(row, UiKit.matchWrap());
+            }
+        } catch (Throwable t) {
+            if (usageHint != null) usageHint.setText("排行读取失败 · 点击查看详情");
         }
     }
 
@@ -749,10 +834,30 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         systemCard.addView(systemHint, UiKit.matchWrap());
         root.addView(systemCard, UiKit.top(this, UiKit.matchWrap(), 12));
 
-        // 应用耗电排行（使用情况访问可选授权；按前台时长估算）
-        usageCard = UiKit.actionRow(this, "应用耗电排行",
-                "按前台使用时长估算，含系统应用；不是系统精确 BatteryStats 数值",
-                "查看", v -> startActivity(new Intent(this, AppUsageActivity.class)));
+        // 应用耗电排行：主界面直接展示 Top 3，完整列表在独立页
+        usageCard = UiKit.card(this);
+        LinearLayout usageHead = UiKit.row(this);
+        TextView usageTitle = UiKit.text(this, "应用耗电排行", 14f,
+                R.color.text_primary, true);
+        usageHead.addView(usageTitle, UiKit.weighted(1f));
+        TextView usageMore = UiKit.textColor(this, "查看全部", 11.5f,
+                getColor(R.color.accent), true);
+        usageMore.setPadding(UiKit.dp(this, 8), UiKit.dp(this, 4),
+                UiKit.dp(this, 2), UiKit.dp(this, 4));
+        usageHead.addView(usageMore);
+        usageCard.addView(usageHead, UiKit.matchWrap());
+        usageHint = UiKit.text(this, "正在读取应用排行…", 11f,
+                R.color.text_muted, false);
+        usageHint.setMaxLines(2);
+        usageHint.setEllipsize(TextUtils.TruncateAt.END);
+        usageCard.addView(usageHint, UiKit.top(this, UiKit.matchWrap(), 2));
+        usageList = UiKit.column(this);
+        usageCard.addView(usageList, UiKit.top(this, UiKit.matchWrap(), 6));
+        usageCard.setOnClickListener(v -> startActivity(
+                new Intent(this, AppUsageActivity.class)));
+        usageMore.setOnClickListener(v -> startActivity(
+                new Intent(this, AppUsageActivity.class)));
+        UiKit.setRipple(usageCard);
         root.addView(usageCard, UiKit.top(this, UiKit.matchWrap(), 12));
 
         // 本次 / 上次充电
