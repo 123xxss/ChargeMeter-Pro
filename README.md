@@ -6,13 +6,20 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.2.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.1/WattLens-Pro-v2.2.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.2.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.2/WattLens-Pro-v2.2.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.2.1.png)
+![主页、详情、应用耗电排行](docs/preview-v2.2.2.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.2.2 更新（统一检查与汇总换行）
+
+- 修复排行页顶部汇总“最近 5 分钟 · 总前台 3 分钟 · 当前 7.26…”被单行截断：改为 17.5sp、最多 3 行，完整显示时长/功率/当前前台。
+- 统一检查主界面 Top3、完整排行、详情、系统状态、通知和设置的长文本/空值/权限状态；保留“估算”标注，不伪造精确耗电。
+- 排行仍只取最近 5 分钟 UsageEvents，主界面 3 秒、完整页 2 秒刷新。
+- 版本 24 / 2.2.2；测试 312 项通过。
 
 ## 2.2.1 更新（排行改为最近 5 分钟前台）
 

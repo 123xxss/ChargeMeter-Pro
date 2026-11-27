@@ -119,9 +119,12 @@ public final class AppUsageActivity extends Activity {
         UiKit.applyEdgeToEdgeInsets(this, root);
 
         LinearLayout summaryCard = UiKit.card(this);
-        summary = UiKit.text(this, "正在读取使用情况…", 18f, R.color.text_primary, true);
-        summary.setSingleLine(true);
+        summary = UiKit.text(this, "正在读取使用情况…", 17.5f, R.color.text_primary, true);
+        // 汇总可能包含时长 + 当前功率 + 当前前台应用，允许换行，不能单行截断。
+        summary.setSingleLine(false);
+        summary.setMaxLines(3);
         summary.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        summary.setLineSpacing(UiKit.dp(this, 2), 1f);
         summaryCard.addView(summary, UiKit.matchWrap());
         stateText = UiKit.text(this,
                 "仅按前台使用时长估算；不是系统精确的每应用耗电值。",
@@ -166,7 +169,7 @@ public final class AppUsageActivity extends Activity {
         String batt = Double.isFinite(batteryW) && batteryW > 0
                 ? String.format(Locale.ROOT, " · 当前 %.2f W", batteryW) : "";
         String current = result.currentLabel == null || result.currentLabel.isEmpty()
-                ? "" : " · 当前 " + result.currentLabel;
+                ? "" : "\n当前前台：" + result.currentLabel;
         summary.setText(String.format(Locale.ROOT, "最近 5 分钟 · 总前台 %s%s%s",
                 UiKit.duration(result.totalForegroundMs), batt, current));
         stateText.setText("仅统计最近 5 分钟进入前台的应用；估算 = 当前电池功率 × 前台时长占比，"

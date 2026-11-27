@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.2.1（versionCode 23）
+- 版本：2.2.2（versionCode 24）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，285,040 bytes
-- SHA-256：`8cf911cbb792909503a2c3fd51cf6b454f289da6190a73407d6fd21c11f68d34`
+- SHA-256：`e7da8242b41fc20aeb92e26d502b774beb51ef0f027747120438acb2c938349a`
 
-> 2.2.1 排行改用最近 5 分钟前台事件；测试 312 项全通过。
+> 2.2.2 排行汇总换行与全应用文字溢出检查；测试 312 项全通过。
 
 ## 1. 自动化测试结果
 
