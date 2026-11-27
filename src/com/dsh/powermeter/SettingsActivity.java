@@ -73,20 +73,6 @@ public final class SettingsActivity extends Activity {
         }
     }
 
-    private void showDualDialog() {
-        final Prefs prefs = Prefs.get(this);
-        final String[] items = {"自动（推荐）", "强制 ×2 修正", "关闭修正"};
-        AlertDialog.Builder builder = dialogBuilder("双电芯修正");
-        builder.setSingleChoiceItems(items, prefs.dualCellMode(), (dialog, which) -> {
-            Prefs.get(this).setDualCellMode(which);
-            ChargeEngine.get(this).sampleNow();
-            dialog.dismiss();
-            rebuildContent();
-        });
-        builder.setNegativeButton("取消", null);
-        builder.show();
-    }
-
     private void showCellDialog() {
         final Prefs prefs = Prefs.get(this);
         final String[] items = {"自动（品牌推荐）", "1 电芯", "2 电芯", "3 电芯", "4 电芯"};
@@ -300,7 +286,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.5.2");
+        addInfo(about, "版本", "1.6.0");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "开源仓库", "github.com/123xxss/ChargeMeter-Pro");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
@@ -391,9 +377,5 @@ public final class SettingsActivity extends Activity {
         rebuildContent();
     }
 
-    private String dualLabel(int mode) {
-        if (mode == Prefs.DUAL_FORCE) return "强制 ×2";
-        if (mode == Prefs.DUAL_OFF) return "关闭";
-        return "自动（推荐）";
-    }
+
 }

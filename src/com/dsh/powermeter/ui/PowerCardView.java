@@ -76,20 +76,51 @@ public final class PowerCardView extends View {
         boolean wasCharging = isCharging(snapshot);
         snapshot = s;
         boolean charging = isCharging(s);
-        if (charging && !animating) {
-            animating = true;
-            postOnAnimation(pulseTick);
-        } else if (!charging && wasCharging) {
-            animating = false;
-            removeCallbacks(pulseTick);
-        }
+        updateAnimationState(charging, wasCharging);
         updateShader();
+        String desc = s == null ? "功率读取中" : (s.modeLabel + " " + fmt(s.powerW) + " 瓦");
+        setContentDescription("充电功率卡片，" + desc + "，点击查看详情");
         invalidate();
     }
 
     private static boolean isCharging(PowerSnapshot s) {
         return s != null && s.charging && s.state != ChargeState.FULL
                 && s.state != ChargeState.PAUSED;
+    }
+
+    private void updateAnimationState(boolean charging, boolean wasCharging) {
+        boolean shouldAnimate = charging && isShown();
+        if (shouldAnimate && !animating) {
+            animating = true;
+            postOnAnimation(pulseTick);
+        } else if (!shouldAnimate && (animating || wasCharging)) {
+            animating = false;
+            removeCallbacks(pulseTick);
+        }
+    }
+
+    @Override
+    protected void onVisibilityChanged(View changedView, int visibility) {
+        super.onVisibilityChanged(changedView, visibility);
+        if (visibility != VISIBLE) {
+            animating = false;
+            removeCallbacks(pulseTick);
+        } else if (isCharging(snapshot) && !animating) {
+            animating = true;
+            postOnAnimation(pulseTick);
+        }
+    }
+
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility);
+        if (visibility != VISIBLE) {
+            animating = false;
+            removeCallbacks(pulseTick);
+        } else if (isCharging(snapshot)) {
+            animating = true;
+            postOnAnimation(pulseTick);
+        }
     }
 
     @Override
@@ -121,10 +152,7 @@ public final class PowerCardView extends View {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (isCharging(snapshot)) {
-            animating = true;
-            postOnAnimation(pulseTick);
-        }
+        updateAnimationState(isCharging(snapshot), false);
     }
 
     @Override

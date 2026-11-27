@@ -268,7 +268,7 @@ public final class NotificationHelper {
     }
 
     private static String fmt(double value) {
-        return String.format(Locale.US, "%.1f", value);
+        return String.format(Locale.US, "%.2f", value);
     }
 
     private static String estimateText(long seconds) {

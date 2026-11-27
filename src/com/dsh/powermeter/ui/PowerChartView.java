@@ -114,7 +114,6 @@ public final class PowerChartView extends View {
             return;
         }
 
-        float stepX = chartW / Math.max(1, MAX_POINTS - 1);
         path.reset();
         fillPath.reset();
         boolean first = true;
@@ -122,7 +121,7 @@ public final class PowerChartView extends View {
         float lastY = padT + chartH;
         for (int i = 0; i < n; i++) {
             float v = values[(head + i) % MAX_POINTS];
-            float x = padL + chartW * i / Math.max(1, MAX_POINTS - 1);
+            float x = padL + chartW * i / Math.max(1, n - 1);
             float y = padT + chartH * (1f - Math.min(1f, v / maxValue));
             if (first) {
                 path.moveTo(x, y);
@@ -148,9 +147,17 @@ public final class PowerChartView extends View {
         dot.setColor(colorAccentEnd);
         canvas.drawCircle(lastX, lastY, dp(3f), dot);
 
-        // 左下角时间范围
+        // 时间范围 + 当前值
         text.setTextAlign(Paint.Align.LEFT);
-        canvas.drawText("最近 2 分钟", padL, h - dp(3), text);
+        canvas.drawText("-2 分钟", padL, h - dp(3), text);
+        text.setTextAlign(Paint.Align.RIGHT);
+        canvas.drawText("现在", w - padR, h - dp(3), text);
+        if (n > 0) {
+            float lastValue = values[(head + n - 1) % MAX_POINTS];
+            text.setTextAlign(Paint.Align.LEFT);
+            canvas.drawText(String.format(java.util.Locale.ROOT, "当前 %.2f W", lastValue),
+                    padL, padT + dp(10), text);
+        }
     }
 
     private float dp(float v) {
