@@ -1,12 +1,13 @@
 # 充电功率 Pro · 项目报告
 
-> 版本：1.5.1（versionCode 11）  
+> 版本：1.5.2（versionCode 12）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
+> 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[ChargeMeter-Pro-v1.5.1.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.5.1/ChargeMeter-Pro-v1.5.1.apk)
+> 下载：[ChargeMeter-Pro-v1.5.2.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.5.2/ChargeMeter-Pro-v1.5.2.apk)
 
 ---
 

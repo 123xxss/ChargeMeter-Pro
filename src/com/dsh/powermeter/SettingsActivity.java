@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -298,11 +300,29 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.5.1");
+        addInfo(about, "版本", "1.5.2");
+        addInfo(about, "作者", "123xxss");
+        addInfo(about, "开源仓库", "github.com/123xxss/ChargeMeter-Pro");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
         addInfo(about, "口径", "功率为进入电池的功率估算值；边充边用时可能低于充电器实际输出功率。");
         addInfo(about, "权限", "不申请定位、存储、悬浮窗、无障碍等权限。");
+        LinearLayout repoRow = UiKit.row(this);
+        repoRow.setPadding(0, UiKit.dp(this, 12), 0, 0);
+        TextView repoButton = UiKit.ghostButton(this, "打开 GitHub 仓库",
+                v -> openUrl("https://github.com/123xxss/ChargeMeter-Pro"));
+        repoRow.addView(repoButton, UiKit.weighted(1f));
+        about.addView(repoRow, UiKit.matchWrap());
         addCard(about);
+    }
+
+    private void openUrl(String url) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Throwable t) {
+            Toast.makeText(this, url, Toast.LENGTH_LONG).show();
+        }
     }
 
     private void addCard(View view) {
