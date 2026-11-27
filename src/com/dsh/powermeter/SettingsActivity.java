@@ -308,7 +308,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.7.1");
+        addInfo(about, "版本", "1.7.2");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "开源仓库", "github.com/123xxss/ChargeMeter-Pro");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");

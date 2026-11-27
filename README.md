@@ -4,9 +4,16 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v1.7.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.7.1/ChargeMeter-Pro-v1.7.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v1.7.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.7.2/ChargeMeter-Pro-v1.7.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 1.7.2 更新（CPU 兜底 + 详情滚动）
+
+- CPU 使用率直接读取 `/proc/stat` 失败时，也可通过 Shizuku 只读 UserService 兜底。
+- 详情弹窗固定 78% 屏幕高度 + ScrollView，关闭按钮/说明可完整滚动（1.7.1 修复）。
+- GPU/温度/CPU 任一不可用时，主界面和详情页显示「用 Shizuku 尝试读取」入口。
+- 版本 16 / 1.7.2；测试 312 项通过。
 
 ## 1.7.1 更新（详情滚动 + Shizuku 提示）
 

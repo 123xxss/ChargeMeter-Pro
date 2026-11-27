@@ -263,10 +263,11 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             systemHint.setText("系统状态读取中 · 点此用 Shizuku 尝试读取");
             return;
         }
-        boolean unavailable = Double.isNaN(st.gpuPercent) || Double.isNaN(st.thermalMaxC);
+        boolean unavailable = Double.isNaN(st.cpuPercent)
+                || Double.isNaN(st.gpuPercent) || Double.isNaN(st.thermalMaxC);
         systemHint.setVisibility(unavailable ? View.VISIBLE : View.GONE);
         if (unavailable) {
-            systemHint.setText("GPU/系统温度未开放 · 点此用 Shizuku 尝试读取");
+            systemHint.setText("CPU/GPU/系统温度未开放 · 点此用 Shizuku 尝试读取");
         }
         sysCpu.value.setText(st.cpuSummary());
         sysCpu.label.setText("CPU" + (st.cpuCores > 0 ? " · " + st.cpuCores + " 核" : ""));
