@@ -334,26 +334,35 @@ public final class UiKit {
 
     /** 状态栏 / 导航栏配色与图标明暗；barColor 用 R.color（随深浅色自动切换）。 */
     public static void styleSystemBars(Activity activity, int barColor, boolean darkIcons) {
-        Window window = activity.getWindow();
-        window.setStatusBarColor(barColor);
-        window.setNavigationBarColor(barColor);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowInsetsController controller = window.getInsetsController();
-            if (controller != null) {
-                int mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                        | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
-                controller.setSystemBarsAppearance(darkIcons ? mask : 0, mask);
-            }
-        } else {
-            int flags = window.getDecorView().getSystemUiVisibility();
-            if (darkIcons) {
-                flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                        | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        if (activity == null) return;
+        try {
+            Window window = activity.getWindow();
+            // Android 16 的 PhoneWindow.getInsetsController() 在 DecorView 尚未创建时会 NPE；
+            // 先显式取一次 DecorView，再设置状态栏外观。
+            View decor = window.getDecorView();
+            if (decor == null) return;
+            window.setStatusBarColor(barColor);
+            window.setNavigationBarColor(barColor);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                WindowInsetsController controller = window.getInsetsController();
+                if (controller != null) {
+                    int mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                            | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                    controller.setSystemBarsAppearance(darkIcons ? mask : 0, mask);
+                }
             } else {
-                flags &= ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                        | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+                int flags = decor.getSystemUiVisibility();
+                if (darkIcons) {
+                    flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                            | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                } else {
+                    flags &= ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                            | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+                }
+                decor.setSystemUiVisibility(flags);
             }
-            window.getDecorView().setSystemUiVisibility(flags);
+        } catch (Throwable ignored) {
+            // 系统栏外观设置失败不应影响界面与功能
         }
     }
 

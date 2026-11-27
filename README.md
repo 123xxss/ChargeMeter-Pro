@@ -4,6 +4,12 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；并对 vivo / OPPO / 小米的电流符号、双电芯电压、单位上报差异做归一化，尽量做到「数字可解释、异常不瞎跳」。
 
+## 1.1.1 修复（重要）
+
+- **修复 Android 16（SDK 36）首次打开闪退**：`UiKit.styleSystemBars` 在 `setContentView` 之前调用 `Window.getInsetsController()`，此时 `DecorView` 还没创建，`PhoneWindow.getInsetsController()` 抛出 `NullPointerException`。
+- 修复方式：主界面/设置页都改为**先构建内容（setContentView）再设置系统栏**；`styleSystemBars` 增加 `DecorView` 判空与异常兜底。
+- 1.1.0 的其他改动保留：Pro 名称、新图标、`startService` 启动链路、最小前台通知、安全模式、本地崩溃记录。
+
 ## 1.1.0 更新（Android 16 启动兼容）
 
 - 应用更名「充电功率 Pro」，全新渐变+闪电自适应图标。

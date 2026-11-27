@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：1.1.0（versionCode 2）
+- 版本：1.1.1（versionCode 3）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，190,483 bytes
-- SHA-256：`b543d12b1710aea14995573519eda511177cd07e697aaa3e49c6f0e0f336d946`
+- SHA-256：`25cb3ad5275410690dbe56e531829d48d2babeea729bd35d9b26467200115e10`
 
-> 1.1.0 主要变化见 `CHANGELOG.md`；测试仍为 301 项全通过。
+> 1.1.1 修复了 Android 16 上 `WindowInsetsController` 空指针闪退；测试仍为 301 项全通过。
 
 ## 1. 自动化测试结果
 

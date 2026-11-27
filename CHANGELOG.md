@@ -1,5 +1,12 @@
 # 变更记录
 
+## 1.1.1（Android 16 启动闪退修复）
+
+- 修复：Android 16 上首次打开闪退 `NullPointerException: PhoneWindow.getInsetsController() ... DecorView null`。
+- 根因：`applySystemBars()` 在 `setContentView()` 之前调用，Android 16 的 `PhoneWindow` 此时没有 `DecorView`。
+- 修复：MainActivity / SettingsActivity 调整为先构建内容再设置系统栏；`UiKit.styleSystemBars` 先取 `DecorView` 并加判空/异常兜底。
+- 版本 3 / 1.1.1；301 项测试仍全通过。
+
 ## 1.1.0（Android 16 启动兼容 + Pro 品牌）
 
 - 应用更名「充电功率 Pro」，新增渐变+闪电自适应图标与 PNG 通知小图标。

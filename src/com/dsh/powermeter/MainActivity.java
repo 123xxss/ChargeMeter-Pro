@@ -105,8 +105,10 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         super.onCreate(savedInstanceState);
         maybeShowLastCrash();
         try {
-            applySystemBars();
+            // 必须先 setContentView 再取 WindowInsetsController；
+            // Android 16 上 DecorView 未创建时 getInsetsController() 会 NPE。
             buildUi();
+            applySystemBars();
             uiReady = true;
         } catch (Throwable t) {
             showSafeFallback(t);
