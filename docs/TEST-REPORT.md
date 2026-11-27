@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.4.2（versionCode 30）
+- 版本：2.4.3（versionCode 31）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，363,629 bytes
-- SHA-256：`f47fc7ebe34aa0f66877af3e42f87bfc1b9aa362babaf29c0426cf64378b0f73`
+- SHA-256：`4f155f87b7ef1b26d5bd043140cd8a3960235bc91c15e20f80e6909b324b7f57`
 
-> 2.4.2 新 channel/通知 ID 与一键重置状态栏通知；测试 313 项全通过。
+> 2.4.3 修复 ic_notify_lens 旧资源并 force 新 channel/ID；测试 313 项全通过。
 
 ## 1. 自动化测试结果
 

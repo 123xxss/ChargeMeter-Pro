@@ -36,12 +36,14 @@ public final class NotificationHelper {
 
     /** 通知渠道 id（与 PRD 一致）。 */
     // 2.4.2：再次换新 channel id，并在设置中提供“重置状态栏通知”。
-    public static final String CHANNEL_ID = "charge_monitor_v3";
-    private static final String[] LEGACY_CHANNELS = {"charge_monitor", "charge_monitor_v2"};
+    public static final String CHANNEL_ID = "charge_monitor_v4";
+    private static final String[] LEGACY_CHANNELS = {
+            "charge_monitor", "charge_monitor_v2", "charge_monitor_v3"
+    };
 
     /** 常驻通知 id：前台服务与后续刷新共用同一条通知。 */
-    public static final int NOTIFICATION_ID = 0x504E;
-    private static final int LEGACY_NOTIFICATION_ID = 0x504D;
+    public static final int NOTIFICATION_ID = 0x504F;
+    private static final int[] LEGACY_NOTIFICATION_IDS = {0x504D, 0x504E};
 
     private static final int REQ_OPEN_MAIN = 1;
     private static final int REQ_OPEN_SETTINGS = 2;
@@ -83,6 +85,23 @@ public final class NotificationHelper {
         }
     }
 
+    /** 应用启动时清掉上一版本遗留的旧通知/旧渠道（不碰当前 v3 通知）。 */
+    public static void cleanupLegacy(Context context) {
+        if (context == null) return;
+        try {
+            NotificationManager nm = (NotificationManager)
+                    context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm == null) return;
+            for (int id : LEGACY_NOTIFICATION_IDS) {
+                try { nm.cancel(id); } catch (Throwable ignored) { }
+            }
+            for (String old : LEGACY_CHANNELS) {
+                try { nm.deleteNotificationChannel(old); } catch (Throwable ignored) { }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     /** 设置页“重置状态栏通知”：取消本应用旧通知并重建渠道。 */
     public static void resetArtifacts(Context context) {
         if (context == null) return;
@@ -90,7 +109,9 @@ public final class NotificationHelper {
             NotificationManager nm = (NotificationManager)
                     context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm == null) return;
-            try { nm.cancel(LEGACY_NOTIFICATION_ID); } catch (Throwable ignored) { }
+            for (int id : LEGACY_NOTIFICATION_IDS) {
+                try { nm.cancel(id); } catch (Throwable ignored) { }
+            }
             try { nm.cancel(NOTIFICATION_ID); } catch (Throwable ignored) { }
             for (String old : LEGACY_CHANNELS) {
                 try { nm.deleteNotificationChannel(old); } catch (Throwable ignored) { }
@@ -244,7 +265,7 @@ public final class NotificationHelper {
 
         Notification.Builder builder = new Notification.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notify_lens)
-                .setColor(context.getColor(R.color.apple_accent))
+                .setColor(context.getColor(R.color.notification_accent))
                 .setContentTitle(content.title)
                 .setContentText(content.text)
                 .setContentIntent(openMain)

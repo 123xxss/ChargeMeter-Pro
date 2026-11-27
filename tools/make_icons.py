@@ -95,13 +95,13 @@ def notify(size):
     d = ImageDraw.Draw(img)
     c = s / 2
     # 与桌面图标一致的镜头环 + 闪电白色剪影（状态栏要求透明单色）
-    ring_r = s * 0.35
-    ring_w = max(2, int(s * 0.045))
+    ring_r = s * 0.37
+    ring_w = max(2, int(s * 0.075))
     d.ellipse([c - ring_r, c - ring_r, c + ring_r, c + ring_r],
               outline=(255, 255, 255, 255), width=ring_w)
-    inner_r = s * 0.23
+    inner_r = s * 0.235
     d.ellipse([c - inner_r, c - inner_r, c + inner_r, c + inner_r],
-              outline=(255, 255, 255, 210), width=max(2, int(s * 0.035)))
+              outline=(255, 255, 255, 230), width=max(2, int(s * 0.05)))
     bolt = [
         (c + s * 0.08, c - s * 0.32),
         (c - s * 0.23, c + s * 0.05),

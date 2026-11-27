@@ -21,6 +21,12 @@ public final class App extends Application {
         } catch (Throwable t) {
             CrashReporter.record(this, t);
         }
+        // 清掉上一版本遗留的旧通知/旧图标渠道；新服务会重新发布新图标通知。
+        try {
+            com.dsh.powermeter.service.NotificationHelper.cleanupLegacy(this);
+        } catch (Throwable t) {
+            CrashReporter.record(this, t);
+        }
         // Shizuku 只读增强读取：初始化监听但不主动请求权限。
         try {
             com.dsh.powermeter.shizuku.ShizukuBatterySource.init(this);

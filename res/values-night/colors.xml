@@ -35,4 +35,5 @@
     <color name="violet_bg_start">#1B1035</color>
     <color name="violet_bg_end">#4C1D95</color>
     <color name="violet_accent">#C4B5FD</color>
+    <color name="notification_accent">#004B5A</color>
 </resources>

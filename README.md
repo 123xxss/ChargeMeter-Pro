@@ -6,13 +6,22 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.4.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.2/WattLens-Pro-v2.4.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.4.3](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.3/WattLens-Pro-v2.4.3.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.4.2.png)
+![主页、详情、应用耗电排行](docs/preview-v2.4.3.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.4.3 更新（真正修复旧小图标资源）
+
+- 找到实际原因：通知代码引用的是 `ic_notify_lens`，但图标生成脚本只更新了 `ic_notify.png`，`ic_notify_lens.png` 一直是旧闪电文件。
+- 已同步更新所有密度的 `ic_notify_lens.png`（加粗镜头环+闪电），并重新生成新的大图标。
+- 通知颜色改为新版深青色 `#004B5A`，不再用浅蓝强调色。
+- channel 升级为 `charge_monitor_v4`，通知 ID 改为 `0x504F`，启动/服务启动时清理旧 channel 和旧通知。
+- 设置 → 后台运行 → 重置状态栏通知 可手动清缓存。
+- 版本 31 / 2.4.3；测试 313 项通过。
 
 ## 2.4.2 更新（状态栏通知重置）
 
