@@ -83,6 +83,16 @@ public final class BrandCompat {
         }
     }
 
+    /**
+     * 参考 ChargeMeter 的推荐电芯数：国产高功率快充品牌默认 2，其余 1。
+     * 用户可在设置中覆盖；不是“自动探测”，避免误判。
+     */
+    public static int recommendedCellCount() {
+        Brand b = brand();
+        if (b == Brand.VIVO || b == Brand.OPPO || b == Brand.XIAOMI || b == Brand.HONOR) return 2;
+        return 1;
+    }
+
     /** 已知/高置信度双电芯机型（g 用于自动修正；未知机型仍可手动强制）。 */
     public static boolean isKnownDualCellDevice() {
         try {

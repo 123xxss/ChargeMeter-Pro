@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：1.4.1（versionCode 9）
+- 版本：1.5.0（versionCode 10）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，219,155 bytes
-- SHA-256：`f4e9b4a772bff73afaf6549cc634f4a772176b03103924e5b1bed0ec5098429b`
+- SHA-256：`7192da551f268175f6d06a09761849877afecbacda50349d415fa2cf1f9e4d92`
 
-> 1.4.1 功率刷新改为 1 秒一次；测试 300 项全通过。
+> 1.5.0 完全采用 ChargeMeter 功率算法（1 秒采样、电芯数品牌默认+手动覆盖）；测试 300 项全通过。
 
 ## 1. 自动化测试结果
 

@@ -85,6 +85,27 @@ public final class SettingsActivity extends Activity {
         builder.show();
     }
 
+    private void showCellDialog() {
+        final Prefs prefs = Prefs.get(this);
+        final String[] items = {"自动（品牌推荐）", "1 电芯", "2 电芯", "3 电芯", "4 电芯"};
+        int selected = prefs.cellCountOverride();
+        AlertDialog.Builder builder = dialogBuilder("电芯数");
+        builder.setSingleChoiceItems(items, selected, (dialog, which) -> {
+            prefs.setCellCountOverride(which);
+            ChargeEngine.get(this).sampleNow();
+            dialog.dismiss();
+            rebuildContent();
+        });
+        builder.setNegativeButton("取消", null);
+        builder.show();
+    }
+
+    private String cellCountLabel(Prefs prefs) {
+        int override = prefs.cellCountOverride();
+        if (override > 0) return override + " 电芯";
+        return "自动（推荐 " + BrandCompat.recommendedCellCount() + "）";
+    }
+
     private void showCalibrationDialog() {
         EditText input = new EditText(this);
         input.setHint("输入当前功率 W，例如 22.91");
@@ -230,6 +251,9 @@ public final class SettingsActivity extends Activity {
         addCard(UiKit.actionRow(this, "双电芯修正",
                 "部分双电芯机型只上报单电芯电压，需要 ×2 修正才接近实际功率",
                 dualLabel(prefs.dualCellMode()), v -> showDualDialog()));
+        addCard(UiKit.actionRow(this, "电芯数",
+                "参照 ChargeMeter：vivo/OPPO/小米默认 2 电芯；单电芯异常机型可手动改为 1",
+                cellCountLabel(prefs), v -> showCellDialog()));
         addCard(UiKit.actionRow(this, "功率校准",
                 "参照系统/功率计读数校准倍率（参考 ChargeMeter 的校准方式）",
                 String.format(java.util.Locale.ROOT, "倍率 %.2f", prefs.powerRatio()),
@@ -277,7 +301,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.4.1");
+        addInfo(about, "版本", "1.5.0");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
         addInfo(about, "口径", "功率为进入电池的功率估算值；边充边用时可能低于充电器实际输出功率。");
         addInfo(about, "权限", "不申请定位、存储、悬浮窗、无障碍等权限。");

@@ -43,6 +43,109 @@ public final class ChargeNormalizer {
     }
 
     public NormalizedReading normalize(RawBattery raw, int dualMode, boolean dualCellBrand) {
+        return normalize(raw, dualMode, dualCellBrand, -1);
+    }
+
+    public NormalizedReading normalize(RawBattery raw, int dualMode, boolean dualCellBrand,
+                                       int recommendedCells) {
+        if (recommendedCells > 0) return normalizeReference(raw, recommendedCells);
+        return normalizeLegacy(raw, dualMode, dualCellBrand);
+    }
+
+    /**
+     * ChargeMeter 兼容算法：P = |CURRENT_NOW(A)| × EXTRA_VOLTAGE(V) × 电芯数 × 校准倍率。
+     * 用于主功率显示；recommendedCells <= 0 时走自研归一化路径。
+     *
+     * 与 PRD 原路径的区别：
+     * - 不自动判断整包/单电芯，电芯数由品牌推荐或用户显式指定（完全对齐 ChargeMeter）；
+     * - 电压必须落在 2500–5000mV，否则参考项目视为不可用；
+     * - 功率 >400W 时把电流按 mA 再解释一次（参考项目的单位兜底）。
+     */
+    public NormalizedReading normalizeReference(RawBattery raw, int recommendedCells) {
+        NormalizedReading.Builder out = referenceBuilder(raw);
+        boolean plugged = raw.isPlugged();
+        boolean chargingStatus = raw.isChargingStatus();
+        boolean fullStatus = raw.isFullStatus();
+        boolean full = fullStatus || (plugged && raw.level >= 100);
+
+        if (!(raw.voltageMv >= 2500 && raw.voltageMv <= 5000)) {
+            return referenceInvalid(out, plugged, full, "电压超出单电芯参考范围");
+        }
+        if (!raw.currentSupported) {
+            return referenceInvalid(out, plugged, full, "本机未开放电流接口");
+        }
+        double amps = raw.currentRaw / 1_000_000.0;
+        double packV = raw.voltageMv / 1000.0 * recommendedCells;
+        double provisional = Math.abs(amps) * packV;
+        if (provisional > 400.0) {
+            amps = amps / 1000.0; // 极少数 ROM 以 mA 上报
+            provisional = Math.abs(amps) * packV;
+        }
+        if (!Double.isFinite(provisional) || provisional > 400.0) {
+            return referenceInvalid(out, plugged, full, "电流单位无法确认");
+        }
+        boolean nearZero = Math.abs(amps) <= 0.02;
+        double signedA;
+        if (chargingStatus) signedA = Math.abs(amps);
+        else if (!plugged) signedA = -Math.abs(amps);
+        else signedA = -Math.abs(amps);
+        double chargeW = chargingStatus ? packV * Math.abs(amps) : 0;
+
+        String invalidReason = null;
+        if (chargingStatus && nearZero) invalidReason = "电流接近零";
+
+        ChargeState state;
+        if (!plugged) state = ChargeState.UNPLUGGED;
+        else if (full) state = ChargeState.FULL;
+        else if (chargingStatus) state = invalidReason == null
+                ? ChargeState.CHARGING : ChargeState.UNAVAILABLE;
+        else state = ChargeState.PAUSED;
+
+        boolean valid = invalidReason == null && plugged && chargingStatus;
+        return out.valid(valid)
+                .invalidReason(invalidReason)
+                .state(state)
+                .voltageV(packV)
+                .cells(recommendedCells)
+                .voltageCorrected(recommendedCells > 1)
+                .enhanced(false)
+                .currentSupported(true)
+                .currentA(signedA)
+                .chargeW(valid ? chargeW : 0)
+                .netW(packV * signedA)
+                .nearZero(nearZero)
+                .build();
+    }
+
+    private NormalizedReading.Builder referenceBuilder(RawBattery raw) {
+        return NormalizedReading.builder()
+                .timestampMs(raw.timestampMs)
+                .plugged(raw.isPlugged())
+                .level(raw.level)
+                .powerMaxW(raw.powerMaxW)
+                .rawVoltageV(raw.voltageMv / 1000.0)
+                .rawCurrent(raw.currentRaw)
+                .chargeCounterUah(raw.chargeCounterUah)
+                .temperatureC(readTemperature(raw))
+                .unitUsed(UNIT_MICRO);
+    }
+
+    private NormalizedReading referenceInvalid(NormalizedReading.Builder out,
+                                               boolean plugged, boolean full, String reason) {
+        ChargeState state;
+        if (!plugged) state = ChargeState.UNPLUGGED;
+        else if (full) state = ChargeState.FULL;
+        else state = ChargeState.UNAVAILABLE;
+        return out.valid(false)
+                .invalidReason(reason)
+                .state(state)
+                .currentA(0)
+                .chargeW(0)
+                .netW(0)
+                .build();
+    }
+
+    private NormalizedReading normalizeLegacy(RawBattery raw, int dualMode, boolean dualCellBrand) {
         NormalizedReading.Builder out = NormalizedReading.builder()
                 .timestampMs(raw.timestampMs)
                 .plugged(raw.isPlugged())

@@ -165,7 +165,13 @@ public final class ChargeEngine {
 
         RawBattery raw = reader.read(prefs.enhancedReadEnabled(), prefs.shizukuReadEnabled());
         int dualMode = prefs.dualCellMode();
-        NormalizedReading n = normalizer.normalize(raw, dualMode, BrandCompat.dualCellFamily());
+        int cells;
+        int override = prefs.cellCountOverride();
+        if (override > 0) cells = override;
+        else if (dualMode == Prefs.DUAL_FORCE) cells = 2;
+        else if (dualMode == Prefs.DUAL_OFF) cells = 1;
+        else cells = BrandCompat.recommendedCellCount();
+        NormalizedReading n = normalizer.normalize(raw, dualMode, BrandCompat.dualCellFamily(), cells);
 
         int unit = normalizer.preferredUnit();
         if (unit != prefs.currentUnitHint() && unit != ChargeNormalizer.UNIT_UNKNOWN) {
@@ -191,14 +197,15 @@ public final class ChargeEngine {
         double smoothedA = n.currentA;
         double powerRatio = prefs.powerRatio();
         if (n.valid && charging) {
-            smoothedW = smoother.addPower(n.chargeW) * powerRatio;
-            smoothedV = smoother.addVoltage(n.voltageV);
-            smoothedA = smoother.addCurrent(n.currentA);
+            // 按 ChargeMeter 的算法直接显示本次采样功率，不做额外平滑。
+            smoothedW = n.chargeW * powerRatio;
+            smoothedV = n.voltageV;
+            smoothedA = n.currentA;
             lastValidAt = now;
             peakTracker.add(smoothedW);
         } else if (!plugged && n.currentSupported && n.voltageV > 0) {
-            smoothedV = smoother.addVoltage(n.voltageV);
-            smoothedA = smoother.addCurrent(n.currentA);
+            smoothedV = n.voltageV;
+            smoothedA = n.currentA;
         }
 
         // 会话统计与本次充电摘要

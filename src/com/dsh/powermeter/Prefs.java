@@ -142,6 +142,22 @@ public final class Prefs {
         setBool("shizuku_read_enabled", enabled);
     }
 
+    /** 电芯数覆盖：0=按品牌推荐，1/2/3/4=手动。 */
+    public int cellCountOverride() {
+        try {
+            return sp.getInt("cell_count_override", 0);
+        } catch (Throwable t) {
+            return 0;
+        }
+    }
+
+    public void setCellCountOverride(int cells) {
+        try {
+            sp.edit().putInt("cell_count_override", Math.max(0, Math.min(4, cells))).apply();
+        } catch (Throwable ignored) {
+        }
+    }
+
     /** 功率校准倍率（参考 ChargeMeter 的校准思路），默认 1.0。 */
     public double powerRatio() {
         return getFloat("power_ratio", 1.0f);
