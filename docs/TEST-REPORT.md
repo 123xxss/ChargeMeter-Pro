@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：1.9.1（versionCode 19）
+- 版本：2.0.0（versionCode 20）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
-- APK：`powermeter.apk`，235,888 bytes
-- SHA-256：`e87f3005c9d7c89a8abe35be16a478ce78a8c7858e31bfacdb7bd3476147cea0`
+- APK：`powermeter.apk`，276,848 bytes
+- SHA-256：`d0d77f9c07f855deea0aa1c4451c3584f7b5a40b9f1673a41a41dc492656bf98`
 
-> 1.9.1 详情圆角底板/防溢出、可选动效、通知同步；测试 312 项全通过。
+> 2.0.0 瓦镜 Pro 新名称/图标、曲线空态、系统状态排版、防溢出与五档动效；测试 312 项全通过。
 
 ## 1. 自动化测试结果
 

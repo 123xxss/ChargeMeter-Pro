@@ -1,13 +1,13 @@
-# 充电功率 Pro · 项目报告
+# 瓦镜 Pro · 项目报告
 
-> 版本：1.9.1（versionCode 19）  
+> 版本：2.0.0（versionCode 20）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[ChargeMeter-Pro-v1.9.1.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.9.1/ChargeMeter-Pro-v1.9.1.apk)
+> 下载：[WattLens-Pro-v2.0.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.0.0/WattLens-Pro-v2.0.0.apk)
 
 ---
 
@@ -156,7 +156,12 @@
 
 ### 1.9.0 — 主页 + 详情页 UI 重做
 
-### 1.9.1 — 详情圆角底板 + 动效选项 + 通知同步（当前版本）
+### 1.9.1 — 详情圆角底板 + 动效选项 + 通知同步
+
+### 2.0.0 — 瓦镜 Pro 品牌与 UI 优化（当前版本）
+
+- 新名称/图标；曲线空态、系统状态排版、实时数据空值优化；
+- 全局防溢出；5 档动效；通知同步。
 
 - 详情页实心圆角底板、删除“详情”标题、防止文字溢出；
 - 标准/增强/关闭三档动效；

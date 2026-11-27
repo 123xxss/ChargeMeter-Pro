@@ -2,6 +2,7 @@ package com.dsh.powermeter.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -59,7 +60,7 @@ public final class PowerChartView extends View {
         fill.setStyle(Paint.Style.FILL);
         grid.setStyle(Paint.Style.STROKE);
         grid.setStrokeWidth(dp(1));
-        text.setTextSize(dp(10));
+        text.setTextSize(dp(10.5f));
         text.setColor(colorMuted);
         dot.setStyle(Paint.Style.FILL);
         dot.setColor(colorAccent);
@@ -130,27 +131,70 @@ public final class PowerChartView extends View {
         float chartW = w - padL - padR;
         float chartH = h - padT - padB;
 
-        // 网格
+        int n;
+        synchronized (values) { n = count; }
+
+        // 空态：不画黑色网格和刻度，避免出现“几条黑线+文字叠在一起”的观感。
+        if (n < 2) {
+            float boxTop = padT + dp(2);
+            float boxBottom = h - padB - dp(2);
+            fill.setShader(null);
+            fill.setColor(colorGrid);
+            fill.setAlpha(55);
+            android.graphics.RectF box = new android.graphics.RectF(
+                    padL, boxTop, w - padR, boxBottom);
+            canvas.drawRoundRect(box, dp(14), dp(14), fill);
+            fill.setAlpha(255);
+
+            // 迷你曲线图标
+            float ix = w / 2f;
+            float iy = boxTop + (boxBottom - boxTop) * 0.34f;
+            Path icon = new Path();
+            icon.moveTo(ix - dp(15), iy + dp(5));
+            icon.lineTo(ix - dp(7), iy - dp(2));
+            icon.lineTo(ix - dp(1), iy + dp(4));
+            icon.lineTo(ix + dp(7), iy - dp(5));
+            icon.lineTo(ix + dp(15), iy + dp(2));
+            line.setColor(colorAccent);
+            line.setAlpha(110);
+            canvas.drawPath(icon, line);
+            line.setAlpha(255);
+
+            text.setTextAlign(Paint.Align.CENTER);
+            text.setColor(colorMuted);
+            text.setTextSize(dp(11.5f));
+            canvas.drawText("开始充电后自动记录功率曲线",
+                    w / 2f, iy + dp(30), text);
+            text.setTextSize(dp(9.5f));
+            text.setAlpha(160);
+            canvas.drawText("每秒一个点 · 最近 2 分钟",
+                    w / 2f, iy + dp(44), text);
+            text.setAlpha(255);
+            return;
+        }
+
+        // 网格：虚线、低对比，不抢曲线
+        grid.setColor(colorMuted);
+        grid.setAlpha(48);
+        grid.setPathEffect(new DashPathEffect(new float[]{dp(3), dp(6)}, 0));
         for (int i = 1; i <= 3; i++) {
             float y = padT + chartH * i / 4f;
             canvas.drawLine(padL, y, w - padR, y, grid);
         }
+        grid.setPathEffect(null);
+        grid.setAlpha(255);
         // 右侧最大刻度
         text.setTextAlign(Paint.Align.RIGHT);
+        text.setColor(colorMuted);
+        text.setTextSize(dp(10));
         canvas.drawText(String.format(java.util.Locale.ROOT, "%.0f W", maxValue),
                 w - padR, padT + dp(9), text);
 
-        int n;
-        synchronized (values) { n = count; }
-        if (n < 2) {
-            text.setTextAlign(Paint.Align.CENTER);
-            canvas.drawText("充电中自动绘制功率曲线", w / 2f, h / 2f, text);
-            return;
-        }
-
+        // 平滑路径：用中点二次贝塞尔柔化折线
         path.reset();
         fillPath.reset();
         boolean first = true;
+        float prevX = 0, prevY = 0;
         float lastX = padL;
         float lastY = padT + chartH;
         for (int i = 0; i < n; i++) {
@@ -163,13 +207,18 @@ public final class PowerChartView extends View {
                 fillPath.lineTo(x, y);
                 first = false;
             } else {
-                path.lineTo(x, y);
-                fillPath.lineTo(x, y);
+                float midX = (prevX + x) / 2f;
+                float midY = (prevY + y) / 2f;
+                path.quadTo(prevX, prevY, midX, midY);
+                fillPath.quadTo(prevX, prevY, midX, midY);
             }
+            prevX = x;
+            prevY = y;
             lastX = x;
             lastY = y;
         }
-        // 末端贴底，形成填充
+        path.lineTo(lastX, lastY);
+        fillPath.lineTo(lastX, lastY);
         fillPath.lineTo(lastX, padT + chartH);
         fillPath.close();
         fill.setShader(new LinearGradient(0, padT, 0, padT + chartH,

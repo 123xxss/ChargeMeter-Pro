@@ -1,14 +1,29 @@
-# 充电功率 Pro · PowerMeter Pro
+# 瓦镜 Pro · WattLens Pro
+
+> 前身「充电功率 Pro / ChargeMeter Pro」；2.0.0 起更名为 **瓦镜 Pro**，包名仍为 `com.dsh.powermeter`。
 
 按《安卓充电功率与实时功耗显示 PRD V1.4》实现的一个干净、无广告、无联网的 Android 实时充电功率监视器（Pro 版）。
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v1.9.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.9.1/ChargeMeter-Pro-v1.9.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.0.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.0.0/WattLens-Pro-v2.0.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页与详情页预览](docs/preview-v1.9.1.png)
+![主页与详情页预览](docs/preview-v2.0.0.png)
+
+<img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.0.0 更新（瓦镜 Pro · 新图标 + 图表/系统状态优化）
+
+- 应用更名 **瓦镜 Pro（WattLens Pro）**，新图标：镜头环 + 闪电 + 深青渐变。
+- 功率曲线重做空态：无数据时不再出现黑色网格和文字叠压，改为柔和占位；有数据时使用平滑曲线、虚线网格、当前值。
+- 系统状态排版优化：数值只放短指标（如 `19%`），频率/核心数/已用比例放到标签，避免 `19% · 0.30G…` 截断；GPU/温度未开放单独标注。
+- 实时数据：无充电会话时峰值显示 `--`，不再出现误导性的 `0.00 W`。
+- 新增文字防溢出：顶栏胶囊、指标标签、系统提示、会话标题、详情行统一限制宽度/行数并省略；动画只改变透明度和位移，不改变宽度。
+- 动效扩展到 5 档：标准 / 增强 / 关闭 / vivo 原子 / Apple 流畅。
+- 通知栏每帧与主界面同步；详情页实心圆角底板、无“详情”大标题。
+- 版本 20 / 2.0.0；测试 312 项通过。
 
 ## 1.9.1 更新（详情圆角底板 + 动效选项 + 通知同步）
 

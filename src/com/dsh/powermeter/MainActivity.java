@@ -72,6 +72,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private PowerCardView heroCard;
     private PowerChartView chart;
     private LinearLayout chartCard;
+    private TextView chartHint;
     private long lastChartTimestamp = -1;
     private boolean lastSessionActive;
     private boolean entranceAnimated;
@@ -194,20 +195,24 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         int motion = Prefs.get(this).motionStyle();
         if (motion == 2) return;
         boolean rich = motion == 1;
+        boolean vivo = motion == 3;
+        boolean ios = motion == 4;
         View[] views = {heroCard, gridCard, chartCard,
                 systemCard, sessionCard, footerCard};
-        int step = UiKit.dp(this, rich ? 14 : 10);
+        int step = UiKit.dp(this, vivo ? 18 : (rich ? 14 : 10));
+        int delay = vivo ? 44 : (rich ? 42 : 28);
+        int duration = vivo ? 340 : (rich ? 320 : (ios ? 260 : 220));
         for (int i = 0; i < views.length; i++) {
             View v = views[i];
             if (v == null) continue;
             v.setAlpha(0f);
             v.setTranslationY(step);
-            v.animate()
-                    .alpha(1f)
-                    .translationY(0f)
-                    .setStartDelay(i * (rich ? 42L : 28L))
-                    .setDuration(rich ? 320 : 220)
-                    .start();
+            android.view.ViewPropertyAnimator anim = v.animate()
+                    .alpha(1f).translationY(0f)
+                    .setStartDelay(i * (long) delay);
+            if (vivo) anim.setInterpolator(new android.view.animation.OvershootInterpolator(0.7f));
+            if (ios) anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
+            anim.setDuration(duration).start();
         }
     }
 
@@ -226,6 +231,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         updateHeaderStatus(master, snapshot);
         if (!master) {
             if (chart != null) chart.clear();
+            if (chartHint != null) chartHint.setText("最近 2 分钟");
             lastChartTimestamp = -1;
             lastSessionActive = false;
             return;
@@ -253,7 +259,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         setMetricValue(cellVoltage, s == null || hideForIdle ? "--" : UiKit.volts(s.voltageV));
         setMetricValue(cellCurrent, s == null || hideForIdle ? "--" : UiKit.amps(s.currentA));
         setMetricValue(cellTemp, s == null || hideForIdle ? "--" : UiKit.temp(s.temperatureC));
-        setMetricValue(cellPeak, s == null || hideForIdle ? "--" : UiKit.watts(s.peakW));
+        boolean noPeak = s == null || !s.sessionActive || s.peakW <= 0.01;
+        setMetricValue(cellPeak, hideForIdle || noPeak ? "--" : UiKit.watts(s.peakW));
     }
 
     private void renderChart(PowerSnapshot s) {
@@ -269,6 +276,12 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         if (s.charging && s.valid && s.chargeW > 0) {
             lastChartTimestamp = s.timestampMs;
             chart.add(s.chargeW);
+            if (chartHint != null) {
+                chartHint.setText(String.format(java.util.Locale.ROOT,
+                        "当前 %.2f W", s.chargeW));
+            }
+        } else if (chartHint != null) {
+            chartHint.setText("最近 2 分钟");
         }
     }
 
@@ -292,18 +305,29 @@ public final class MainActivity extends Activity implements StateStore.Listener 
                 || Double.isNaN(st.gpuPercent) || Double.isNaN(st.thermalMaxC);
         systemHint.setVisibility(unavailable ? View.VISIBLE : View.GONE);
         if (unavailable) {
-            systemHint.setText("CPU/GPU/系统温度未开放 · 点此用 Shizuku 尝试读取");
+            systemHint.setText("CPU/GPU/温度读不到？点此用 Shizuku 尝试读取");
         }
-        setMetricValue(sysCpu, st.cpuSummary());
-        sysCpu.label.setText("CPU" + (st.cpuCores > 0 ? " · " + st.cpuCores + " 核" : ""));
+        // 数值只放短指标，频率/已用比例放次要标签，避免 “19% · 0.30G…” 被截断。
+        if (Double.isNaN(st.cpuPercent)) {
+            setMetricValue(sysCpu, "--");
+            sysCpu.label.setText("CPU");
+        } else {
+            setMetricValue(sysCpu, String.format(java.util.Locale.ROOT, "%.0f%%", st.cpuPercent));
+            String detail = "CPU";
+            if (!Double.isNaN(st.cpuFreqGhz)) {
+                detail += String.format(java.util.Locale.ROOT, " · %.2fGHz", st.cpuFreqGhz);
+            }
+            if (st.cpuCores > 0) detail += " · " + st.cpuCores + " 核";
+            sysCpu.label.setText(detail);
+        }
         setMetricValue(sysRam, st.ramSummary());
         sysRam.label.setText(st.ramTotalMb > 0
                 ? String.format(java.util.Locale.ROOT, "可用内存 · 已用 %.0f%%", st.ramUsedPercent)
                 : "可用内存");
-        setMetricValue(sysGpu, st.gpuSummary());
-        sysGpu.label.setText(Double.isNaN(st.gpuPercent) ? "GPU（系统未开放）" : "GPU 使用率");
-        setMetricValue(sysThermal, st.thermalSummary());
-        sysThermal.label.setText(Double.isNaN(st.thermalMaxC) ? "系统温度（未开放）" : "系统最高温度");
+        setMetricValue(sysGpu, Double.isNaN(st.gpuPercent) ? "--" : st.gpuSummary());
+        sysGpu.label.setText(Double.isNaN(st.gpuPercent) ? "GPU · 系统未开放" : "GPU 使用率");
+        setMetricValue(sysThermal, Double.isNaN(st.thermalMaxC) ? "--" : st.thermalSummary());
+        sysThermal.label.setText(Double.isNaN(st.thermalMaxC) ? "温度 · 未开放" : "系统最高温度");
     }
 
     private void openShizukuForStats() {
@@ -517,7 +541,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             root.setBackgroundColor(0xFFF4F6FA);
 
             TextView title = new TextView(this);
-            title.setText("充电功率 Pro 启动异常");
+            title.setText(getString(R.string.app_name) + " 启动异常");
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f);
             title.setTextColor(0xFF10151F);
             title.setTypeface(Typeface.DEFAULT_BOLD);
@@ -610,11 +634,13 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
         // 顶栏
         LinearLayout header = UiKit.row(this);
-        TextView title = UiKit.text(this, "充电功率 Pro", 23f, R.color.text_primary, true);
+        TextView title = UiKit.text(this, getString(R.string.app_name), 23f, R.color.text_primary, true);
         header.addView(title, UiKit.weighted(1f));
         headerStatus = UiKit.pill(this, "待机", getColor(R.color.text_secondary),
                 getColor(R.color.card_alt));
         headerStatus.setTextSize(11f);
+        headerStatus.setMaxWidth(UiKit.dp(this, 108));
+        headerStatus.setEllipsize(TextUtils.TruncateAt.END);
         header.addView(headerStatus, UiKit.left(this, UiKit.wrapWrap(), 6));
         ImageView settings = UiKit.iconButton(this, R.drawable.ic_settings,
                 R.color.text_secondary,
@@ -688,7 +714,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         LinearLayout chartHead = UiKit.row(this);
         TextView chartTitle = UiKit.text(this, "功率曲线", 14f, R.color.text_primary, true);
         chartHead.addView(chartTitle, UiKit.weighted(1f));
-        TextView chartHint = UiKit.text(this, "最近 2 分钟", 11f, R.color.text_muted, false);
+        chartHint = UiKit.text(this, "最近 2 分钟", 11f, R.color.text_muted, false);
         chartHead.addView(chartHint);
         chartCard.addView(chartHead, UiKit.matchWrap());
         chart = new PowerChartView(this);
@@ -768,6 +794,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private void buildSessionCard() {
         sessionCard = UiKit.card(this);
         sessionHeading = UiKit.text(this, "暂无充电记录", 15f, R.color.text_primary, true);
+        sessionHeading.setSingleLine(true);
+        sessionHeading.setEllipsize(TextUtils.TruncateAt.END);
         sessionCard.addView(sessionHeading, UiKit.matchWrap());
         sessionSub = UiKit.text(this, "", 12f, R.color.text_secondary, false);
         sessionSub.setMaxLines(2);
@@ -821,10 +849,10 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             metric.value.setText(next);
             return;
         }
-        metric.value.setAlpha(0.55f);
+        metric.value.setAlpha(0.5f);
         metric.value.setText(next);
         metric.value.animate().alpha(1f)
-                .setDuration(motion == 1 ? 240 : 160).start();
+                .setDuration(motion == 3 || motion == 1 ? 240 : (motion == 4 ? 200 : 160)).start();
     }
 
     private void updateHeaderStatus(boolean master, PowerSnapshot s) {

@@ -107,7 +107,7 @@ public final class NotificationHelper {
     public static Notification buildMinimal(Context context) {
         Notification.Builder builder = new Notification.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notify)
-                .setContentTitle("充电功率 Pro")
+                .setContentTitle(context.getString(R.string.app_name))
                 .setContentText("正在启动监测")
                 .setShowWhen(false)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)

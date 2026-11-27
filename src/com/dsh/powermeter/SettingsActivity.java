@@ -90,7 +90,7 @@ public final class SettingsActivity extends Activity {
 
     private void showMotionDialog() {
         final Prefs prefs = Prefs.get(this);
-        final String[] items = {"标准", "增强", "关闭"};
+        final String[] items = {"标准", "增强", "关闭", "vivo 原子", "Apple 流畅"};
         AlertDialog.Builder builder = dialogBuilder("动效");
         builder.setSingleChoiceItems(items, prefs.motionStyle(), (dialog, which) -> {
             prefs.setMotionStyle(which);
@@ -103,6 +103,8 @@ public final class SettingsActivity extends Activity {
 
     private String motionLabel(int style) {
         if (style == 2) return "关闭";
+        if (style == 3) return "vivo 原子";
+        if (style == 4) return "Apple 流畅";
         if (style == 1) return "增强";
         return "标准";
     }
@@ -336,7 +338,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.9.1");
+        addInfo(about, "版本", "2.0.0");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
                 + " · " + DeviceInfo.model());
@@ -363,18 +365,21 @@ public final class SettingsActivity extends Activity {
         int motion = Prefs.get(this).motionStyle();
         if (motion == 2) return;
         boolean rich = motion == 1;
-        int step = UiKit.dp(this, rich ? 13 : 9);
+        boolean vivo = motion == 3;
+        boolean ios = motion == 4;
+        int step = UiKit.dp(this, vivo ? 16 : (rich ? 13 : 9));
+        int delay = vivo ? 34 : (rich ? 30 : 18);
+        int duration = vivo ? 300 : (rich ? 280 : (ios ? 240 : 190));
         int count = Math.min(content.getChildCount(), 18);
         for (int i = 0; i < count; i++) {
             View child = content.getChildAt(i);
             child.setAlpha(0f);
             child.setTranslationY(step);
-            child.animate()
-                    .alpha(1f)
-                    .translationY(0f)
-                    .setStartDelay(i * (rich ? 30L : 18L))
-                    .setDuration(rich ? 280 : 190)
-                    .start();
+            android.view.ViewPropertyAnimator anim = child.animate()
+                    .alpha(1f).translationY(0f).setStartDelay(i * (long) delay);
+            if (vivo) anim.setInterpolator(new android.view.animation.OvershootInterpolator(0.7f));
+            if (ios) anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
+            anim.setDuration(duration).start();
         }
     }
 

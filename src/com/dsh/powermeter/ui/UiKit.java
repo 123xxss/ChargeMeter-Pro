@@ -171,6 +171,8 @@ public final class UiKit {
     public static TextView pill(Context c, CharSequence value, int textColor, int bgColor) {
         TextView t = textColor(c, value, 12f, textColor, true);
         t.setSingleLine(true);
+        t.setEllipsize(TextUtils.TruncateAt.END);
+        t.setMaxWidth(dp(c, 160));
         t.setPadding(dp(c, 10), dp(c, 4), dp(c, 10), dp(c, 4));
         t.setBackground(rounded(c, bgColor, 100f));
         return t;

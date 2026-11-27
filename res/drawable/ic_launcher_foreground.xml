@@ -4,17 +4,25 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- 镜头外环 -->
     <path
         android:fillColor="#00000000"
         android:pathData="M54,20 a34,34 0 1,0 0,68 a34,34 0 1,0 0,-68"
-        android:strokeColor="#66FFFFFF"
-        android:strokeWidth="3" />
+        android:strokeColor="#99FFFFFF"
+        android:strokeWidth="2.6" />
     <path
         android:fillColor="#00000000"
         android:pathData="M54,20 a34,34 0 0,1 24.1,9.9"
-        android:strokeColor="#CCFFFFFF"
+        android:strokeColor="#F2FFFFFF"
         android:strokeLineCap="round"
-        android:strokeWidth="3.4" />
+        android:strokeWidth="3.2" />
+    <!-- 镜头内环 -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,31 a23,23 0 1,0 0,46 a23,23 0 1,0 0,-46"
+        android:strokeColor="#BF7DEBE6"
+        android:strokeWidth="2" />
+    <!-- 中心闪电 -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M58,24L36,58h13l-4,26 24,-34H56z" />

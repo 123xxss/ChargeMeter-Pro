@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">充电功率 Pro</string>
+    <string name="app_name">瓦镜 Pro</string>
     <string name="settings_title">设置</string>
-    <string name="channel_name">充电功率 Pro</string>
+    <string name="channel_name">瓦镜 Pro</string>
     <string name="channel_desc">实时充电功率与功耗监测，常驻低优先级通知</string>
     <string name="notification_action_settings">设置</string>
     <string name="notification_action_details">详情</string>

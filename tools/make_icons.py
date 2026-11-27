@@ -6,9 +6,10 @@ import os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SS = 4  # 超采样倍数
 
-BG1 = (47, 107, 255)
-BG2 = (0, 194, 199)
+BG1 = (9, 16, 30)
+BG2 = (12, 105, 130)
 WHITE = (255, 255, 255, 255)
+CYAN = (125, 235, 230, 255)
 
 
 def grad(size):
@@ -52,14 +53,25 @@ def icon(size, round_icon=False):
 
     d = ImageDraw.Draw(img)
     c = s / 2
-    # 外圈刻度环
-    ring_r = s * 0.31
+    # 镜头外环 + 内环（“瓦镜”视觉）
+    ring_r = s * 0.33
     ring_w = max(2, int(s * 0.022))
     d.ellipse([c - ring_r, c - ring_r, c + ring_r, c + ring_r],
-              outline=(255, 255, 255, 120), width=ring_w)
-    # 高亮弧（右上）
+              outline=(255, 255, 255, 110), width=ring_w)
     d.arc([c - ring_r, c - ring_r, c + ring_r, c + ring_r],
-          start=-80, end=10, fill=(255, 255, 255, 230), width=ring_w)
+          start=-80, end=10, fill=(255, 255, 255, 245), width=ring_w)
+    inner_r = s * 0.225
+    d.ellipse([c - inner_r, c - inner_r, c + inner_r, c + inner_r],
+              outline=(125, 235, 230, 190), width=max(2, int(s * 0.015)))
+    # 四周小光点，像镜头刻度
+    import math
+    for ang in (-45, 45, 135, 225):
+        rad = math.radians(ang)
+        px = c + math.cos(rad) * s * 0.40
+        py = c + math.sin(rad) * s * 0.40
+        dot_r = s * 0.012
+        d.ellipse([px - dot_r, py - dot_r, px + dot_r, py + dot_r],
+                  fill=(125, 235, 230, 140))
     # 中心闪电
     bolt = [
         (c + s * 0.035, c - s * 0.29),

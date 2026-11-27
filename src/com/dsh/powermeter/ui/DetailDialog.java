@@ -309,14 +309,21 @@ public final class DetailDialog {
         int motion = Prefs.get(c).motionStyle();
         if (motion == 2) return;
         boolean rich = motion == 1;
-        int step = UiKit.dp(c, rich ? 16 : 12);
+        boolean vivo = motion == 3;
+        boolean ios = motion == 4;
+        int step = UiKit.dp(c, vivo ? 18 : (rich ? 16 : 12));
+        int delay = vivo ? 40 : (rich ? 34 : 22);
+        int duration = vivo ? 320 : (rich ? 300 : (ios ? 250 : 200));
         for (int i = from; i < page.getChildCount(); i++) {
             View v = page.getChildAt(i);
             v.setAlpha(0f);
             v.setTranslationY(step);
-            v.animate().alpha(1f).translationY(0f)
-                    .setStartDelay((i - from) * (rich ? 34L : 22L))
-                    .setDuration(rich ? 300 : 200).start();
+            android.view.ViewPropertyAnimator anim = v.animate()
+                    .alpha(1f).translationY(0f)
+                    .setStartDelay((i - from) * (long) delay);
+            if (vivo) anim.setInterpolator(new android.view.animation.OvershootInterpolator(0.7f));
+            if (ios) anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
+            anim.setDuration(duration).start();
         }
     }
 

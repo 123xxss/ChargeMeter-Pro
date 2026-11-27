@@ -169,7 +169,7 @@ public final class Prefs {
 
     public void setMotionStyle(int style) {
         try {
-            sp.edit().putInt("motion_style", Math.max(0, Math.min(2, style))).apply();
+            sp.edit().putInt("motion_style", Math.max(0, Math.min(4, style))).apply();
         } catch (Throwable ignored) {
         }
     }
