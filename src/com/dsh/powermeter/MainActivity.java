@@ -3,11 +3,14 @@ package com.dsh.powermeter;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,6 +28,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.dsh.powermeter.core.ChargeEngine;
 import com.dsh.powermeter.core.ChargeState;
@@ -52,6 +56,9 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private final Handler main = new Handler(Looper.getMainLooper());
 
     private ChargeEngine engine;
+    /** UI 是否完整构建；构建/刷新异常时进入安全模式，避免直接闪退。 */
+    private boolean uiReady;
+    private boolean fallbackShown;
 
     private LinearLayout banner;
     private TextView bannerText;
@@ -96,34 +103,53 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        applySystemBars();
-        buildUi();
+        maybeShowLastCrash();
+        try {
+            applySystemBars();
+            buildUi();
+            uiReady = true;
+        } catch (Throwable t) {
+            showSafeFallback(t);
+            return;
+        }
         main.postDelayed(this::showGuideIfNeeded, 700);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Prefs prefs = Prefs.get(this);
-        if (prefs.masterEnabled()) {
-            try {
-                PowerService.start(this);
-            } catch (Throwable ignored) {
+        if (!uiReady) return;
+        try {
+            Prefs prefs = Prefs.get(this);
+            if (prefs.masterEnabled()) {
+                try {
+                    // 从可见界面用 startService，避免 FGS 启动失败时触发系统
+                    // “did not call startForeground” 的进程级崩溃。
+                    PowerService.startFromActivity(this);
+                } catch (Throwable ignored) {
+                }
             }
+            engine = ChargeEngine.get(this);
+            engine.retain();
+            StateStore.get().addListener(this);
+            engine.sampleNow();
+            render(StateStore.get().latest());
+            requestNotificationPermissionIfNeeded();
+        } catch (Throwable t) {
+            showSafeFallback(t);
         }
-        engine = ChargeEngine.get(this);
-        engine.retain();
-        StateStore.get().addListener(this);
-        engine.sampleNow();
-        render(StateStore.get().latest());
-        requestNotificationPermissionIfNeeded();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        applySystemBars();
-        render(StateStore.get().latest());
+        if (!uiReady) return;
+        try {
+            applySystemBars();
+            render(StateStore.get().latest());
+        } catch (Throwable t) {
+            showSafeFallback(t);
+        }
     }
 
     @Override
@@ -146,7 +172,12 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
     @Override
     public void onSnapshot(PowerSnapshot snapshot) {
-        render(snapshot);
+        if (!uiReady) return;
+        try {
+            render(snapshot);
+        } catch (Throwable t) {
+            showSafeFallback(t);
+        }
     }
 
     private void render(PowerSnapshot snapshot) {
@@ -419,7 +450,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private void enableMaster() {
         Prefs.get(this).setMasterEnabled(true);
         try {
-            PowerService.start(this);
+            PowerService.startFromActivity(this);
         } catch (Throwable ignored) {
         }
         ChargeEngine.get(this).sampleNow();
@@ -443,19 +474,24 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
     private void showGuideIfNeeded() {
         if (isFinishing() || isDestroyed()) return;
-        Prefs prefs = Prefs.get(this);
-        if (!BrandCompat.isTargetBrand() || prefs.guideShown()) return;
-        AlertDialog.Builder builder = dialogBuilder("后台运行设置");
-        builder.setMessage(BrandCompat.guideSteps()
-                + "\n\n机型：" + BrandCompat.brandDisplayName()
-                + "\n也可以稍后在设置页重新查看。");
-        builder.setPositiveButton("去设置", (dialog, which) -> {
-            Prefs.get(this).markGuideShown();
-            BrandCompat.openBackgroundSettings(this);
-        });
-        builder.setNegativeButton("稍后", (dialog, which) -> Prefs.get(this).markGuideShown());
-        builder.setCancelable(false);
-        builder.show();
+        try {
+            Prefs prefs = Prefs.get(this);
+            if (!BrandCompat.isTargetBrand() || prefs.guideShown()) return;
+            AlertDialog.Builder builder = dialogBuilder("后台运行设置");
+            builder.setMessage(BrandCompat.guideSteps()
+                    + "\n\n机型：" + BrandCompat.brandDisplayName()
+                    + "\n也可以稍后在设置页重新查看。");
+            builder.setPositiveButton("去设置", (dialog, which) -> {
+                Prefs.get(this).markGuideShown();
+                BrandCompat.openBackgroundSettings(this);
+            });
+            builder.setNegativeButton("稍后", (dialog, which) -> Prefs.get(this).markGuideShown());
+            builder.setCancelable(false);
+            builder.show();
+        } catch (Throwable t) {
+            // OEM 弹窗主题差异等异常不应影响主界面
+            CrashReporter.record(this, t);
+        }
     }
 
     private AlertDialog.Builder dialogBuilder(CharSequence title) {
@@ -473,6 +509,101 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQ_NOTIFICATION) {
             updateBanner();
+        }
+    }
+
+    // ---------------------------------------------------------------- 崩溃与安全模式
+
+    /** 上一次启动/运行异常时，把堆栈显示出来，方便一键复制反馈。 */
+    private void maybeShowLastCrash() {
+        String report = CrashReporter.readLast(this);
+        if (report == null) return;
+        try {
+            TextView detail = new TextView(this);
+            detail.setText(report);
+            detail.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f);
+            detail.setTypeface(Typeface.MONOSPACE);
+            detail.setTextIsSelectable(true);
+            detail.setPadding(UiKit.dp(this, 16), UiKit.dp(this, 12),
+                    UiKit.dp(this, 16), UiKit.dp(this, 12));
+            ScrollView scroll = new ScrollView(this);
+            scroll.addView(detail);
+            new AlertDialog.Builder(this)
+                    .setTitle("上次启动异常（可复制反馈）")
+                    .setView(scroll)
+                    .setPositiveButton("复制", (dialog, which) -> copyText(report))
+                    .setNeutralButton("清除", (dialog, which) -> CrashReporter.clear(this))
+                    .setNegativeButton("关闭", null)
+                    .show();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** 极简安全模式：UI 构建/刷新失败时仍能打开并复制错误，而不是闪退。 */
+    private void showSafeFallback(Throwable error) {
+        if (fallbackShown || isFinishing()) return;
+        fallbackShown = true;
+        uiReady = false;
+        CrashReporter.record(this, error);
+        try {
+            String report = CrashReporter.stack(error);
+            LinearLayout root = new LinearLayout(this);
+            root.setOrientation(LinearLayout.VERTICAL);
+            int pad = UiKit.dp(this, 24);
+            root.setPadding(pad, pad, pad, pad);
+            root.setBackgroundColor(0xFFF4F6FA);
+
+            TextView title = new TextView(this);
+            title.setText("充电功率 Pro 启动异常");
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f);
+            title.setTextColor(0xFF10151F);
+            title.setTypeface(Typeface.DEFAULT_BOLD);
+            root.addView(title);
+
+            TextView tip = new TextView(this);
+            tip.setText("已进入安全模式（不会闪退）。请点下面按钮复制错误信息发给开发者。");
+            tip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
+            tip.setTextColor(0xFF5B6675);
+            tip.setPadding(0, UiKit.dp(this, 8), 0, UiKit.dp(this, 12));
+            root.addView(tip);
+
+            TextView copy = new TextView(this);
+            copy.setText("复制错误信息");
+            copy.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+            copy.setTextColor(0xFFFFFFFF);
+            copy.setTypeface(Typeface.DEFAULT_BOLD);
+            copy.setPadding(UiKit.dp(this, 18), UiKit.dp(this, 10),
+                    UiKit.dp(this, 18), UiKit.dp(this, 10));
+            copy.setBackground(UiKit.rounded(this, 0xFF2F6BFF, 100f));
+            copy.setOnClickListener(v -> copyText(report));
+            root.addView(copy);
+
+            TextView detail = new TextView(this);
+            detail.setText(report);
+            detail.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f);
+            detail.setTypeface(Typeface.MONOSPACE);
+            detail.setTextColor(0xFF5B6675);
+            detail.setTextIsSelectable(true);
+            detail.setPadding(0, UiKit.dp(this, 14), 0, 0);
+            ScrollView scroll = new ScrollView(this);
+            scroll.addView(detail);
+            root.addView(scroll, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+
+            setContentView(root);
+        } catch (Throwable ignored) {
+            // 极端的资源/系统问题：到此为止，至少不要让安全模式自己再崩一次
+        }
+    }
+
+    private void copyText(String text) {
+        try {
+            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm != null) {
+                cm.setPrimaryClip(ClipData.newPlainText("PowerMeter Pro crash", text));
+                Toast.makeText(this, "已复制，可直接粘贴发送", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Throwable ignored) {
         }
     }
 
@@ -516,7 +647,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
         // 顶栏
         LinearLayout header = UiKit.row(this);
-        TextView title = UiKit.text(this, "充电功率", 24f, R.color.text_primary, true);
+        TextView title = UiKit.text(this, "充电功率 Pro", 24f, R.color.text_primary, true);
         header.addView(title, UiKit.weighted(1f));
         ImageView settings = UiKit.iconButton(this, R.drawable.ic_settings,
                 R.color.text_secondary,

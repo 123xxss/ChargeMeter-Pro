@@ -46,7 +46,7 @@ public final class SettingsActivity extends Activity {
         Prefs.get(this).setMasterEnabled(enabled);
         try {
             if (enabled) {
-                PowerService.start(this);
+                PowerService.startFromActivity(this);
                 ChargeEngine.get(this).sampleNow();
             } else {
                 PowerService.stop(this);
@@ -220,7 +220,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.0.0");
+        addInfo(about, "版本", "1.1.0");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
         addInfo(about, "口径", "功率为进入电池的功率估算值；边充边用时可能低于充电器实际输出功率。");
         addInfo(about, "权限", "不申请定位、存储、悬浮窗、无障碍等权限。");

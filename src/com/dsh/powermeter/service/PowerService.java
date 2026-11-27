@@ -58,6 +58,22 @@ public final class PowerService extends Service implements StateStore.Listener {
         }
     }
 
+    /**
+     * 从可见界面启动服务：使用 startService 而不是 startForegroundService。
+     * 这样即使进入前台失败，也不会触发系统
+     * "Context.startForegroundService() did not then call Service.startForeground()" 的进程级崩溃。
+     */
+    public static void startFromActivity(Context context) {
+        if (context == null) return;
+        try {
+            context.startService(new Intent(context, PowerService.class));
+        } catch (Throwable t) {
+            // 可见界面下 startService 失败通常意味着系统/OEM 限制了服务；
+            // 不再改走 startForegroundService，避免触发进程级 RemoteServiceException。
+            Log.w(TAG, "从界面启动服务失败：" + t.getClass().getSimpleName());
+        }
+    }
+
     /** 停止服务。 */
     public static void stop(Context context) {
         if (context == null) return;
@@ -77,19 +93,20 @@ public final class PowerService extends Service implements StateStore.Listener {
 
         // 1) 先建渠道 + 立刻进入前台（重活之后再做）
         NotificationHelper.ensureChannel(this);
-        NotificationHelper.Content initial = NotificationHelper.idle();
-        boolean ok;
+        // 先只用最基础的字段进入前台：避免自定义 action / 图标加载失败导致
+        // startForeground 失败，进而触发系统级 RemoteServiceException 闪退。
+        boolean ok = false;
         try {
-            ok = enterForeground(NotificationHelper.build(this, initial));
+            ok = enterForeground(NotificationHelper.buildMinimal(this));
         } catch (Throwable t) {
-            Log.w(TAG, "构建前台通知失败：" + t.getClass().getSimpleName());
-            ok = false;
+            Log.w(TAG, "构建最小前台通知失败：" + t.getClass().getSimpleName());
         }
         if (!ok) {
+            Log.w(TAG, "进入前台失败，停止服务（界面仍可用）");
             stopSelf();
             return;
         }
-        lastKey = initial.key();
+        lastKey = null;
 
         // 2) 再启动采样引擎并订阅快照
         try {

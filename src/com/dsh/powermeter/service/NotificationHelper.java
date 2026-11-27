@@ -6,14 +6,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.util.Log;
 
 import com.dsh.powermeter.MainActivity;
 import com.dsh.powermeter.Prefs;
 import com.dsh.powermeter.R;
-import com.dsh.powermeter.SettingsActivity;
 import com.dsh.powermeter.core.ChargeState;
 import com.dsh.powermeter.core.PowerSnapshot;
 
@@ -100,6 +98,27 @@ public final class NotificationHelper {
     /** 待机通知：前台服务刚启动、尚未拿到第一帧快照时使用。 */
     public static Content idle() {
         return new Content("充电功率监测中", "接入电源后自动显示", -1);
+    }
+
+    /**
+     * 最小可用的前台通知：不依赖自定义 action / 额外图标，
+     * 用于服务刚启动时先满足 startForeground 的系统时限，再异步换成完整卡片。
+     */
+    public static Notification buildMinimal(Context context) {
+        Notification.Builder builder = new Notification.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notify)
+                .setContentTitle("充电功率 Pro")
+                .setContentText("正在启动监测")
+                .setShowWhen(false)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setCategory(Notification.CATEGORY_STATUS)
+                .setOnlyAlertOnce(true)
+                .setOngoing(true)
+                .setDefaults(0);
+        if (Build.VERSION.SDK_INT >= 31) {
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        }
+        return builder.build();
     }
 
     /** 根据快照推导通知文案。任何分支都不抛异常，最差回落到待机文案。 */
@@ -194,7 +213,6 @@ public final class NotificationHelper {
     /** 构建常驻通知：电量进度、锁屏可见、状态分类、静默、仅点击跳转。 */
     public static Notification build(Context context, Content content) {
         PendingIntent openMain = pendingActivity(context, MainActivity.class, REQ_OPEN_MAIN, true);
-        PendingIntent openSettings = pendingActivity(context, SettingsActivity.class, REQ_OPEN_SETTINGS, false);
 
         Notification.Builder builder = new Notification.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notify)
@@ -217,11 +235,6 @@ public final class NotificationHelper {
         if (content.progress >= 0 && content.progress <= 100) {
             builder.setProgress(100, content.progress, false);
         }
-        builder.addAction(new Notification.Action.Builder(
-                Icon.createWithResource(context, R.drawable.ic_settings),
-                context.getString(R.string.notification_action_settings),
-                openSettings).build());
-
         // 前台服务通知立即展示，避免系统延迟显示导致被判定为「未进入前台」
         if (Build.VERSION.SDK_INT >= 31) {
             builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);

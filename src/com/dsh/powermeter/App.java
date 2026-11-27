@@ -10,7 +10,16 @@ public final class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        // 提前初始化设置单例（只读 SharedPreferences，不涉及 I/O 密集操作）。
-        Prefs.get(this);
+        // 先装崩溃记录器，保证启动早期异常也能在下次打开时看到堆栈。
+        try {
+            CrashReporter.install(this);
+        } catch (Throwable ignored) {
+        }
+        // 提前初始化设置单例；个别 ROM 在极早期 SharedPreferences 不可用时也不应闪退。
+        try {
+            Prefs.get(this);
+        } catch (Throwable t) {
+            CrashReporter.record(this, t);
+        }
     }
 }
