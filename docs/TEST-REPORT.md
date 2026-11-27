@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.8.0（versionCode 39）
+- 版本：2.9.0（versionCode 40）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
-- APK：`powermeter.apk`，367,725 bytes
-- SHA-256：`efbe8f7426f2264e41e596d9a4c2bc43ac8699b1c997d45bb614cb674e33b582`
+- APK：`powermeter.apk`，371,821 bytes
+- SHA-256：`df7d166413b07037bfcc64bce1aab9fd53a5859da5c3521a509adaf02df51240`
 
-> 2.8.0 后台状态栏同步、watchdog 与通知布局；测试 328 项全通过。
+> 2.9.0 本地充电历史与完整优化；测试 328 项全通过。
 
 ## 1. 自动化测试结果
 

@@ -6,13 +6,21 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.8.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.8.0/WattLens-Pro-v2.8.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.9.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.9.0/WattLens-Pro-v2.9.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.8.0.png)
+![主页、详情、应用耗电排行](docs/preview-v2.9.0.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.9.0 更新（本地充电历史 + 完整优化）
+
+- 新增本地充电历史：每次充电结束自动保存平均功率、峰值、时长、电量变化。
+- 主界面「本次/上次充电」卡片新增「充电历史」入口；设置 → 数据口径也可进入。
+- 历史页支持查看最近记录、清空确认；数据只在本机 SQLite，最多 500 条，不联网、不导出。
+- 保留 2.8.0 的后台状态栏 watchdog、无进度条通知、2.7.x 的电压实时读取和双芯/单芯自动识别。
+- 版本 40 / 2.9.0；测试 328 项通过。
 
 ## 2.8.0 更新（后台状态栏同步 + 通知布局）
 

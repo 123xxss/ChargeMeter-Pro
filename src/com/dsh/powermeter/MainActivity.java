@@ -1034,6 +1034,19 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         sessionMetrics.addView(sessionAvg.root, UiKit.weighted(1f));
         sessionMetrics.addView(sessionPeak.root, UiKit.weighted(1f));
         sessionCard.addView(sessionMetrics, UiKit.top(this, UiKit.matchWrap(), 12));
+
+        LinearLayout historyRow = UiKit.row(this);
+        historyRow.setPadding(0, UiKit.dp(this, 10), 0, 0);
+        TextView historyLabel = UiKit.text(this, "充电历史", 12.5f,
+                R.color.text_secondary, true);
+        historyRow.addView(historyLabel, UiKit.weighted(1f));
+        TextView historyMore = UiKit.textColor(this, "查看 ›", 12.5f,
+                getColor(R.color.accent), true);
+        historyMore.setPadding(UiKit.dp(this, 8), 0, 0, 0);
+        historyRow.addView(historyMore);
+        historyRow.setOnClickListener(v -> startActivity(
+                new Intent(MainActivity.this, HistoryActivity.class)));
+        sessionCard.addView(historyRow, UiKit.matchWrap());
     }
 
     private void buildFooterCard() {

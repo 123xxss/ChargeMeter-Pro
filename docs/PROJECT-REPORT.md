@@ -1,13 +1,13 @@
 # 瓦镜 Pro · 项目报告
 
-> 版本：2.8.0（versionCode 39）  
+> 版本：2.9.0（versionCode 40）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[WattLens-Pro-v2.8.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.8.0/WattLens-Pro-v2.8.0.apk)
+> 下载：[WattLens-Pro-v2.9.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.9.0/WattLens-Pro-v2.9.0.apk)
 
 ---
 
@@ -196,7 +196,11 @@
 
 ### 2.7.2 — 增强/Shizuku 电压兜底
 
-### 2.8.0 — 后台状态栏同步 + 通知布局（当前版本）
+### 2.8.0 — 后台状态栏同步 + 通知布局
+
+### 2.9.0 — 本地充电历史（当前版本）
+
+- SQLite 会话摘要、历史页、主界面/设置入口、清空确认。
 
 - 服务 watchdog、切后台确保服务；删除通知进度条并用副标题填充。
 

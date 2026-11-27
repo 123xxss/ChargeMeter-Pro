@@ -425,5 +425,9 @@ public final class ChargeEngine {
         if (s == null || s.durationMs < 30_000L) return;
         lastSession = s;
         prefs.saveLastSession(s.endTimeMs, s.durationMs, s.peakW, s.avgW, s.startLevel, s.endLevel);
+        try {
+            HistoryDb.get(app).add(s);
+        } catch (Throwable ignored) {
+        }
     }
 }
