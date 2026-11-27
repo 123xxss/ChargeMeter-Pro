@@ -160,6 +160,25 @@ public final class ShizukuBatterySource {
         }
     }
 
+    /** 读取系统温度/GPU（只读 sysfs）；不可用返回 null。 */
+    public static SystemValues readSystem() {
+        if (!connected || service == null) return null;
+        try {
+            String raw = service.readSystem();
+            if (raw == null || raw.isEmpty()) return null;
+            String[] p = raw.split(";", -1);
+            if (p.length < 2) return null;
+            SystemValues v = new SystemValues();
+            v.thermalC = num(p[0]);
+            v.gpuPercent = num(p[1]);
+            return v;
+        } catch (Throwable t) {
+            connected = false;
+            service = null;
+            return null;
+        }
+    }
+
     /** 读取一次；不可用/异常返回 null（调用方必须回退标准路径）。 */
     public static Values read() {
         if (!connected || service == null) return null;
@@ -209,6 +228,11 @@ public final class ShizukuBatterySource {
         } catch (Throwable t) {
             return Double.NaN;
         }
+    }
+
+    public static final class SystemValues {
+        public double thermalC = Double.NaN;
+        public double gpuPercent = Double.NaN;
     }
 
     public static final class Values {

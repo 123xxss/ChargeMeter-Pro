@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：1.7.0（versionCode 14）
+- 版本：1.7.1（versionCode 15）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，227,347 bytes
-- SHA-256：`5d55a0220630747f04f01ca18ebef1d74e66378daaf39829705ab69252b4c41c`
+- SHA-256：`610e4e95cd7143e310f2889a95cf6188ac1f1486866d21ce17d19a57a89c2839`
 
-> 1.7.0 加入系统状态、Apple UI 与实时详情；测试 312 项全通过。
+> 1.7.1 修复详情弹窗滚动并加入 Shizuku 系统状态读取提示；测试 312 项全通过。
 
 ## 1. 自动化测试结果
 

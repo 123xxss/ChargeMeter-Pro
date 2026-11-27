@@ -4,9 +4,20 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v1.7.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.7.0/ChargeMeter-Pro-v1.7.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v1.7.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.7.1/ChargeMeter-Pro-v1.7.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 1.7.1 更新（详情滚动 + Shizuku 提示）
+
+- 修复充电详情弹窗高度超过屏幕、内容顶部/底部被裁切、内部无法完整滚动的问题。
+- 详情弹窗改为固定视口 + 完整 ScrollView，关闭按钮和说明文字都能滚动到。
+- GPU/系统温度显示“系统未开放”时，主界面与详情页新增 **「用 Shizuku 尝试读取」** 入口：
+  - 未安装 Shizuku → 提示先安装并启动；
+  - 未授权 → 请求 Shizuku 授权；
+  - 已授权 → 打开只读增强并重新读取。
+- Shizuku UserService 新增只读 `readSystem()`，可尝试读取 thermal/GPU sysfs；仍读不到则保持 `--`，不伪造数据。
+- 版本 15 / 1.7.1；测试 312 项通过。
 
 ## 1.7.0 更新（系统状态 + Apple UI + 实时详情）
 
