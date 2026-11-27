@@ -1,13 +1,13 @@
 # 充电功率 Pro · 项目报告
 
-> 版本：1.8.0（versionCode 17）  
+> 版本：1.9.0（versionCode 18）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[ChargeMeter-Pro-v1.8.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.8.0/ChargeMeter-Pro-v1.8.0.apk)
+> 下载：[ChargeMeter-Pro-v1.9.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.9.0/ChargeMeter-Pro-v1.9.0.apk)
 
 ---
 
@@ -152,7 +152,13 @@
 
 ### 1.7.2 — CPU 兜底
 
-### 1.8.0 — 五风格 + 全 App 动画 + 设备信息（当前版本）
+### 1.8.0 — 五风格 + 全 App 动画 + 设备信息
+
+### 1.9.0 — 主页 + 详情页 UI 重做（当前版本）
+
+- 主页状态胶囊、实时数据 2×2 大卡、统一层级；
+- 详情页实时功率大卡 + 充电/系统/设备分组卡片；
+- 分区淡入、数值淡入、弹窗/二级页动画。
 
 - 新增薄荷、紫色星云风格，共 5 种；
 - 页面/主界面/设置/详情弹窗动画统一；

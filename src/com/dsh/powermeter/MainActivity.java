@@ -82,6 +82,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private UiKit.Metric sysThermal;
     private TextView systemHint;
 
+    private LinearLayout gridCard;
+    private TextView headerStatus;
     private TextView gridTitle;
     private LinearLayout gridRow1;
     private LinearLayout gridRow2;
@@ -189,7 +191,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private void animateEntrance() {
         if (entranceAnimated) return;
         entranceAnimated = true;
-        View[] views = {heroCard, gridTitle, gridRow1, gridRow2, chartCard,
+        View[] views = {heroCard, gridCard, chartCard,
                 systemCard, sessionCard, footerCard};
         int step = UiKit.dp(this, 10);
         for (int i = 0; i < views.length; i++) {
@@ -212,14 +214,13 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
         masterOffCard.setVisibility(master ? View.GONE : View.VISIBLE);
         heroCard.setVisibility(master ? View.VISIBLE : View.GONE);
-        gridTitle.setVisibility(master ? View.VISIBLE : View.GONE);
-        gridRow1.setVisibility(master ? View.VISIBLE : View.GONE);
-        gridRow2.setVisibility(master ? View.VISIBLE : View.GONE);
+        gridCard.setVisibility(master ? View.VISIBLE : View.GONE);
         sessionCard.setVisibility(master ? View.VISIBLE : View.GONE);
         chartCard.setVisibility(master ? View.VISIBLE : View.GONE);
         systemCard.setVisibility(master ? View.VISIBLE : View.GONE);
         footerCard.setVisibility(master ? View.VISIBLE : View.GONE);
         updateBanner();
+        updateHeaderStatus(master, snapshot);
         if (!master) {
             if (chart != null) chart.clear();
             lastChartTimestamp = -1;
@@ -246,10 +247,10 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         boolean hideForIdle = s != null && s.state == ChargeState.UNPLUGGED
                 && !s.realtime;
         // 未充电且未开启实时功耗时，PRD 要求隐藏全部充电相关数值。
-        cellVoltage.value.setText(s == null || hideForIdle ? "--" : UiKit.volts(s.voltageV));
-        cellCurrent.value.setText(s == null || hideForIdle ? "--" : UiKit.amps(s.currentA));
-        cellTemp.value.setText(s == null || hideForIdle ? "--" : UiKit.temp(s.temperatureC));
-        cellPeak.value.setText(s == null || hideForIdle ? "--" : UiKit.watts(s.peakW));
+        setMetricValue(cellVoltage, s == null || hideForIdle ? "--" : UiKit.volts(s.voltageV));
+        setMetricValue(cellCurrent, s == null || hideForIdle ? "--" : UiKit.amps(s.currentA));
+        setMetricValue(cellTemp, s == null || hideForIdle ? "--" : UiKit.temp(s.temperatureC));
+        setMetricValue(cellPeak, s == null || hideForIdle ? "--" : UiKit.watts(s.peakW));
     }
 
     private void renderChart(PowerSnapshot s) {
@@ -272,10 +273,10 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         if (sysCpu == null) return;
         com.dsh.powermeter.core.SystemStats st = s == null ? null : s.systemStats;
         if (st == null) {
-            sysCpu.value.setText("--");
-            sysRam.value.setText("--");
-            sysGpu.value.setText("--");
-            sysThermal.value.setText("--");
+            setMetricValue(sysCpu, "--");
+            setMetricValue(sysRam, "--");
+            setMetricValue(sysGpu, "--");
+            setMetricValue(sysThermal, "--");
             sysCpu.label.setText("CPU");
             sysRam.label.setText("可用内存");
             sysGpu.label.setText("GPU");
@@ -290,15 +291,15 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         if (unavailable) {
             systemHint.setText("CPU/GPU/系统温度未开放 · 点此用 Shizuku 尝试读取");
         }
-        sysCpu.value.setText(st.cpuSummary());
+        setMetricValue(sysCpu, st.cpuSummary());
         sysCpu.label.setText("CPU" + (st.cpuCores > 0 ? " · " + st.cpuCores + " 核" : ""));
-        sysRam.value.setText(st.ramSummary());
+        setMetricValue(sysRam, st.ramSummary());
         sysRam.label.setText(st.ramTotalMb > 0
                 ? String.format(java.util.Locale.ROOT, "可用内存 · 已用 %.0f%%", st.ramUsedPercent)
                 : "可用内存");
-        sysGpu.value.setText(st.gpuSummary());
+        setMetricValue(sysGpu, st.gpuSummary());
         sysGpu.label.setText(Double.isNaN(st.gpuPercent) ? "GPU（系统未开放）" : "GPU 使用率");
-        sysThermal.value.setText(st.thermalSummary());
+        setMetricValue(sysThermal, st.thermalSummary());
         sysThermal.label.setText(Double.isNaN(st.thermalMaxC) ? "系统温度（未开放）" : "系统最高温度");
     }
 
@@ -328,9 +329,9 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             sessionHeading.setText("本次充电");
             sessionSub.setText("进行中 · 已充 " + UiKit.duration(s.sessionDurationMs));
             sessionMetrics.setVisibility(View.VISIBLE);
-            sessionDuration.value.setText(compactDuration(s.sessionDurationMs));
-            sessionAvg.value.setText(UiKit.watts(s.sessionAvgW));
-            sessionPeak.value.setText(UiKit.watts(s.sessionPeakW));
+            setMetricValue(sessionDuration, compactDuration(s.sessionDurationMs));
+            setMetricValue(sessionAvg, UiKit.watts(s.sessionAvgW));
+            setMetricValue(sessionPeak, UiKit.watts(s.sessionPeakW));
             return;
         }
 
@@ -368,9 +369,9 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             }
             sessionSub.setText(sub);
             sessionMetrics.setVisibility(View.VISIBLE);
-            sessionDuration.value.setText(compactDuration(durationMs));
-            sessionAvg.value.setText(avgW > 0 ? UiKit.watts(avgW) : "--");
-            sessionPeak.value.setText(peakW > 0 ? UiKit.watts(peakW) : "--");
+            setMetricValue(sessionDuration, compactDuration(durationMs));
+            setMetricValue(sessionAvg, avgW > 0 ? UiKit.watts(avgW) : "--");
+            setMetricValue(sessionPeak, peakW > 0 ? UiKit.watts(peakW) : "--");
         } else {
             sessionHeading.setText("暂无充电记录");
             sessionSub.setText("接入电源充一次电后，这里会显示本次与上次的统计。");
@@ -606,8 +607,12 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
         // 顶栏
         LinearLayout header = UiKit.row(this);
-        TextView title = UiKit.text(this, "充电功率 Pro", 24f, R.color.text_primary, true);
+        TextView title = UiKit.text(this, "充电功率 Pro", 23f, R.color.text_primary, true);
         header.addView(title, UiKit.weighted(1f));
+        headerStatus = UiKit.pill(this, "待机", getColor(R.color.text_secondary),
+                getColor(R.color.card_alt));
+        headerStatus.setTextSize(11f);
+        header.addView(headerStatus, UiKit.left(this, UiKit.wrapWrap(), 6));
         ImageView settings = UiKit.iconButton(this, R.drawable.ic_settings,
                 R.color.text_secondary,
                 v -> startActivity(new Intent(this, SettingsActivity.class)));
@@ -649,21 +654,31 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         heroLp.topMargin = UiKit.dp(this, 14);
         root.addView(heroCard, heroLp);
 
-        // 四宫格指标
-        gridTitle = UiKit.section(this, "实时指标");
+        // 实时数据：单卡片 2×2 数据块
+        gridCard = UiKit.card(this);
+        LinearLayout gridHead = UiKit.row(this);
+        gridTitle = UiKit.text(this, "实时数据", 14f, R.color.text_primary, true);
+        gridHead.addView(gridTitle, UiKit.weighted(1f));
+        TextView gridHint = UiKit.text(this, "1 秒刷新", 11f, R.color.text_muted, false);
+        gridHead.addView(gridHint);
+        gridCard.addView(gridHead, UiKit.matchWrap());
         gridRow1 = UiKit.row(this);
         gridRow2 = UiKit.row(this);
         cellVoltage = UiKit.metric(this, "电压 (V)", "--");
         cellCurrent = UiKit.metric(this, "电流 (A)", "--");
         cellTemp = UiKit.metric(this, "温度 (°C)", "--");
-        cellPeak = UiKit.metric(this, "平滑峰值 (W)", "--");
-        addCell(gridRow1, cellVoltage);
-        addCell(gridRow1, cellCurrent);
-        addCell(gridRow2, cellTemp);
-        addCell(gridRow2, cellPeak);
-        root.addView(gridTitle, UiKit.matchWrap());
-        root.addView(gridRow1, UiKit.matchWrap());
-        root.addView(gridRow2, UiKit.matchWrap());
+        cellPeak = UiKit.metric(this, "峰值 (W)", "--");
+        cellVoltage.value.setTextSize(20f);
+        cellCurrent.value.setTextSize(20f);
+        cellTemp.value.setTextSize(20f);
+        cellPeak.value.setTextSize(20f);
+        addFlatCell(gridRow1, cellVoltage);
+        addFlatCell(gridRow1, cellCurrent);
+        addFlatCell(gridRow2, cellTemp);
+        addFlatCell(gridRow2, cellPeak);
+        gridCard.addView(gridRow1, UiKit.top(this, UiKit.matchWrap(), 8));
+        gridCard.addView(gridRow2, UiKit.matchWrap());
+        root.addView(gridCard, UiKit.top(this, UiKit.matchWrap(), 12));
 
         // 实时功率曲线（最近 2 分钟）
         chartCard = UiKit.card(this);
@@ -781,6 +796,42 @@ public final class MainActivity extends Activity implements StateStore.Listener 
                 11.5f, R.color.text_muted, false);
         note2.setLineSpacing(UiKit.dp(this, 1), 1f);
         footerCard.addView(note2, UiKit.top(this, UiKit.matchWrap(), 4));
+    }
+
+    private void addFlatCell(LinearLayout row, UiKit.Metric cell) {
+        int p = UiKit.dp(this, 6);
+        cell.root.setPadding(0, p, 0, p);
+        LinearLayout.LayoutParams lp = UiKit.weighted(1f);
+        row.addView(cell.root, lp);
+    }
+
+    private void setMetricValue(UiKit.Metric metric, String value) {
+        if (metric == null) return;
+        String next = value == null ? "--" : value;
+        if (next.contentEquals(metric.value.getText())) return;
+        metric.value.animate().cancel();
+        metric.value.setAlpha(0.55f);
+        metric.value.setText(next);
+        metric.value.animate().alpha(1f).setDuration(160).start();
+    }
+
+    private void updateHeaderStatus(boolean master, PowerSnapshot s) {
+        if (headerStatus == null) return;
+        if (!master) {
+            headerStatus.setText("已关闭");
+        } else if (s == null) {
+            headerStatus.setText("读取中");
+        } else if (s.state == ChargeState.UNPLUGGED) {
+            headerStatus.setText(s.realtime ? "实时" : "待机");
+        } else if (s.state == ChargeState.CHARGING) {
+            headerStatus.setText("充电中");
+        } else if (s.state == ChargeState.FULL) {
+            headerStatus.setText("已充满");
+        } else if (s.state == ChargeState.PAUSED) {
+            headerStatus.setText("已暂停");
+        } else {
+            headerStatus.setText("读取中");
+        }
     }
 
     private void addCell(LinearLayout row, UiKit.Metric cell) {

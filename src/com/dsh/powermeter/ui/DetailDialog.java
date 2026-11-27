@@ -29,10 +29,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 「详情」弹窗：实时展示电池读数、系统状态、数据来源与口径说明。
+ * 详情页：实时功率大卡 + 充电数据 / 系统状态 / 设备信息分组卡片。
  *
- * 弹窗打开期间订阅 StateStore，每秒跟随主界面刷新；关闭时立即反注册。
- * 固定口径：这里始终是进入电池的功率，不宣称、不标注“充电器输入功率”。
+ * 打开期间订阅 StateStore 每秒刷新；关闭时立即反注册。
+ * 全部使用程序化 View，不新增布局资源。
  */
 public final class DetailDialog {
 
@@ -41,125 +41,127 @@ public final class DetailDialog {
 
     public static void show(Activity activity, PowerSnapshot initial) {
         if (activity == null || activity.isFinishing()) return;
-
         Context c = activity;
         int accent = c.getColor(R.color.accent);
-        int textPrimary = c.getColor(R.color.text_primary);
-        int textSecondary = c.getColor(R.color.text_secondary);
         int cardAlt = c.getColor(R.color.card_alt);
-
-        LinearLayout card = UiKit.column(c);
-        card.setBackground(UiKit.rounded(c, c.getColor(R.color.card), 24f));
-        int pad = UiKit.dp(c, 20);
-        card.setPadding(pad, pad, pad, pad);
 
         final Dialog dialog = new Dialog(activity);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        LinearLayout titleRow = UiKit.row(c);
-        TextView title = UiKit.text(c, "详情", 18f, R.color.text_primary, true);
-        titleRow.addView(title, UiKit.weighted(1f));
-        TextView live = UiKit.textColor(c, "实时刷新中", 11f, accent, true);
-        live.setPadding(0, UiKit.dp(c, 3), UiKit.dp(c, 10), 0);
-        titleRow.addView(live);
-        TextView closeTop = UiKit.textColor(c, "关闭", 14f, accent, true);
-        int cp = UiKit.dp(c, 8);
-        closeTop.setPadding(cp, UiKit.dp(c, 4), cp, UiKit.dp(c, 4));
+        LinearLayout page = UiKit.column(c);
+        int margin = UiKit.dp(c, 16);
+        page.setPadding(margin, UiKit.dp(c, 4), margin, UiKit.dp(c, 8));
+
+        // 顶部标题栏
+        LinearLayout header = UiKit.row(c);
+        TextView title = UiKit.text(c, "详情", 21f, R.color.text_primary, true);
+        header.addView(title, UiKit.weighted(1f));
+        TextView live = UiKit.pill(c, "● 实时", accent, cardAlt);
+        live.setTextSize(11f);
+        header.addView(live, UiKit.left(c, UiKit.wrapWrap(), 8));
+        TextView closeTop = UiKit.textColor(c, "完成", 14f, accent, true);
+        int cp = UiKit.dp(c, 10);
+        closeTop.setPadding(cp, UiKit.dp(c, 6), cp, UiKit.dp(c, 6));
         closeTop.setOnClickListener(v -> dialog.dismiss());
-        titleRow.addView(closeTop);
-        card.addView(titleRow, UiKit.matchWrap());
+        header.addView(closeTop, UiKit.left(c, UiKit.wrapWrap(), 4));
+        page.addView(header, UiKit.matchWrap());
 
+        // 实时功率主卡
+        LinearLayout hero = UiKit.card(c);
+        hero.setBackground(UiKit.rounded(c, c.getColor(R.color.card), 24f));
+        TextView heroLabel = UiKit.text(c, "实时入电池功率", 12f, R.color.text_secondary, true);
+        hero.addView(heroLabel, UiKit.matchWrap());
+        LinearLayout heroLine = UiKit.row(c);
+        TextView heroPower = UiKit.textColor(c, "--", 40f, accent, true);
+        heroPower.setSingleLine(true);
+        heroPower.setEllipsize(TextUtils.TruncateAt.END);
+        heroLine.addView(heroPower, UiKit.weighted(1f));
+        TextView heroState = UiKit.pill(c, "读取中", accent, cardAlt);
+        heroLine.addView(heroState, UiKit.left(c, UiKit.wrapWrap(), 8));
+        hero.addView(heroLine, UiKit.top(c, UiKit.matchWrap(), 2));
+        TextView heroSub = UiKit.text(c, "正在读取电池数据", 12f, R.color.text_secondary, false);
+        heroSub.setSingleLine(true);
+        heroSub.setEllipsize(TextUtils.TruncateAt.END);
+        hero.addView(heroSub, UiKit.top(c, UiKit.matchWrap(), 2));
+        page.addView(hero, UiKit.top(c, UiKit.matchWrap(), 12));
+
+        // 充电数据
+        page.addView(UiKit.section(c, "充电数据"), UiKit.matchWrap());
+        LinearLayout chargeCard = UiKit.card(c);
         Map<String, TextView> rows = new LinkedHashMap<>();
-        addRow(c, card, rows, "实时功率");
-        addRow(c, card, rows, "电压");
-        addRow(c, card, rows, "电流");
-        addRow(c, card, rows, "电池温度");
-        addRow(c, card, rows, "平滑峰值");
-        addRow(c, card, rows, "剩余时间");
-        addRow(c, card, rows, "当前充电模式");
-        addRow(c, card, rows, "充电状态");
-        addRow(c, card, rows, "充电档位");
-        addRow(c, card, rows, "电量");
-        addRow(c, card, rows, "数据来源");
-        addRow(c, card, rows, "电芯数");
-        addRow(c, card, rows, "电芯数设置");
-        addRow(c, card, rows, "CPU");
-        addRow(c, card, rows, "内存");
-        addRow(c, card, rows, "GPU");
-        addRow(c, card, rows, "系统温度");
-        addRow(c, card, rows, "存储");
-        addRow(c, card, rows, "厂商");
-        addRow(c, card, rows, "品牌");
-        addRow(c, card, rows, "型号");
-        addRow(c, card, rows, "设备代号");
-        addRow(c, card, rows, "Android 版本");
-        addRow(c, card, rows, "ROM 版本");
-        addRow(c, card, rows, "ABI");
+        addRow(c, chargeCard, rows, "电压");
+        addRow(c, chargeCard, rows, "电流");
+        addRow(c, chargeCard, rows, "电池温度");
+        addRow(c, chargeCard, rows, "平滑峰值");
+        addRow(c, chargeCard, rows, "剩余时间");
+        addRow(c, chargeCard, rows, "充电档位");
+        addRow(c, chargeCard, rows, "电量");
+        addRow(c, chargeCard, rows, "数据来源");
+        addRow(c, chargeCard, rows, "电芯数");
+        addRow(c, chargeCard, rows, "电芯数设置");
+        page.addView(chargeCard, UiKit.matchWrap());
 
-        // 口径说明
-        LinearLayout notes = UiKit.column(c);
-        notes.setBackground(UiKit.rounded(c, cardAlt, 14f));
-        int np = UiKit.dp(c, 12);
-        notes.setPadding(np, np, np, np);
-        addNote(c, notes, "此处为进入电池的功率；边充边用时可能低于充电器实际输出功率。");
-        addNote(c, notes, "CPU/内存/存储来自系统公开接口；GPU/系统温度读取标准 sysfs，部分机型不开放，显示 -- 属正常。");
-        addNote(c, notes, "所有数据仅在本机处理，不上传、不联网。");
-        card.addView(notes, UiKit.top(c, UiKit.matchWrap(), 16));
-
+        // 系统状态
+        page.addView(UiKit.section(c, "系统状态"), UiKit.matchWrap());
+        LinearLayout sysCard = UiKit.card(c);
+        addRow(c, sysCard, rows, "CPU");
+        addRow(c, sysCard, rows, "内存");
+        addRow(c, sysCard, rows, "GPU");
+        addRow(c, sysCard, rows, "系统温度");
+        addRow(c, sysCard, rows, "存储");
         TextView shizukuHint = UiKit.textColor(c,
-                "CPU/GPU/系统温度系统未开放？点此用 Shizuku 尝试读取", 11.5f, accent, true);
+                "CPU/GPU/系统温度未开放？点此用 Shizuku 尝试读取", 11.5f, accent, true);
         shizukuHint.setPadding(0, UiKit.dp(c, 10), 0, 0);
-        shizukuHint.setOnClickListener(v -> {
-            try {
-                if (!ShizukuBatterySource.isAvailable()) {
-                    Toast.makeText(c, "未检测到 Shizuku，请先安装并启动 Shizuku",
-                            Toast.LENGTH_LONG).show();
-                } else if (!ShizukuBatterySource.hasPermission()) {
-                    ShizukuBatterySource.requestPermission(activity);
-                    Toast.makeText(c, "请在 Shizuku 弹窗中允许本应用",
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    Prefs.get(c).setShizukuReadEnabled(true);
-                    ShizukuBatterySource.bindIfPossible();
-                    Toast.makeText(c, "正在用 Shizuku 读取系统状态",
-                            Toast.LENGTH_SHORT).show();
-                }
-            } catch (Throwable ignored) {
-            }
-        });
-        card.addView(shizukuHint, UiKit.matchWrap());
+        shizukuHint.setOnClickListener(v -> requestShizuku(activity, c));
+        sysCard.addView(shizukuHint, UiKit.matchWrap());
+        page.addView(sysCard, UiKit.matchWrap());
+
+        // 设备信息
+        page.addView(UiKit.section(c, "设备信息"), UiKit.matchWrap());
+        LinearLayout deviceCard = UiKit.card(c);
+        addRow(c, deviceCard, rows, "厂商");
+        addRow(c, deviceCard, rows, "品牌");
+        addRow(c, deviceCard, rows, "型号");
+        addRow(c, deviceCard, rows, "设备代号");
+        addRow(c, deviceCard, rows, "Android 版本");
+        addRow(c, deviceCard, rows, "ROM 版本");
+        addRow(c, deviceCard, rows, "ABI");
+        page.addView(deviceCard, UiKit.matchWrap());
+
+        // 说明
+        LinearLayout notes = UiKit.column(c);
+        notes.setBackground(UiKit.rounded(c, cardAlt, 16f));
+        int np = UiKit.dp(c, 14);
+        notes.setPadding(np, np, np, np);
+        addNote(c, notes, "功率为进入电池的估算值，边充边用可能低于充电器实际输出功率。");
+        addNote(c, notes, "CPU/内存/存储来自系统公开接口；GPU/系统温度部分机型只允许 Shizuku 读取。");
+        addNote(c, notes, DeviceInfo.compatibilityNote());
+        page.addView(notes, UiKit.top(c, UiKit.matchWrap(), 16));
 
         TextView close = UiKit.primaryButton(c, "关闭", v -> dialog.dismiss());
         LinearLayout.LayoutParams closeLp = UiKit.matchWrap();
         closeLp.height = UiKit.dp(c, 46);
-        closeLp.topMargin = UiKit.dp(c, 16);
-        card.addView(close, closeLp);
+        closeLp.topMargin = UiKit.dp(c, 14);
+        page.addView(close, closeLp);
 
         ScrollView scroll = new ScrollView(c);
         scroll.setClipToPadding(false);
-        scroll.setBackgroundColor(Color.TRANSPARENT);
         scroll.setFillViewport(false);
         scroll.setVerticalScrollBarEnabled(true);
         scroll.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
-        int margin = UiKit.dp(c, 20);
-        scroll.setPadding(margin, margin, margin, margin);
-        scroll.addView(card, new FrameLayout.LayoutParams(
+        scroll.setBackgroundColor(Color.TRANSPARENT);
+        scroll.addView(page, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        // 关键：给 Dialog 内容一个确定的高度，ScrollView 才真正获得可滚动视口，
-        // 否则内容会按 wrap_content 测量，窗口/顶部会被系统裁掉。
         scroll.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
         dialog.setContentView(scroll);
         dialog.setCanceledOnTouchOutside(true);
 
-        // 实时刷新：每帧直接更新行文本，不重建弹窗。
-        updateRows(c, rows, initial != null ? initial : StateStore.get().latest());
-        updateSystemHint(shizukuHint, initial != null ? initial : StateStore.get().latest());
+        updateAll(c, rows, heroPower, heroSub, heroState, shizukuHint,
+                initial != null ? initial : StateStore.get().latest());
         StateStore.Listener listener = snapshot -> {
             try {
-                updateRows(c, rows, snapshot);
-                updateSystemHint(shizukuHint, snapshot);
+                updateAll(c, rows, heroPower, heroSub, heroState, shizukuHint, snapshot);
             } catch (Throwable ignored) {
             }
         };
@@ -170,20 +172,19 @@ public final class DetailDialog {
         if (window != null) {
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-            window.setDimAmount(0.55f);
+            window.setDimAmount(0.5f);
             window.setWindowAnimations(R.style.DialogAnimation);
-            // 动画开始前就设置好固定尺寸，避免“从全屏缩回”造成内容被裁切。
-            int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.78f);
+            int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.80f);
             window.setGravity(android.view.Gravity.CENTER);
             window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height);
             window.getDecorView().setPadding(0, UiKit.dp(c, 8), 0, UiKit.dp(c, 8));
         }
         dialog.show();
         if (window != null) {
-            // 部分 ROM 在 show 之后才应用 Window 尺寸，再设置一次确保视口稳定。
-            int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.78f);
+            int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.80f);
             window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height);
         }
+        animateSections(page, 1); // 从 1 开始，跳过顶部标题栏
     }
 
     private static void addRow(Context c, LinearLayout parent, Map<String, TextView> rows,
@@ -194,42 +195,48 @@ public final class DetailDialog {
         TextView v = UiKit.text(c, "--", 13.5f, R.color.text_primary, true);
         v.setSingleLine(true);
         v.setEllipsize(TextUtils.TruncateAt.END);
-        v.setMaxWidth((int) (c.getResources().getDisplayMetrics().widthPixels * 0.54f));
+        v.setMaxWidth((int) (c.getResources().getDisplayMetrics().widthPixels * 0.56f));
         row.addView(v, UiKit.left(c, UiKit.wrapWrap(), 10));
-        parent.addView(row, UiKit.top(c, UiKit.matchWrap(), 9));
+        parent.addView(row, UiKit.top(c, UiKit.matchWrap(), 10));
         rows.put(label, v);
     }
 
-    private static void updateRows(Context c, Map<String, TextView> rows, PowerSnapshot s) {
+    private static void updateAll(Context c, Map<String, TextView> rows,
+                                  TextView heroPower, TextView heroSub, TextView heroState,
+                                  TextView shizukuHint, PowerSnapshot s) {
         Prefs prefs = Prefs.get(c);
-        boolean has = s != null;
-        boolean showTemp = has ? s.showTemperature : prefs.showTemperature();
-        boolean showEta = has ? s.showEstimate : prefs.showEstimate();
-        boolean showTier = has ? s.showTier : prefs.showTier();
-
         setDeviceRows(rows);
-        if (!has) {
+
+        if (s == null) {
+            heroPower.setText("--");
+            heroSub.setText("正在读取电池数据");
+            heroState.setText("读取中");
             for (Map.Entry<String, TextView> e : rows.entrySet()) {
-                if (!isDeviceRow(e.getKey())) e.getValue().setText("--");
+                if (!isDeviceRow(e.getKey())) setText(e.getValue(), "--");
             }
+            shizukuHint.setVisibility(View.GONE);
             return;
         }
 
-        set(rows, "实时功率", powerText(s));
+        String main = powerText(s);
+        setText(heroPower, main);
+        heroState.setText(s.state == null ? "读取中" : s.state.label);
+        heroSub.setText((s.modeLabel == null ? "" : s.modeLabel)
+                + " · " + (s.sourceLabel == null ? "标准读取" : s.sourceLabel));
+
+        boolean showTemp = s.showTemperature;
+        boolean showEta = s.showEstimate;
+        boolean showTier = s.showTier;
         set(rows, "电压", UiKit.volts(s.voltageV) + " V"
                 + (s.voltageCorrected ? " · 2 芯合并" : ""));
         set(rows, "电流", UiKit.amps(s.currentA) + " A");
         set(rows, "电池温度", showTemp ? UiKit.temp(s.temperatureC) + " °C" : "已隐藏");
         set(rows, "平滑峰值", UiKit.watts(s.peakW) + " W");
         set(rows, "剩余时间", showEta ? formatRemaining(s) : "已隐藏");
-        set(rows, "当前充电模式", safe(s.modeLabel));
-        set(rows, "充电状态", s.state == null ? "--" : s.state.label);
-        set(rows, "充电档位", showTier
-                ? (s.tier == null ? "--" : s.tier.label) : "已隐藏");
+        set(rows, "充电档位", showTier ? (s.tier == null ? "--" : s.tier.label) : "已隐藏");
         set(rows, "电量", s.level >= 0 ? s.level + "%" : "--");
         set(rows, "数据来源", safe(s.sourceLabel));
-        set(rows, "电芯数", s.cells + " 芯"
-                + (s.voltageCorrected ? "（按 2 芯合并）" : ""));
+        set(rows, "电芯数", s.cells + " 芯" + (s.voltageCorrected ? "（按 2 芯合并）" : ""));
         set(rows, "电芯数设置", cellCountLabel(prefs));
 
         SystemStats st = s.systemStats;
@@ -240,22 +247,19 @@ public final class DetailDialog {
             set(rows, "系统温度", "--");
             set(rows, "存储", "--");
         } else {
-            set(rows, "CPU", st.cpuSummary() + (st.cpuCores > 0 ? " · " + st.cpuCores + " 核" : ""));
-            set(rows, "内存", st.ramSummary()
-                    + (st.ramTotalMb > 0
-                    ? String.format(java.util.Locale.ROOT, " · 已用 %.0f%%", st.ramUsedPercent) : ""));
+            set(rows, "CPU", st.cpuSummary()
+                    + (st.cpuCores > 0 ? " · " + st.cpuCores + " 核" : ""));
+            set(rows, "内存", st.ramSummary() + (st.ramTotalMb > 0
+                    ? String.format(java.util.Locale.ROOT, " · 已用 %.0f%%", st.ramUsedPercent)
+                    : ""));
             set(rows, "GPU", Double.isNaN(st.gpuPercent) ? "系统未开放" : st.gpuSummary());
             set(rows, "系统温度", Double.isNaN(st.thermalMaxC) ? "系统未开放" : st.thermalSummary());
             set(rows, "存储", st.storageSummary());
         }
-    }
 
-    private static void updateSystemHint(TextView hint, PowerSnapshot s) {
-        if (hint == null) return;
-        SystemStats st = s == null ? null : s.systemStats;
         boolean unavailable = st == null || Double.isNaN(st.cpuPercent)
                 || Double.isNaN(st.gpuPercent) || Double.isNaN(st.thermalMaxC);
-        hint.setVisibility(unavailable ? View.VISIBLE : View.GONE);
+        shizukuHint.setVisibility(unavailable ? View.VISIBLE : View.GONE);
     }
 
     private static void setDeviceRows(Map<String, TextView> rows) {
@@ -274,15 +278,57 @@ public final class DetailDialog {
                 || "ROM 版本".equals(key) || "ABI".equals(key);
     }
 
+    private static void requestShizuku(Activity activity, Context c) {
+        try {
+            if (!ShizukuBatterySource.isAvailable()) {
+                Toast.makeText(c, "未检测到 Shizuku，请先安装并启动 Shizuku",
+                        Toast.LENGTH_LONG).show();
+            } else if (!ShizukuBatterySource.hasPermission()) {
+                ShizukuBatterySource.requestPermission(activity);
+                Toast.makeText(c, "请在 Shizuku 弹窗中允许本应用",
+                        Toast.LENGTH_LONG).show();
+            } else {
+                Prefs.get(c).setShizukuReadEnabled(true);
+                ShizukuBatterySource.bindIfPossible();
+                Toast.makeText(c, "正在用 Shizuku 读取系统状态",
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void animateSections(LinearLayout page, int from) {
+        int step = UiKit.dp(page.getContext(), 12);
+        for (int i = from; i < page.getChildCount(); i++) {
+            View v = page.getChildAt(i);
+            v.setAlpha(0f);
+            v.setTranslationY(step);
+            v.animate().alpha(1f).translationY(0f)
+                    .setStartDelay((i - from) * 22L)
+                    .setDuration(200).start();
+        }
+    }
+
     private static String powerText(PowerSnapshot s) {
-        if (s.realtime && s.nearZero) return "接近零（" + safe(s.modeLabel) + "）";
+        if (s.realtime && s.nearZero) return "接近零";
         if (!s.valid) return "暂不可用";
         return UiKit.watts(s.powerW) + " W";
     }
 
     private static void set(Map<String, TextView> rows, String key, String value) {
         TextView v = rows.get(key);
-        if (v != null) v.setText(value == null ? "--" : value);
+        if (v != null) setText(v, value);
+    }
+
+    /** 数值变化时轻微淡入，避免每秒刷新造成生硬跳变。 */
+    private static void setText(TextView v, String value) {
+        if (v == null) return;
+        String next = value == null ? "--" : value;
+        if (next.contentEquals(v.getText())) return;
+        v.animate().cancel();
+        v.setAlpha(0.55f);
+        v.setText(next);
+        v.animate().alpha(1f).setDuration(160).start();
     }
 
     private static void addNote(Context c, LinearLayout parent, String text) {

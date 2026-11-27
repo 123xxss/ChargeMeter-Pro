@@ -4,9 +4,19 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v1.8.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.8.0/ChargeMeter-Pro-v1.8.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v1.9.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.9.0/ChargeMeter-Pro-v1.9.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 1.9.0 更新（主页 + 详情页 UI 重做）
+
+![主页与详情页预览](docs/preview-v1.9.0.png)
+
+- 主页重做：顶栏状态胶囊、实时数据统一 2×2 大卡、系统状态卡、会话卡统一间距与层级。
+- 详情页重做：顶部实时功率大卡 + 「充电数据 / 系统状态 / 设备信息」分组卡片，替代原来的一长串平铺行。
+- 动画重做：主界面错峰入场、设置二级页入场、详情分组逐段淡入、数值变化轻微淡入、弹窗缩放淡入。
+- 保留 5 种风格；详情弹窗固定 80% 高度 + 完整滚动。
+- 版本 18 / 1.9.0；测试 312 项通过。
 
 ## 1.8.0 更新（五风格 + 全 App 动画 + 设备信息）
 
