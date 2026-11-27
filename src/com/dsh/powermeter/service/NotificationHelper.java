@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
 import android.content.Intent;
 import android.os.Build;
@@ -34,7 +35,8 @@ public final class NotificationHelper {
     private static final String TAG = "PowerNotification";
 
     /** 通知渠道 id（与 PRD 一致）。 */
-    public static final String CHANNEL_ID = "charge_monitor";
+    // 2.4.1：换新 channel id，强制状态栏/通知中心丢弃旧图标缓存。
+    public static final String CHANNEL_ID = "charge_monitor_v2";
 
     /** 常驻通知 id：前台服务与后续刷新共用同一条通知。 */
     public static final int NOTIFICATION_ID = 0x504D; // "PM"
@@ -109,7 +111,7 @@ public final class NotificationHelper {
      */
     public static Notification buildMinimal(Context context) {
         Notification.Builder builder = new Notification.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notify)
+                .setSmallIcon(R.drawable.ic_notify_lens)
                 .setContentTitle(context.getString(R.string.app_name))
                 .setContentText("正在启动监测")
                 .setShowWhen(false)
@@ -218,9 +220,8 @@ public final class NotificationHelper {
         PendingIntent openMain = pendingActivity(context, MainActivity.class, REQ_OPEN_MAIN, true);
 
         Notification.Builder builder = new Notification.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notify)
+                .setSmallIcon(R.drawable.ic_notify_lens)
                 .setColor(context.getColor(R.color.apple_accent))
-                .setLargeIcon(Icon.createWithResource(context, R.mipmap.ic_launcher))
                 .setContentTitle(content.title)
                 .setContentText(content.text)
                 .setContentIntent(openMain)
@@ -233,6 +234,14 @@ public final class NotificationHelper {
                 // 平台 Notification.Builder 没有 setSilent（那是 NotificationCompat 的方法）
                 .setDefaults(0);
 
+        try {
+            android.graphics.Bitmap large = BitmapFactory.decodeResource(
+                    context.getResources(), R.drawable.ic_notify_large);
+            if (large != null) {
+                builder.setLargeIcon(Icon.createWithBitmap(large));
+            }
+        } catch (Throwable ignored) {
+        }
         if (content.chronometerBase > 0) {
             builder.setUsesChronometer(true)
                     .setWhen(content.chronometerBase)

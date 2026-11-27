@@ -6,13 +6,20 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.4.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.0/WattLens-Pro-v2.4.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.4.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.1/WattLens-Pro-v2.4.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.4.0.png)
+![主页、详情、应用耗电排行](docs/preview-v2.4.1.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.4.1 更新（通知图标缓存修复）
+
+- 修复部分手机上通知中心/顶部状态栏仍显示旧闪电图标：改为全新资源 `ic_notify_lens`、新 channel `charge_monitor_v2`、新的大图标资源。
+- 通知中心大图标使用瓦镜新图标；状态栏小图标为镜头+闪电单色剪影。
+- 旧通知 channel 的图标缓存会在新 channel 生效后释放；如果仍显示旧图标，建议卸载旧版后重装 2.4.1（或重启手机）。
+- 版本 29 / 2.4.1；测试 313 项通过。
 
 ## 2.4.0 更新（状态栏开关 + 图标统一 + 状态栏动画）
 

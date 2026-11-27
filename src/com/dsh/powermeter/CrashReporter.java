@@ -101,7 +101,7 @@ public final class CrashReporter {
                 .format(new Date()));
         pw.println("设备: " + Build.MANUFACTURER + " " + Build.BRAND + " " + Build.MODEL);
         pw.println("系统: Android " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + ")");
-        pw.println("应用: 2.4.0");
+        pw.println("应用: 2.4.1");
         pw.println("线程: " + Thread.currentThread().getName());
         pw.println("----");
         pw.print(stack(error));

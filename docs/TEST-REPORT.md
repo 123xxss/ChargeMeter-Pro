@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.4.0（versionCode 28）
+- 版本：2.4.1（versionCode 29）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
-- APK：`powermeter.apk`，293,302 bytes
-- SHA-256：`d8b7e07e49ba6c81e27c971f40e543e60d914c4b787b444833537ff90d331ddc`
+- APK：`powermeter.apk`，363,629 bytes
+- SHA-256：`c17ec03de52809337b7fbfaa0d5b8b60e808db3af136096668eaa0cf816e80e2`
 
-> 2.4.0 状态栏开关、图标统一与状态栏计时动画；测试 313 项全通过。
+> 2.4.1 通知图标新资源/新 channel，修复旧闪电缓存；测试 313 项全通过。
 
 ## 1. 自动化测试结果
 
