@@ -18,37 +18,51 @@ import com.dsh.powermeter.core.PowerSnapshot;
 import java.util.Locale;
 
 /**
- * 自绘的“充电功率卡”。
+ * 自绘的“充电功率卡”，提供三种风格：
+ * - Apple 极简：浅色/深色卡片、iOS 蓝强调色、居中大数字；
+ * - 经典渐变：蓝绿渐变；
+ * - 深色霓虹：深色底 + 青色描边/发光。
  *
- * 不再使用嵌套 LinearLayout + weight 排布：所有文字、状态胶囊、进度条、动画都在
- * 一个 View 里绘制，避免 OEM/Android 16 上布局测量差异导致卡片被拉满或子视图不显示。
- *
- * 高度固定为 236dp，内容紧凑；充电中会在右上角绘制一个呼吸脉冲点作为轻量动画。
+ * 高度固定 236dp；内容全部 Canvas 绘制，不依赖嵌套 LinearLayout，避免 OEM 测量差异。
  */
 public final class PowerCardView extends View {
+
+    public static final int STYLE_APPLE = 0;
+    public static final int STYLE_CLASSIC = 1;
+    public static final int STYLE_NEON = 2;
 
     private static final int HEIGHT_DP = 236;
 
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final RectF rect = new RectF();
+    private final Path bolt = new Path();
 
     private final float density;
     private final float scaledDensity;
-    private final RectF rect = new RectF();
-    private final RectF oval = new RectF();
-    private final Path bolt = new Path();
 
     private PowerSnapshot snapshot;
     private int widthPx;
     private int heightPx;
     private boolean animating;
+    private int style = STYLE_APPLE;
 
-    private final int colorHeroStart;
-    private final int colorHeroEnd;
-    private final int colorWarnStart;
-    private final int colorWarnEnd;
+    private final int cCard;
+    private final int cCardAlt;
+    private final int cTextPrimary;
+    private final int cTextSecondary;
+    private final int cTextMuted;
+    private final int cDivider;
+    private final int cAppleAccent;
+    private final int cAppleSoft;
+    private final int cHeroStart;
+    private final int cHeroEnd;
+    private final int cWarnStart;
+    private final int cWarnEnd;
+    private final int cNeonStart;
+    private final int cNeonEnd;
+    private final int cNeonAccent;
 
     private final Runnable pulseTick = new Runnable() {
         @Override
@@ -63,13 +77,34 @@ public final class PowerCardView extends View {
         super(context);
         density = context.getResources().getDisplayMetrics().density;
         scaledDensity = context.getResources().getDisplayMetrics().scaledDensity;
-        colorHeroStart = context.getColor(R.color.hero_start);
-        colorHeroEnd = context.getColor(R.color.hero_end);
-        colorWarnStart = context.getColor(R.color.hero_warn_start);
-        colorWarnEnd = context.getColor(R.color.hero_warn_end);
+        cCard = context.getColor(R.color.card);
+        cCardAlt = context.getColor(R.color.card_alt);
+        cTextPrimary = context.getColor(R.color.text_primary);
+        cTextSecondary = context.getColor(R.color.text_secondary);
+        cTextMuted = context.getColor(R.color.text_muted);
+        cDivider = context.getColor(R.color.divider);
+        cAppleAccent = context.getColor(R.color.apple_accent);
+        cAppleSoft = context.getColor(R.color.apple_soft);
+        cHeroStart = context.getColor(R.color.hero_start);
+        cHeroEnd = context.getColor(R.color.hero_end);
+        cWarnStart = context.getColor(R.color.hero_warn_start);
+        cWarnEnd = context.getColor(R.color.hero_warn_end);
+        cNeonStart = context.getColor(R.color.neon_bg_start);
+        cNeonEnd = context.getColor(R.color.neon_bg_end);
+        cNeonAccent = context.getColor(R.color.neon_accent);
         setClickable(true);
         setFocusable(true);
         setContentDescription("充电功率卡片，点击查看详情");
+    }
+
+    public void setStyle(int style) {
+        this.style = Math.max(0, Math.min(2, style));
+        updateShader();
+        invalidate();
+    }
+
+    public int getStyle() {
+        return style;
     }
 
     public void setData(PowerSnapshot s) {
@@ -117,7 +152,7 @@ public final class PowerCardView extends View {
         if (visibility != VISIBLE) {
             animating = false;
             removeCallbacks(pulseTick);
-        } else if (isCharging(snapshot)) {
+        } else if (isCharging(snapshot) && !animating) {
             animating = true;
             postOnAnimation(pulseTick);
         }
@@ -143,10 +178,22 @@ public final class PowerCardView extends View {
 
     private void updateShader() {
         if (widthPx <= 0 || heightPx <= 0) return;
+        if (style == STYLE_APPLE) {
+            bgPaint.setShader(null);
+            bgPaint.setColor(cCard);
+            return;
+        }
         boolean warn = snapshot != null && snapshot.state == ChargeState.ABNORMAL;
-        bgPaint.setShader(new LinearGradient(0, 0, widthPx, heightPx,
-                warn ? colorWarnStart : colorHeroStart,
-                warn ? colorWarnEnd : colorHeroEnd, Shader.TileMode.CLAMP));
+        if (warn) {
+            bgPaint.setShader(new LinearGradient(0, 0, widthPx, heightPx,
+                    cWarnStart, cWarnEnd, Shader.TileMode.CLAMP));
+        } else if (style == STYLE_NEON) {
+            bgPaint.setShader(new LinearGradient(0, 0, widthPx, heightPx,
+                    cNeonStart, cNeonEnd, Shader.TileMode.CLAMP));
+        } else {
+            bgPaint.setShader(new LinearGradient(0, 0, widthPx, heightPx,
+                    cHeroStart, cHeroEnd, Shader.TileMode.CLAMP));
+        }
     }
 
     @Override
@@ -167,38 +214,43 @@ public final class PowerCardView extends View {
         if (widthPx == 0 || heightPx == 0) return;
         float pad = dp(20);
         float right = widthPx - pad;
-        float radius = dp(24);
+        float radius = dp(style == STYLE_APPLE ? 26 : 24);
 
         rect.set(0, 0, widthPx, heightPx);
         canvas.drawRoundRect(rect, radius, radius, bgPaint);
 
-        if (snapshot == null) {
-            drawPill(canvas, pad, dp(16), "读取中", 12f, 0x33FFFFFF);
-            drawMain(canvas, "功率读取中", null, dp(70), 26f, "正在读取电池数据");
+        boolean apple = style == STYLE_APPLE;
+        boolean neon = style == STYLE_NEON;
+        int fg = apple ? cTextPrimary : 0xFFFFFFFF;
+        int soft = apple ? cTextSecondary : 0xD9FFFFFF;
+        int muted = apple ? cTextMuted : 0xB3FFFFFF;
+        int pillBg = apple ? cAppleSoft : 0x33FFFFFF;
+        int pillFg = apple ? cAppleAccent : 0xFFFFFFFF;
+        int tierBg = apple ? cCardAlt : 0x26FFFFFF;
+        int tierFg = apple ? cTextSecondary : 0xFFFFFFFF;
+        int track = apple ? cDivider : 0x3DFFFFFF;
+        int accent = apple ? cAppleAccent : (neon ? cNeonAccent : 0xFFFFFFFF);
+
+        PowerSnapshot s = snapshot;
+        if (s == null) {
+            drawPill(canvas, pad, dp(16), "读取中", 12f, pillBg, pillFg);
+            drawText(canvas, "功率读取中", dp(20), dp(88), 26f, fg, true);
+            drawText(canvas, "正在读取电池数据", dp(20), dp(114), 12f, soft, false);
             return;
         }
 
-        PowerSnapshot s = snapshot;
-        boolean warn = s.state == ChargeState.ABNORMAL;
-        int white = 0xFFFFFFFF;
-        int soft = warn ? 0xE6FFFFFF : 0xD9FFFFFF;
-
-        // 1. 状态胶囊
         float top = dp(16);
         float pillH = dp(24);
-        float stateLeft = pad;
-        drawPill(canvas, stateLeft, top, s.state == null ? "读取中" : s.state.label,
-                12f, 0x33FFFFFF);
+        drawPill(canvas, pad, top, s.state == null ? "读取中" : s.state.label,
+                12f, pillBg, pillFg);
         float stateWidth = pillWidth(s.state == null ? "读取中" : s.state.label, 12f) + dp(20);
 
-        // 2. 档位胶囊（右侧）
         if (s.showTier && s.tier != null && !s.realtime
                 && (s.state == ChargeState.CHARGING || s.state == ChargeState.PAUSED
                 || s.state == ChargeState.FULL)) {
-            drawPillRight(canvas, right, top, s.tier.label, 11.5f, 0x2EFFFFFF);
+            drawPillRight(canvas, right, top, s.tier.label, 11.5f, tierBg, tierFg);
         }
 
-        // 3. 主数值 / 占位
         String value = null;
         String unit = "W";
         String placeholder = null;
@@ -237,93 +289,119 @@ public final class PowerCardView extends View {
             sub = s.modeLabel + " · 1 秒刷新";
         }
 
+        int powerColor = (s.state == ChargeState.ABNORMAL) ? cWarnStart : (apple ? accent : fg);
+        float baseline = top + pillH + dp(44);
         if (value != null) {
             text.setTextSize(scaledDensity * 52f);
             text.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
-            text.setColor(white);
-            float baseline = top + pillH + dp(44);
-            canvas.drawText(value, pad, baseline, text);
-            float valueWidth = text.measureText(value);
+            text.setColor(powerColor);
+            float vw = text.measureText(value);
             text.setTextSize(scaledDensity * 20f);
             text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            text.setColor(0xCCFFFFFF);
-            canvas.drawText(unit, pad + valueWidth + dp(6), baseline, text);
+            float uw = text.measureText(unit);
+            float totalW = vw + dp(6) + uw;
+            float x = apple ? (widthPx - totalW) / 2f : pad;
+            text.setTextSize(scaledDensity * 52f);
+            text.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+            canvas.drawText(value, x, baseline, text);
+            text.setTextSize(scaledDensity * 20f);
+            text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            text.setColor(apple ? cTextSecondary : 0xCCFFFFFF);
+            canvas.drawText(unit, x + vw + dp(6), baseline, text);
+            if (apple) {
+                text.setTextSize(scaledDensity * 11f);
+                text.setColor(muted);
+                text.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(s.modeLabel, widthPx / 2f, baseline + dp(20), text);
+                text.setTextAlign(Paint.Align.LEFT);
+            }
         } else {
             text.setTextSize(scaledDensity * 24f);
             text.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-            text.setColor(white);
-            canvas.drawText(placeholder == null ? "功率读取中" : placeholder,
-                    pad, top + pillH + dp(42), text);
+            text.setColor(fg);
+            String ph = placeholder == null ? "功率读取中" : placeholder;
+            if (apple) {
+                text.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(ph, widthPx / 2f, baseline, text);
+                text.setTextAlign(Paint.Align.LEFT);
+            } else {
+                canvas.drawText(ph, pad, baseline, text);
+            }
         }
 
         if (sub != null && !sub.isEmpty()) {
             text.setTextSize(scaledDensity * 12.5f);
             text.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
             text.setColor(soft);
-            canvas.drawText(ellipsize(sub, right - pad), pad,
-                    top + pillH + dp(72), text);
+            if (apple) {
+                text.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(ellipsize(sub, right - pad), widthPx / 2f,
+                        top + pillH + dp(76), text);
+                text.setTextAlign(Paint.Align.LEFT);
+            } else {
+                canvas.drawText(ellipsize(sub, right - pad), pad,
+                        top + pillH + dp(72), text);
+            }
         }
 
-        // 4. 电量进度条
-        float barTop = top + pillH + dp(91);
+        float barTop = top + pillH + dp(94);
         float barH = dp(7);
         rect.set(pad, barTop, right, barTop + barH);
-        fill.setAlpha(255);
         fill.setShader(null);
-        fill.setColor(0x33FFFFFF);
+        fill.setColor(track);
         canvas.drawRoundRect(rect, barH / 2, barH / 2, fill);
         if (s.level >= 0) {
             float fillW = (right - pad) * Math.max(0, Math.min(100, s.level)) / 100f;
             if (fillW > 0) {
                 rect.set(pad, barTop, pad + fillW, barTop + barH);
-                fill.setColor(white);
+                fill.setColor(accent);
                 canvas.drawRoundRect(rect, barH / 2, barH / 2, fill);
             }
         }
 
-        // 5. 电量 / 温度 / 预估
         StringBuilder info = new StringBuilder();
         if (s.level >= 0) info.append("电量 ").append(s.level).append("%");
         if (s.showTemperature && !Double.isNaN(s.temperatureC) && s.temperatureC > 0) {
             if (info.length() > 0) info.append(" · ");
-            info.append("温度 ").append(fmt1(s.temperatureC)).append("°C");
+            info.append("电池 ").append(fmt1(s.temperatureC)).append("°C");
         }
         if (s.showEstimate) {
             if (info.length() > 0) info.append(" · ");
-            if (s.state == ChargeState.FULL) {
-                info.append("已充满");
-            } else if (s.estimateValid && s.remainingSeconds > 0) {
+            if (s.state == ChargeState.FULL) info.append("已充满");
+            else if (s.estimateValid && s.remainingSeconds > 0) {
                 info.append("充满约 ").append(duration(s.remainingSeconds));
-            } else {
-                info.append("预估中");
-            }
+            } else info.append("预估中");
         }
         text.setTextSize(scaledDensity * 11.5f);
         text.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
         text.setColor(soft);
-        canvas.drawText(ellipsize(info.toString(), right - pad), pad,
-                barTop + barH + dp(22), text);
+        if (apple) {
+            text.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText(ellipsize(info.toString(), right - pad), widthPx / 2f,
+                    barTop + barH + dp(22), text);
+            text.setTextAlign(Paint.Align.LEFT);
+        } else {
+            canvas.drawText(ellipsize(info.toString(), right - pad), pad,
+                    barTop + barH + dp(22), text);
+        }
 
-        // 6. 底部来源 + 详情
         String source = s.sourceLabel == null ? "标准读取" : s.sourceLabel;
         String note = s.abnormalText != null && !s.abnormalText.isEmpty()
                 ? s.abnormalText
                 : (s.accessoryText != null && !s.accessoryText.isEmpty() ? s.accessoryText : null);
         text.setTextSize(scaledDensity * 10.5f);
-        text.setColor(0xB3FFFFFF);
+        text.setColor(muted);
         String bottom = note != null ? note : ("数据来源：" + source);
         canvas.drawText(ellipsize(bottom, right - pad - dp(54)), pad,
                 heightPx - dp(15), text);
         text.setTextSize(scaledDensity * 11f);
         text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        text.setColor(0xE6FFFFFF);
+        text.setColor(apple ? accent : 0xE6FFFFFF);
         canvas.drawText("详情 ›", right - dp(44), heightPx - dp(15), text);
 
-        // 7. 充电动画：进度条流光 + 状态旁呼吸闪电（纯绘制，不额外占布局）
         if (isCharging(s)) {
             long now = SystemClock.uptimeMillis();
             float phase = (now % 1600) / 1600f;
-            // 进度条上移动的高光
             if (s.level >= 0) {
                 float fillW = (right - pad) * Math.max(0, Math.min(100, s.level)) / 100f;
                 if (fillW > dp(20)) {
@@ -333,19 +411,17 @@ public final class PowerCardView extends View {
                     float rr = Math.min(right, x + shimmerW);
                     if (rr > left) {
                         rect.set(left, barTop, rr, barTop + barH);
-                        fill.setShader(null);
                         fill.setColor(0xFFFFFFFF);
                         fill.setAlpha(110);
                         canvas.drawRoundRect(rect, barH / 2, barH / 2, fill);
+                        fill.setAlpha(255);
                     }
                 }
             }
-            // 呼吸闪电图标
             float glow = (float) (0.55 + 0.45 * Math.sin(phase * Math.PI * 2));
-            float cx = stateLeft + stateWidth + dp(15);
+            float cx = stateWidth + pad + dp(15);
             float cy = top + dp(12);
-            fill.setShader(null);
-            fill.setColor(0x2EFFFFFF);
+            fill.setColor(apple ? cAppleSoft : 0x2EFFFFFF);
             fill.setAlpha((int) (90 + 90 * glow));
             canvas.drawCircle(cx, cy, dp(9), fill);
             bolt.reset();
@@ -356,28 +432,24 @@ public final class PowerCardView extends View {
             bolt.lineTo(cx + dp(5.2f), cy - dp(1.2f));
             bolt.lineTo(cx + dp(0.8f), cy - dp(1.2f));
             bolt.close();
-            fill.setColor(0xFFFFFFFF);
+            fill.setColor(apple ? accent : 0xFFFFFFFF);
             fill.setAlpha((int) (150 + 105 * glow));
             canvas.drawPath(bolt, fill);
+            fill.setAlpha(255);
         }
     }
 
-    private void drawMain(Canvas canvas, String value, String ignored, float baseline,
-                          float sizeSp, String sub) {
+    private void drawText(Canvas canvas, String value, float x, float baseline,
+                          float sizeSp, int color, boolean bold) {
         text.setTextSize(scaledDensity * sizeSp);
-        text.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        text.setColor(0xFFFFFFFF);
-        canvas.drawText(value, dp(20), baseline, text);
-        if (sub != null) {
-            text.setTextSize(scaledDensity * 12f);
-            text.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
-            text.setColor(0xD9FFFFFF);
-            canvas.drawText(sub, dp(20), baseline + dp(26), text);
-        }
+        text.setTypeface(Typeface.create(bold ? "sans-serif-medium" : "sans-serif",
+                Typeface.NORMAL));
+        text.setColor(color);
+        canvas.drawText(value, x, baseline, text);
     }
 
     private void drawPill(Canvas canvas, float left, float top, String label,
-                          float sizeSp, int bg) {
+                          float sizeSp, int bg, int fg) {
         float w = pillWidth(label, sizeSp);
         float h = dp(24);
         rect.set(left, top, left + w, top + h);
@@ -386,14 +458,14 @@ public final class PowerCardView extends View {
         canvas.drawRoundRect(rect, h / 2, h / 2, fill);
         text.setTextSize(scaledDensity * sizeSp);
         text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        text.setColor(0xFFFFFFFF);
+        text.setColor(fg);
         Paint.FontMetrics fm = text.getFontMetrics();
         float baseline = top + h / 2 - (fm.ascent + fm.descent) / 2;
         canvas.drawText(label, left + dp(10), baseline, text);
     }
 
     private void drawPillRight(Canvas canvas, float right, float top, String label,
-                               float sizeSp, int bg) {
+                               float sizeSp, int bg, int fg) {
         float w = pillWidth(label, sizeSp);
         float h = dp(24);
         rect.set(right - w, top, right, top + h);
@@ -402,7 +474,7 @@ public final class PowerCardView extends View {
         canvas.drawRoundRect(rect, h / 2, h / 2, fill);
         text.setTextSize(scaledDensity * sizeSp);
         text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        text.setColor(0xFFFFFFFF);
+        text.setColor(fg);
         Paint.FontMetrics fm = text.getFontMetrics();
         float baseline = top + h / 2 - (fm.ascent + fm.descent) / 2;
         canvas.drawText(label, right - w + dp(9), baseline, text);
@@ -416,10 +488,12 @@ public final class PowerCardView extends View {
 
     private String ellipsize(String textValue, float maxWidth) {
         if (textValue == null) return "";
+        text.setTextSize(text.getTextSize());
         if (text.measureText(textValue) <= maxWidth) return textValue;
         String ellipsis = "…";
         int end = textValue.length();
-        while (end > 0 && text.measureText(textValue.substring(0, end)) + text.measureText(ellipsis) > maxWidth) {
+        while (end > 0 && text.measureText(textValue.substring(0, end))
+                + text.measureText(ellipsis) > maxWidth) {
             end--;
         }
         return textValue.substring(0, Math.max(0, end)) + ellipsis;

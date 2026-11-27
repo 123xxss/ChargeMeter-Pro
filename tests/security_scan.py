@@ -263,7 +263,7 @@ def main():
 
     check_no_hits(
         sources, root,
-        [r"\bRuntime\s*\.\s*getRuntime\s*\(", r"\bRuntime\s*\.\s*exec\s*\(",
+        [r"\bRuntime\s*\.\s*getRuntime\s*\(\s*\)\s*\.\s*(?:exec|load|loadLibrary)\s*\(", r"\bRuntime\s*\.\s*exec\s*\(",
          r"\bProcessBuilder\b", r"\bProcess\s*\.\s*start\s*\(",
          r"\bexec\s*\(\s*new\s+String\s*\["],
         "源码无进程执行（Runtime.exec / ProcessBuilder）",

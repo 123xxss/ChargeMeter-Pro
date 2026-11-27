@@ -4,9 +4,18 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v1.5.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.5.2/ChargeMeter-Pro-v1.5.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v1.7.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.7.0/ChargeMeter-Pro-v1.7.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 1.7.0 更新（系统状态 + Apple UI + 实时详情）
+
+- 新增**系统状态卡**：CPU 使用率/频率/核心数、可用内存、GPU 使用率、系统最高温度；详情页补充存储剩余。
+- 数据全部只读：CPU 来自 `/proc/stat`，内存来自 `MemoryInfo`，GPU/温度尝试标准 sysfs；系统不开放时显示 `--/系统未开放`，不伪造。
+- **详情弹窗实时刷新**：打开后每秒随主界面更新功率、电压、电流、系统状态等，不再是一次性快照。
+- 新增**界面风格**：Apple 极简（默认）、经典渐变、深色霓虹；功率卡、曲线同步切换。
+- 长按功率卡复制当前功率；曲线支持铺满/当前值显示、新会话清空。
+- 版本 14 / 1.7.0；测试 312 项通过。
 
 ## 1.6.0 更新（UI 与细节优化）
 
@@ -105,6 +114,8 @@
 - **电芯数**：按参考 ChargeMeter 的品牌推荐值（vivo/OPPO/小米/荣耀 2，其余 1），也可手动改 1–4；没有第二套自动探测。
 - **充电预估**：不使用 `computeChargeTimeRemaining()`，按当前功率 + 电池容量 + CC/CV 两阶段修正自研估算，统一标注「估算」。
 - **实时功率曲线**：最近 2 分钟、1 秒采样、120 点。
+- **系统状态**：CPU 使用率/频率、可用内存、GPU 使用率、系统最高温度，详情页含存储剩余。
+- **三种界面风格**：Apple 极简 / 经典渐变 / 深色霓虹。
 - **功率校准**：输入系统/功率计读数反推本机倍率。
 - **本次充电摘要**：仅记录本次/上次的平滑峰值、平均功率、时长、起止电量，本地保存，不做长期历史。
 - **后台白名单引导**：首次使用按 vivo / OPPO / 小米弹对应设置说明，并尝试品牌深链跳转，失败自动回退系统页面。

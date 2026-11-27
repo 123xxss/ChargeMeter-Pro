@@ -142,6 +142,22 @@ public final class Prefs {
         setBool("shizuku_read_enabled", enabled);
     }
 
+    /** 界面风格：0=Apple 极简（默认），1=经典渐变，2=深色霓虹。 */
+    public int uiStyle() {
+        try {
+            return sp.getInt("ui_style", 0);
+        } catch (Throwable t) {
+            return 0;
+        }
+    }
+
+    public void setUiStyle(int style) {
+        try {
+            sp.edit().putInt("ui_style", Math.max(0, Math.min(2, style))).apply();
+        } catch (Throwable ignored) {
+        }
+    }
+
     /** 电芯数覆盖：0=按品牌推荐，1/2/3/4=手动。 */
     public int cellCountOverride() {
         try {

@@ -73,6 +73,11 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private LinearLayout chartCard;
     private long lastChartTimestamp = -1;
     private boolean lastSessionActive;
+    private LinearLayout systemCard;
+    private UiKit.Metric sysCpu;
+    private UiKit.Metric sysRam;
+    private UiKit.Metric sysGpu;
+    private UiKit.Metric sysThermal;
 
     private TextView gridTitle;
     private LinearLayout gridRow1;
@@ -142,6 +147,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         if (!uiReady) return;
         try {
             applySystemBars();
+            if (heroCard != null) heroCard.setStyle(Prefs.get(this).uiStyle());
+            if (chart != null) chart.setStyle(Prefs.get(this).uiStyle());
             render(StateStore.get().latest());
         } catch (Throwable t) {
             showSafeFallback(t);
@@ -187,6 +194,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         gridRow2.setVisibility(master ? View.VISIBLE : View.GONE);
         sessionCard.setVisibility(master ? View.VISIBLE : View.GONE);
         chartCard.setVisibility(master ? View.VISIBLE : View.GONE);
+        systemCard.setVisibility(master ? View.VISIBLE : View.GONE);
         footerCard.setVisibility(master ? View.VISIBLE : View.GONE);
         updateBanner();
         if (!master) {
@@ -199,6 +207,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         renderHero(snapshot);
         renderGrid(snapshot);
         renderChart(snapshot);
+        renderSystem(snapshot);
         renderSession(snapshot);
     }
 
@@ -234,6 +243,32 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             lastChartTimestamp = s.timestampMs;
             chart.add(s.chargeW);
         }
+    }
+
+    private void renderSystem(PowerSnapshot s) {
+        if (sysCpu == null) return;
+        com.dsh.powermeter.core.SystemStats st = s == null ? null : s.systemStats;
+        if (st == null) {
+            sysCpu.value.setText("--");
+            sysRam.value.setText("--");
+            sysGpu.value.setText("--");
+            sysThermal.value.setText("--");
+            sysCpu.label.setText("CPU");
+            sysRam.label.setText("可用内存");
+            sysGpu.label.setText("GPU");
+            sysThermal.label.setText("系统温度");
+            return;
+        }
+        sysCpu.value.setText(st.cpuSummary());
+        sysCpu.label.setText("CPU" + (st.cpuCores > 0 ? " · " + st.cpuCores + " 核" : ""));
+        sysRam.value.setText(st.ramSummary());
+        sysRam.label.setText(st.ramTotalMb > 0
+                ? String.format(java.util.Locale.ROOT, "可用内存 · 已用 %.0f%%", st.ramUsedPercent)
+                : "可用内存");
+        sysGpu.value.setText(st.gpuSummary());
+        sysGpu.label.setText(Double.isNaN(st.gpuPercent) ? "GPU（系统未开放）" : "GPU 使用率");
+        sysThermal.value.setText(st.thermalSummary());
+        sysThermal.label.setText(Double.isNaN(st.thermalMaxC) ? "系统温度（未开放）" : "系统最高温度");
     }
 
     private void renderSession(PowerSnapshot s) {
@@ -588,9 +623,28 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         chartHead.addView(chartHint);
         chartCard.addView(chartHead, UiKit.matchWrap());
         chart = new PowerChartView(this);
+        chart.setStyle(Prefs.get(this).uiStyle());
         chartCard.addView(chart, UiKit.top(this, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, UiKit.dp(this, 132)), 6));
         root.addView(chartCard, UiKit.top(this, UiKit.matchWrap(), 12));
+
+        // 系统状态：CPU / 内存 / GPU / 温度（只读，系统不开放时显示 --）
+        systemCard = UiKit.card(this);
+        systemCard.addView(UiKit.text(this, "系统状态", 14f, R.color.text_primary, true),
+                UiKit.matchWrap());
+        LinearLayout sysRow1 = UiKit.row(this);
+        LinearLayout sysRow2 = UiKit.row(this);
+        sysCpu = UiKit.metric(this, "CPU", "--");
+        sysRam = UiKit.metric(this, "可用内存", "--");
+        sysGpu = UiKit.metric(this, "GPU", "--");
+        sysThermal = UiKit.metric(this, "系统温度", "--");
+        addCell(sysRow1, sysCpu);
+        addCell(sysRow1, sysRam);
+        addCell(sysRow2, sysGpu);
+        addCell(sysRow2, sysThermal);
+        systemCard.addView(sysRow1, UiKit.top(this, UiKit.matchWrap(), 8));
+        systemCard.addView(sysRow2, UiKit.matchWrap());
+        root.addView(systemCard, UiKit.top(this, UiKit.matchWrap(), 12));
 
         // 本次 / 上次充电
         buildSessionCard();
@@ -624,6 +678,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
     private void buildHeroCard() {
         heroCard = new PowerCardView(this);
+        heroCard.setStyle(Prefs.get(this).uiStyle());
         heroCard.setOnClickListener(v -> DetailDialog.show(MainActivity.this,
                 StateStore.get().latest()));
         heroCard.setOnLongClickListener(v -> {

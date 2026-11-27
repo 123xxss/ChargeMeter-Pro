@@ -31,10 +31,12 @@ public final class PowerChartView extends View {
     private int head;
     private float maxValue = 1f;
     private final float density;
-    private final int colorAccent;
-    private final int colorAccentEnd;
+    private int colorAccent;
+    private int colorAccentEnd;
     private final int colorGrid;
     private final int colorMuted;
+    private final int colorAppleAccent;
+    private final int colorNeonAccent;
 
     public PowerChartView(Context context) {
         super(context);
@@ -43,6 +45,8 @@ public final class PowerChartView extends View {
         colorAccentEnd = context.getColor(R.color.teal);
         colorGrid = context.getColor(R.color.divider);
         colorMuted = context.getColor(R.color.text_muted);
+        colorAppleAccent = context.getColor(R.color.apple_accent);
+        colorNeonAccent = context.getColor(R.color.neon_accent);
         line.setStyle(Paint.Style.STROKE);
         line.setStrokeWidth(dp(2.2f));
         line.setStrokeCap(Paint.Cap.ROUND);
@@ -55,6 +59,26 @@ public final class PowerChartView extends View {
         text.setColor(colorMuted);
         dot.setStyle(Paint.Style.FILL);
         dot.setColor(colorAccent);
+    }
+
+    public void setStyle(int style) {
+        if (style == 0) {
+            colorAccent = colorAppleAccent;
+            colorAccentEnd = colorAppleAccent;
+        } else if (style == 2) {
+            colorAccent = colorNeonAccent;
+            colorAccentEnd = contextColorTeal();
+        } else {
+            colorAccent = getContext().getColor(R.color.accent);
+            colorAccentEnd = contextColorTeal();
+        }
+        line.setColor(colorAccent);
+        dot.setColor(colorAccentEnd);
+        invalidate();
+    }
+
+    private int contextColorTeal() {
+        return getContext().getColor(R.color.teal);
     }
 
     public void add(double watts) {
@@ -139,7 +163,7 @@ public final class PowerChartView extends View {
         fillPath.lineTo(lastX, padT + chartH);
         fillPath.close();
         fill.setShader(new LinearGradient(0, padT, 0, padT + chartH,
-                0x552F6BFF, 0x002F6BFF, Shader.TileMode.CLAMP));
+                (colorAccent & 0x00FFFFFF) | 0x55000000, 0x00000000, Shader.TileMode.CLAMP));
         canvas.drawPath(fillPath, fill);
         fill.setShader(null);
         line.setColor(colorAccent);

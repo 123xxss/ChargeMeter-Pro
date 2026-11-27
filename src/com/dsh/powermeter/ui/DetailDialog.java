@@ -15,24 +15,28 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.dsh.powermeter.BrandCompat;
 import com.dsh.powermeter.Prefs;
 import com.dsh.powermeter.R;
 import com.dsh.powermeter.core.ChargeState;
 import com.dsh.powermeter.core.PowerSnapshot;
+import com.dsh.powermeter.core.StateStore;
+import com.dsh.powermeter.core.SystemStats;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * 「详情」弹窗：展示实时读数、数据来源与口径说明。
+ * 「详情」弹窗：实时展示电池读数、系统状态、数据来源与口径说明。
  *
- * 固定口径：这里始终是进入电池的功率估算值，不宣称、不标注任何“充电器输入功率”。
- * 电芯数与 ×2 修正说明按本次快照来源动态给出。
+ * 弹窗打开期间订阅 StateStore，每秒跟随主界面刷新；关闭时立即反注册。
+ * 固定口径：这里始终是进入电池的功率，不宣称、不标注“充电器输入功率”。
  */
 public final class DetailDialog {
 
     private DetailDialog() {
     }
 
-    public static void show(Activity activity, PowerSnapshot snapshot) {
+    public static void show(Activity activity, PowerSnapshot initial) {
         if (activity == null || activity.isFinishing()) return;
 
         Context c = activity;
@@ -49,9 +53,8 @@ public final class DetailDialog {
         final Dialog dialog = new Dialog(activity);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        // 标题行
         LinearLayout titleRow = UiKit.row(c);
-        TextView title = UiKit.text(c, "详情", 18f, R.color.text_primary, true);
+        TextView title = UiKit.text(c, "详情 · 实时刷新中", 17f, R.color.text_primary, true);
         titleRow.addView(title, UiKit.weighted(1f));
         TextView closeTop = UiKit.textColor(c, "关闭", 14f, accent, true);
         int cp = UiKit.dp(c, 8);
@@ -60,47 +63,25 @@ public final class DetailDialog {
         titleRow.addView(closeTop);
         card.addView(titleRow, UiKit.matchWrap());
 
-        // 数据行
-        boolean hasSnapshot = snapshot != null;
-        boolean showTemp = hasSnapshot ? snapshot.showTemperature : Prefs.get(c).showTemperature();
-        boolean showEta = hasSnapshot ? snapshot.showEstimate : Prefs.get(c).showEstimate();
-        boolean showTier = hasSnapshot ? snapshot.showTier : Prefs.get(c).showTier();
-
-        String powerValue;
-        if (!hasSnapshot) {
-            powerValue = "--";
-        } else if (snapshot.realtime && snapshot.nearZero) {
-            powerValue = "接近零（" + safe(snapshot.modeLabel) + "）";
-        } else if (!snapshot.valid) {
-            powerValue = "暂不可用";
-        } else {
-            powerValue = UiKit.watts(snapshot.powerW) + " W";
-        }
-
-        addRow(c, card, "实时功率", powerValue);
-        addRow(c, card, "电压", hasSnapshot
-                ? UiKit.volts(snapshot.voltageV) + " V"
-                + (snapshot.voltageCorrected ? "（已 ×2 修正）" : "")
-                : "--");
-        addRow(c, card, "电流", hasSnapshot ? UiKit.amps(snapshot.currentA) + " A" : "--");
-        addRow(c, card, "温度", showTemp
-                ? (hasSnapshot ? UiKit.temp(snapshot.temperatureC) + " °C" : "--")
-                : "已隐藏");
-        addRow(c, card, "平滑峰值", hasSnapshot ? UiKit.watts(snapshot.peakW) + " W" : "--");
-        addRow(c, card, "剩余时间", showEta ? formatRemaining(snapshot) : "已隐藏");
-        addRow(c, card, "当前充电模式", hasSnapshot ? safe(snapshot.modeLabel) : "--");
-        addRow(c, card, "充电状态", hasSnapshot && snapshot.state != null
-                ? snapshot.state.label : "--");
-        addRow(c, card, "充电档位", showTier
-                ? (hasSnapshot && snapshot.tier != null ? snapshot.tier.label : "--")
-                : "已隐藏");
-        addRow(c, card, "电量", hasSnapshot && snapshot.level >= 0
-                ? snapshot.level + "%" : "--");
-        addRow(c, card, "数据来源", hasSnapshot ? safe(snapshot.sourceLabel) : "--");
-        addRow(c, card, "电芯数", hasSnapshot
-                ? snapshot.cells + " 芯" + (snapshot.voltageCorrected ? "（电压按 ×2 修正）" : "")
-                : "--");
-        addRow(c, card, "电芯数设置", cellCountLabel(Prefs.get(c)));
+        Map<String, TextView> rows = new LinkedHashMap<>();
+        addRow(c, card, rows, "实时功率");
+        addRow(c, card, rows, "电压");
+        addRow(c, card, rows, "电流");
+        addRow(c, card, rows, "电池温度");
+        addRow(c, card, rows, "平滑峰值");
+        addRow(c, card, rows, "剩余时间");
+        addRow(c, card, rows, "当前充电模式");
+        addRow(c, card, rows, "充电状态");
+        addRow(c, card, rows, "充电档位");
+        addRow(c, card, rows, "电量");
+        addRow(c, card, rows, "数据来源");
+        addRow(c, card, rows, "电芯数");
+        addRow(c, card, rows, "电芯数设置");
+        addRow(c, card, rows, "CPU");
+        addRow(c, card, rows, "内存");
+        addRow(c, card, rows, "GPU");
+        addRow(c, card, rows, "系统温度");
+        addRow(c, card, rows, "存储");
 
         // 口径说明
         LinearLayout notes = UiKit.column(c);
@@ -108,19 +89,10 @@ public final class DetailDialog {
         int np = UiKit.dp(c, 12);
         notes.setPadding(np, np, np, np);
         addNote(c, notes, "此处为进入电池的功率；边充边用时可能低于充电器实际输出功率。");
-        if (hasSnapshot && (snapshot.cells > 1 || snapshot.voltageCorrected)) {
-            addNote(c, notes, "本机为双电芯机型：电压按 2 芯合并估算总功率。");
-        }
-        if (hasSnapshot && snapshot.enhanced) {
-            addNote(c, notes, "当前使用增强读取（实验性）：仅通过系统标准 sysfs 只读读取，部分机型可能不可用。");
-        }
-        if (!showTemp || !showEta || !showTier) {
-            addNote(c, notes, "部分项目已在设置中隐藏，可到设置中重新开启。");
-        }
-        addNote(c, notes, "功率为估算值，会随温度、电量与厂商充电策略波动。所有数据仅在本机处理，不上传。");
+        addNote(c, notes, "CPU/内存/存储来自系统公开接口；GPU/系统温度读取标准 sysfs，部分机型不开放，显示 -- 属正常。");
+        addNote(c, notes, "所有数据仅在本机处理，不上传、不联网。");
         card.addView(notes, UiKit.top(c, UiKit.matchWrap(), 16));
 
-        // 底部关闭按钮
         TextView close = UiKit.primaryButton(c, "关闭", v -> dialog.dismiss());
         LinearLayout.LayoutParams closeLp = UiKit.matchWrap();
         closeLp.height = UiKit.dp(c, 46);
@@ -137,6 +109,18 @@ public final class DetailDialog {
 
         dialog.setContentView(scroll);
         dialog.setCanceledOnTouchOutside(true);
+
+        // 实时刷新：每帧直接更新行文本，不重建弹窗。
+        updateRows(c, rows, initial != null ? initial : StateStore.get().latest());
+        StateStore.Listener listener = snapshot -> {
+            try {
+                updateRows(c, rows, snapshot);
+            } catch (Throwable ignored) {
+            }
+        };
+        StateStore.get().addListener(listener);
+        dialog.setOnDismissListener(d -> StateStore.get().removeListener(listener));
+
         dialog.show();
 
         Window window = dialog.getWindow();
@@ -149,16 +133,76 @@ public final class DetailDialog {
         }
     }
 
-    private static void addRow(Context c, LinearLayout parent, String label, String value) {
+    private static void addRow(Context c, LinearLayout parent, Map<String, TextView> rows,
+                               String label) {
         LinearLayout row = UiKit.row(c);
         TextView l = UiKit.text(c, label, 13f, R.color.text_secondary, false);
         row.addView(l, UiKit.weighted(1f));
-        TextView v = UiKit.text(c, value, 13.5f, R.color.text_primary, true);
+        TextView v = UiKit.text(c, "--", 13.5f, R.color.text_primary, true);
         v.setSingleLine(true);
         v.setEllipsize(TextUtils.TruncateAt.END);
-        v.setMaxWidth((int) (c.getResources().getDisplayMetrics().widthPixels * 0.52f));
+        v.setMaxWidth((int) (c.getResources().getDisplayMetrics().widthPixels * 0.54f));
         row.addView(v, UiKit.left(c, UiKit.wrapWrap(), 10));
         parent.addView(row, UiKit.top(c, UiKit.matchWrap(), 9));
+        rows.put(label, v);
+    }
+
+    private static void updateRows(Context c, Map<String, TextView> rows, PowerSnapshot s) {
+        Prefs prefs = Prefs.get(c);
+        boolean has = s != null;
+        boolean showTemp = has ? s.showTemperature : prefs.showTemperature();
+        boolean showEta = has ? s.showEstimate : prefs.showEstimate();
+        boolean showTier = has ? s.showTier : prefs.showTier();
+
+        if (!has) {
+            for (TextView v : rows.values()) v.setText("--");
+            return;
+        }
+
+        set(rows, "实时功率", powerText(s));
+        set(rows, "电压", UiKit.volts(s.voltageV) + " V"
+                + (s.voltageCorrected ? " · 2 芯合并" : ""));
+        set(rows, "电流", UiKit.amps(s.currentA) + " A");
+        set(rows, "电池温度", showTemp ? UiKit.temp(s.temperatureC) + " °C" : "已隐藏");
+        set(rows, "平滑峰值", UiKit.watts(s.peakW) + " W");
+        set(rows, "剩余时间", showEta ? formatRemaining(s) : "已隐藏");
+        set(rows, "当前充电模式", safe(s.modeLabel));
+        set(rows, "充电状态", s.state == null ? "--" : s.state.label);
+        set(rows, "充电档位", showTier
+                ? (s.tier == null ? "--" : s.tier.label) : "已隐藏");
+        set(rows, "电量", s.level >= 0 ? s.level + "%" : "--");
+        set(rows, "数据来源", safe(s.sourceLabel));
+        set(rows, "电芯数", s.cells + " 芯"
+                + (s.voltageCorrected ? "（按 2 芯合并）" : ""));
+        set(rows, "电芯数设置", cellCountLabel(prefs));
+
+        SystemStats st = s.systemStats;
+        if (st == null) {
+            set(rows, "CPU", "--");
+            set(rows, "内存", "--");
+            set(rows, "GPU", "--");
+            set(rows, "系统温度", "--");
+            set(rows, "存储", "--");
+        } else {
+            set(rows, "CPU", st.cpuSummary() + (st.cpuCores > 0 ? " · " + st.cpuCores + " 核" : ""));
+            set(rows, "内存", st.ramSummary()
+                    + (st.ramTotalMb > 0
+                    ? String.format(java.util.Locale.ROOT, " · 已用 %.0f%%", st.ramUsedPercent) : ""));
+            set(rows, "GPU", Double.isNaN(st.gpuPercent) ? "系统未开放" : st.gpuSummary());
+            set(rows, "系统温度", Double.isNaN(st.thermalMaxC) ? "系统未开放" : st.thermalSummary());
+            set(rows, "存储", st.storageSummary());
+        }
+    }
+
+    private static String powerText(PowerSnapshot s) {
+        if (s.realtime && s.nearZero) return "接近零（" + safe(s.modeLabel) + "）";
+        if (!s.valid) return "暂不可用";
+        return UiKit.watts(s.powerW) + " W";
+    }
+
+    private static void set(Map<String, TextView> rows, String key, String value) {
+        TextView v = rows.get(key);
+        if (v != null) v.setText(value == null ? "--" : value);
     }
 
     private static void addNote(Context c, LinearLayout parent, String text) {

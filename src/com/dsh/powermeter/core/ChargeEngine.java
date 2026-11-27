@@ -182,6 +182,13 @@ public final class ChargeEngine {
         boolean realtime = prefs.realtimePowerEnabled();
         double level = n.level;
         boolean screenOn = reader.screenOn();
+        SystemStats systemStats = null;
+        if (screenOn) {
+            try {
+                systemStats = SystemStats.collect(app);
+            } catch (Throwable ignored) {
+            }
+        }
 
         // 平滑：充电功率走功率平滑；净功耗用电压/电流平滑后相乘，保证两种口径一致。
         boolean sessionStarting = charging && !sessionTracker.active();
@@ -309,6 +316,7 @@ public final class ChargeEngine {
                 .showTier(prefs.showTier())
                 .powerMaxW(n.powerMaxW)
                 .chargeCounterUahRaw((int) Math.min(Integer.MAX_VALUE, Math.max(-1, raw.chargeCounterUah)))
+                .systemStats(systemStats)
                 .build();
 
         // 自适应刷新：功率剧烈波动时临时提频

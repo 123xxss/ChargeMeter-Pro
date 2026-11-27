@@ -53,6 +53,8 @@ public final class PowerSnapshot {
 
     public final int powerMaxW;
     public final int chargeCounterUahRaw; // 仅调试/详情用，不做长期存储
+    /** CPU/GPU/内存/温度等系统状态；屏幕关闭或不可用时为 null。 */
+    public final SystemStats systemStats;
 
     private PowerSnapshot(Builder b) {
         this.timestampMs = b.timestampMs;
@@ -94,6 +96,7 @@ public final class PowerSnapshot {
         this.showTier = b.showTier;
         this.powerMaxW = b.powerMaxW;
         this.chargeCounterUahRaw = b.chargeCounterUahRaw;
+        this.systemStats = b.systemStats;
     }
 
     public static Builder builder() {
@@ -140,6 +143,7 @@ public final class PowerSnapshot {
         public boolean showTier = true;
         public int powerMaxW = 0;
         public int chargeCounterUahRaw = -1;
+        public SystemStats systemStats;
 
         public Builder timestampMs(long v) { timestampMs = v; return this; }
         public Builder masterEnabled(boolean v) { masterEnabled = v; return this; }
@@ -180,6 +184,7 @@ public final class PowerSnapshot {
         public Builder showTier(boolean v) { showTier = v; return this; }
         public Builder powerMaxW(int v) { powerMaxW = v; return this; }
         public Builder chargeCounterUahRaw(int v) { chargeCounterUahRaw = v; return this; }
+        public Builder systemStats(SystemStats v) { systemStats = v; return this; }
 
         public PowerSnapshot build() {
             return new PowerSnapshot(this);

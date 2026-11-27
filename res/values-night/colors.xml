@@ -23,4 +23,9 @@
     <color name="warning_bg">#2A1B0E</color>
     <color name="warning_text">#FFB877</color>
     <color name="shadow">#40000000</color>
+    <color name="apple_accent">#0A84FF</color>
+    <color name="apple_soft">#10233A</color>
+    <color name="neon_bg_start">#0B1020</color>
+    <color name="neon_bg_end">#0E7490</color>
+    <color name="neon_accent">#22D3EE</color>
 </resources>
