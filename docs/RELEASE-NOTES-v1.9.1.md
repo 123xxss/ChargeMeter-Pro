@@ -20,4 +20,4 @@
 
 - versionCode 19 / versionName 1.9.1
 - 312 项自动化检查通过
-- APK SHA-256：`904f45a10d0e3c2462360010cdbc5a3eca5a6370f4ead763268554c2aa74b35d`
+- APK SHA-256：`e87f3005c9d7c89a8abe35be16a478ce78a8c7858e31bfacdb7bd3476147cea0`

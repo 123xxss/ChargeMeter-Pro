@@ -4,7 +4,7 @@
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，235,888 bytes
-- SHA-256：`904f45a10d0e3c2462360010cdbc5a3eca5a6370f4ead763268554c2aa74b35d`
+- SHA-256：`e87f3005c9d7c89a8abe35be16a478ce78a8c7858e31bfacdb7bd3476147cea0`
 
 > 1.9.1 详情圆角底板/防溢出、可选动效、通知同步；测试 312 项全通过。
 
