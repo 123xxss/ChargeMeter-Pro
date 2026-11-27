@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.4.3（versionCode 31）
+- 版本：2.5.0（versionCode 32）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，363,629 bytes
-- SHA-256：`4f155f87b7ef1b26d5bd043140cd8a3960235bc91c15e20f80e6909b324b7f57`
+- SHA-256：`6aa773281d2e40967ab7bc3833b8dc07ebd24d9321936a36c45ef81d6059fa01`
 
-> 2.4.3 修复 ic_notify_lens 旧资源并 force 新 channel/ID；测试 313 项全通过。
+> 2.5.0 未接电源自动显示放电功耗；测试 313 项全通过。
 
 ## 1. 自动化测试结果
 

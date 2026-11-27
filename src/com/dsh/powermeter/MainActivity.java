@@ -282,7 +282,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         boolean showTemp = s != null ? s.showTemperature : prefs.showTemperature();
         cellTemp.root.setVisibility(showTemp ? View.VISIBLE : View.INVISIBLE);
         boolean hideForIdle = s != null && s.state == ChargeState.UNPLUGGED
-                && !s.realtime;
+                && !s.realtime && !s.discharging;
         // 未充电且未开启实时功耗时，PRD 要求隐藏全部充电相关数值。
         setMetricValue(cellVoltage, s == null || hideForIdle ? "--" : UiKit.volts(s.voltageV));
         setMetricValue(cellCurrent, s == null || hideForIdle ? "--" : UiKit.amps(s.currentA));
@@ -301,12 +301,14 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         }
         lastSessionActive = s.sessionActive;
         if (s.timestampMs == lastChartTimestamp) return;
-        if (s.charging && s.valid && s.chargeW > 0) {
+        if ((s.charging && s.valid && s.chargeW > 0)
+                || (s.discharging && s.valid && s.powerW > 0)) {
             lastChartTimestamp = s.timestampMs;
-            chart.add(s.chargeW);
+            double chartW = s.discharging ? s.powerW : s.chargeW;
+            chart.add(chartW);
             if (chartHint != null) {
                 chartHint.setText(String.format(java.util.Locale.ROOT,
-                        "当前 %.2f W", s.chargeW));
+                        "当前 %.2f W", chartW));
             }
         } else if (chartHint != null) {
             chartHint.setText("最近 2 分钟");
@@ -1030,6 +1032,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             headerStatus.setText("已关闭");
         } else if (s == null) {
             headerStatus.setText("读取中");
+        } else if (s.discharging) {
+            headerStatus.setText("放电中");
         } else if (s.state == ChargeState.UNPLUGGED) {
             headerStatus.setText(s.realtime ? "实时" : "待机");
         } else if (s.state == ChargeState.CHARGING) {

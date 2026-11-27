@@ -269,9 +269,10 @@ public final class PowerCardView extends View {
 
         float top = dp(16);
         float pillH = dp(24);
-        drawPill(canvas, pad, top, s.state == null ? "读取中" : s.state.label,
-                12f, pillBg, pillFg);
-        float stateWidth = pillWidth(s.state == null ? "读取中" : s.state.label, 12f) + dp(20);
+        String pillText = s.discharging ? "放电中"
+                : (s.state == null ? "读取中" : s.state.label);
+        drawPill(canvas, pad, top, pillText, 12f, pillBg, pillFg);
+        float stateWidth = pillWidth(pillText, 12f) + dp(20);
 
         if (s.showTier && s.tier != null && !s.realtime
                 && (s.state == ChargeState.CHARGING || s.state == ChargeState.PAUSED
@@ -296,6 +297,14 @@ public final class PowerCardView extends View {
             } else {
                 value = fmt(s.powerW);
                 sub = s.modeLabel + " · 1 秒刷新";
+            }
+        } else if (s.discharging) {
+            if (s.nearZero) {
+                placeholder = "接近零";
+                sub = "电池放电功率接近 0";
+            } else {
+                value = fmt(s.powerW);
+                sub = "电池放电功耗 · 1 秒刷新";
             }
         } else if (s.state == ChargeState.UNPLUGGED) {
             placeholder = "接入电源后自动显示";

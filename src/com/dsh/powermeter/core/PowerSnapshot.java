@@ -11,6 +11,8 @@ public final class PowerSnapshot {
 
     public final boolean plugged;
     public final boolean charging;
+    /** 未接电源但可读取电池放电功率。 */
+    public final boolean discharging;
     public final ChargeState state;
     public final ChargeTier tier;
     public final boolean valid;
@@ -63,6 +65,7 @@ public final class PowerSnapshot {
         this.realtime = b.realtime;
         this.plugged = b.plugged;
         this.charging = b.charging;
+        this.discharging = b.discharging;
         this.state = b.state;
         this.tier = b.tier;
         this.valid = b.valid;
@@ -110,6 +113,7 @@ public final class PowerSnapshot {
         public boolean realtime = false;
         public boolean plugged = false;
         public boolean charging = false;
+        public boolean discharging = false;
         public ChargeState state = ChargeState.UNPLUGGED;
         public ChargeTier tier = ChargeTier.NORMAL;
         public boolean valid = false;
@@ -151,6 +155,7 @@ public final class PowerSnapshot {
         public Builder realtime(boolean v) { realtime = v; return this; }
         public Builder plugged(boolean v) { plugged = v; return this; }
         public Builder charging(boolean v) { charging = v; return this; }
+        public Builder discharging(boolean v) { discharging = v; return this; }
         public Builder state(ChargeState v) { state = v; return this; }
         public Builder tier(ChargeTier v) { tier = v; return this; }
         public Builder valid(boolean v) { valid = v; return this; }

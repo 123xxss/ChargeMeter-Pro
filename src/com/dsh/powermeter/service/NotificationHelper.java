@@ -238,8 +238,8 @@ public final class NotificationHelper {
                 break;
             case UNPLUGGED:
             default:
-                if (s.realtime && s.currentSupported && powerUsable(s.powerW) && s.powerW >= NEAR_ZERO_W) {
-                    // 实时功耗模式下未充电也能看到放电功耗
+                if (s.discharging && powerUsable(s.powerW) && s.powerW >= NEAR_ZERO_W) {
+                    // 未接电源也能显示电池放电功耗
                     title = "放电功耗 " + fmt(s.powerW) + " W";
                 } else {
                     return idle();

@@ -227,7 +227,8 @@ public final class DetailDialog {
 
         String main = powerText(s);
         setText(heroPower, main);
-        heroState.setText(s.state == null ? "读取中" : s.state.label);
+        heroState.setText(s.discharging ? "放电中"
+                : (s.state == null ? "读取中" : s.state.label));
         heroSub.setText((s.modeLabel == null ? "" : s.modeLabel)
                 + " · " + (s.sourceLabel == null ? "标准读取" : s.sourceLabel));
 
@@ -329,6 +330,8 @@ public final class DetailDialog {
 
     private static String powerText(PowerSnapshot s) {
         if (s.realtime && s.nearZero) return "接近零";
+        if (s.discharging && s.nearZero) return "接近零";
+        if (s.discharging && s.valid) return UiKit.watts(s.powerW) + " W";
         if (!s.valid) return "暂不可用";
         return UiKit.watts(s.powerW) + " W";
     }

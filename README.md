@@ -6,13 +6,22 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.4.3](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.3/WattLens-Pro-v2.4.3.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.5.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.5.0/WattLens-Pro-v2.5.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.4.3.png)
+![主页、详情、应用耗电排行](docs/preview-v2.5.0.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.5.0 更新（不插线显示放电功耗）
+
+- 不插充电线时，自动显示电池**放电功耗**，不再只显示“接入电源后自动显示”。
+- 主界面状态变为「放电中」，实时数据不再变成 `--`：电压、电流、电池温度正常显示；峰值无充电会话显示 `--`。
+- 功率曲线、详情页、通知栏同步显示放电功率；通知栏标题为「放电功耗 x.xx W」。
+- 放电功耗 = `|电压 × 电流|`，使用同一套电芯数/校准口径；不是充电器输入功率。
+- 拔掉充电线后无需打开「实时功耗检测」开关，默认即可看到放电功耗。
+- 版本 32 / 2.5.0；测试 313 项通过。
 
 ## 2.4.3 更新（真正修复旧小图标资源）
 

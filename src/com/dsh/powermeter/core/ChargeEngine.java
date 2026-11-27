@@ -237,7 +237,10 @@ public final class ChargeEngine {
             lowPowerSince = 0;
         }
 
-        boolean nearZero = chargingStatus
+        boolean discharging = !plugged && n.currentSupported && smoothedV > 0
+                && Double.isFinite(smoothedV * smoothedA)
+                && Math.abs(smoothedA) > 0.005;
+        boolean nearZero = (chargingStatus || discharging)
                 && Math.abs(smoothedA) <= 0.03
                 && n.currentSupported;
         double netDisplayW = Math.abs(smoothedV * smoothedA);
@@ -248,9 +251,15 @@ public final class ChargeEngine {
         if (realtime) {
             modeLabel = chargingStatus ? "净功耗" : "放电功耗";
             mainW = nearZero ? 0 : netDisplayW;
+        } else if (charging) {
+            modeLabel = "入电池功率";
+            mainW = chargeDisplayW;
+        } else if (discharging) {
+            modeLabel = "电池放电";
+            mainW = nearZero ? 0 : netDisplayW;
         } else {
             modeLabel = "入电池功率";
-            mainW = charging ? chargeDisplayW : (n.state == ChargeState.PAUSED ? lastPositive(chargeDisplayW) : 0);
+            mainW = n.state == ChargeState.PAUSED ? lastPositive(chargeDisplayW) : 0;
         }
 
         ChargeTier tier = ChargeTier.of(chargeDisplayW,
@@ -272,7 +281,9 @@ public final class ChargeEngine {
             state = realtime && nearZero ? ChargeState.CHARGING : ChargeState.UNAVAILABLE;
         }
 
-        boolean validForDisplay = realtime ? n.currentSupported : (charging && n.valid);
+        boolean validForDisplay = discharging
+                || (realtime && n.currentSupported)
+                || (charging && n.valid);
         String sourceLabel = n.enhanced ? "增强读取（实验性）"
                 : (n.currentSupported ? "标准读取" : "读数不可用");
 
@@ -286,6 +297,7 @@ public final class ChargeEngine {
                 .state(state)
                 .tier(tier)
                 .valid(validForDisplay)
+                .discharging(discharging)
                 .nearZero(nearZero)
                 .powerW(mainW)
                 .modeLabel(modeLabel)
