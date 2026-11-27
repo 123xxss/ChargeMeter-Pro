@@ -6,13 +6,21 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.10.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.10.1/WattLens-Pro-v2.10.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.10.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.10.2/WattLens-Pro-v2.10.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行、离线帮助](docs/preview-v2.10.1.png)
+![主页、详情、应用耗电排行、帮助页](docs/preview-v2.10.2.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.10.2 更新（帮助页精简 + 修重复图片）
+
+- 删除 40 张重复/与软件页面不匹配的生成插画、5 张抽象主题背景和仅帮助页使用的内置字体。
+- 使用帮助改成 **3 张真实软件页面截图**（主页 / 详情 / 应用排行）+ 12 个原生文字说明卡片，不再重复堆图。
+- APK 从 5.45MB 降到 **约 671KB**；帮助页解码图片从约 18MB 降到约 8MB，安装包、存储和更新都更轻。
+- 保留 2.10.1 的统一动画：主界面分批入场、数值淡入上移、详情/历史错峰出现。
+- 版本 43 / 2.10.2；328 项测试通过。
 
 ## 2.10.1 更新（完整内容包 + 动画统一）
 
