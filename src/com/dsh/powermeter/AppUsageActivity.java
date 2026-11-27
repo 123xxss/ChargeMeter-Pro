@@ -157,22 +157,24 @@ public final class AppUsageActivity extends Activity {
         if (!result.hasAccess) {
             summary.setText("需要「使用情况访问」权限");
             stateText.setText("Android 不允许普通 App 直接读取精确每应用耗电；"
-                    + "授权后才能读取最近 5 分钟前台时长，并按占比估算。");
+                    + "授权后才能读取最近 15 分钟前台时长，并按占比估算。");
             listContainer.addView(permissionCard(), UiKit.matchWrap());
             return;
         }
         if (result.entries.isEmpty()) {
             summary.setText("过去 24 小时暂无应用使用记录");
-            stateText.setText("最近 5 分钟没有前台应用记录；先正常使用手机再回来看，每 2 秒自动刷新。");
+            stateText.setText("最近 15 分钟没有前台应用记录；先正常使用手机再回来看，每 2 秒自动刷新。");
             return;
         }
         String batt = Double.isFinite(batteryW) && batteryW > 0
                 ? String.format(Locale.ROOT, " · 当前 %.2f W", batteryW) : "";
-        String current = result.currentLabel == null || result.currentLabel.isEmpty()
-                ? "" : "\n当前前台：" + result.currentLabel;
-        summary.setText(String.format(Locale.ROOT, "最近 5 分钟 · 总前台 %s%s%s",
+        String currentName = (result.currentLabel != null && !result.currentLabel.isEmpty())
+                ? result.currentLabel : result.lastLabel;
+        String current = currentName == null || currentName.isEmpty()
+                ? "" : "\n最近前台：" + currentName;
+        summary.setText(String.format(Locale.ROOT, "最近 15 分钟 · 总前台 %s%s%s",
                 UiKit.duration(result.totalForegroundMs), batt, current));
-        stateText.setText("仅统计最近 5 分钟进入前台的应用；估算 = 当前电池功率 × 前台时长占比，"
+        stateText.setText("仅统计最近 15 分钟进入前台的应用；估算 = 当前电池功率 × 前台时长占比，"
                 + "不是系统精确每应用耗电。");
         listContainer.addView(noteCard(), UiKit.top(this, UiKit.matchWrap(), 12));
 
@@ -202,7 +204,7 @@ public final class AppUsageActivity extends Activity {
         TextView t = UiKit.text(this,
                 "说明：Android 未向第三方应用开放 BatteryStats 精确每应用耗电。"
                         + "本排行只统计前台使用时长，结合当前电池功率估算；"
-                        + "只显示最近 5 分钟前台出现过的应用；系统应用一并列出，不代表后台真实耗电。",
+                        + "只显示最近 15 分钟前台出现过的应用；系统应用一并列出，不代表后台真实耗电。",
                 12f, R.color.text_secondary, false);
         t.setLineSpacing(UiKit.dp(this, 2), 1f);
         card.addView(t, UiKit.matchWrap());

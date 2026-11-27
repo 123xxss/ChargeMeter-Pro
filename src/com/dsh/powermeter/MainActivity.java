@@ -386,14 +386,14 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             AppUsageRanker.Result result = AppUsageRanker.load(this, watts);
             usageList.removeAllViews();
             if (!result.hasAccess) {
-                usageHint.setText("未授权 · 点击进入授权后显示最近 5 分钟前台排行");
+                usageHint.setText("未授权 · 点击进入授权后显示最近 15 分钟前台排行");
                 return;
             }
             if (result.entries.isEmpty()) {
-                usageHint.setText("最近 5 分钟暂无前台记录 · 3 秒刷新");
+                usageHint.setText("最近 15 分钟暂无前台记录 · 3 秒刷新");
                 return;
             }
-            usageHint.setText("最近 5 分钟前台 · 含系统应用 · 3 秒刷新");
+            usageHint.setText("最近 15 分钟前台 · 含系统应用 · 3 秒刷新");
             List<AppUsageRanker.Entry> entries = result.entries;
             int count = Math.min(3, entries.size());
             for (int i = 0; i < count; i++) {

@@ -6,13 +6,22 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.2.3](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.3/WattLens-Pro-v2.2.3.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.2.4](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.4/WattLens-Pro-v2.2.4.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.2.3.png)
+![主页、详情、应用耗电排行](docs/preview-v2.2.4.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.2.4 更新（排行“不显示/不正确”修复）
+
+- 修复部分 ROM 上「使用情况访问」已授权但 appop 返回 `MODE_FOREGROUND` 时被误判为未授权，导致排行空白。
+- `UsageEvents` 窗口从 5 分钟放宽到 **15 分钟**，减少“刚切换过却看不到”的情况。
+- 事件为空时增加 `lastTimeUsed` 过滤的备用数据，只保留最近 15 分钟用过的应用，不再按 24 小时旧数据展示。
+- 备用数据的前台时长按 15 分钟封顶，避免旧统计把排行拉偏。
+- 切到瓦镜自身时结束上一个应用的前台区间；显示「当前/最近前台」。
+- 版本 26 / 2.2.4；测试 312 项通过。
 
 ## 2.2.3 更新（设备信息移到主页顶栏）
 

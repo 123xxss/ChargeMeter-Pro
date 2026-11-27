@@ -1,13 +1,13 @@
 # 瓦镜 Pro · 项目报告
 
-> 版本：2.2.3（versionCode 25）  
+> 版本：2.2.4（versionCode 26）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[WattLens-Pro-v2.2.3.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.3/WattLens-Pro-v2.2.3.apk)
+> 下载：[WattLens-Pro-v2.2.4.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.4/WattLens-Pro-v2.2.4.apk)
 
 ---
 
@@ -168,7 +168,11 @@
 
 ### 2.2.2 — 统一检查与汇总换行
 
-### 2.2.3 — 设备信息移到主页顶栏（当前版本）
+### 2.2.3 — 设备信息移到主页顶栏
+
+### 2.2.4 — 排行不显示修复（当前版本）
+
+- appop MODE_FOREGROUND、15 分钟窗口、lastTimeUsed 备用、当前/最近前台。
 
 - 顶栏副标题显示厂商/品牌/型号/Android 版本；不新增卡片；
 - 统一 UI 空值/溢出复查与安全复查。

@@ -27,8 +27,8 @@ import java.util.Map;
  */
 public final class AppUsageRanker {
 
-    /** 最近窗口：5 分钟，避免“没启动的旧应用”混进排行。 */
-    public static final long WINDOW_MS = 5L * 60L * 1000L;
+    /** 最近窗口：15 分钟；只使用事件时间，不再用 24 小时聚合。 */
+    public static final long WINDOW_MS = 15L * 60L * 1000L;
 
     private AppUsageRanker() {
     }
@@ -60,9 +60,11 @@ public final class AppUsageRanker {
         public final long windowMs;
         public final String currentPackage;
         public final String currentLabel;
+        public final String lastLabel;
 
         Result(boolean hasAccess, long total, List<Entry> entries,
-               long windowMs, String currentPackage, String currentLabel) {
+               long windowMs, String currentPackage, String currentLabel,
+               String lastLabel) {
             this.hasAccess = hasAccess;
             this.totalForegroundMs = total;
             this.entries = entries;
@@ -70,6 +72,7 @@ public final class AppUsageRanker {
             this.windowMs = windowMs;
             this.currentPackage = currentPackage;
             this.currentLabel = currentLabel;
+            this.lastLabel = lastLabel;
         }
     }
 
@@ -79,7 +82,8 @@ public final class AppUsageRanker {
             if (ops == null) return false;
             int mode = ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
                     Process.myUid(), context.getPackageName());
-            if (mode == AppOpsManager.MODE_ALLOWED) return true;
+            if (mode == AppOpsManager.MODE_ALLOWED
+                    || mode == AppOpsManager.MODE_FOREGROUND) return true;
             if (mode == AppOpsManager.MODE_DEFAULT) {
                 return context.checkSelfPermission(android.Manifest.permission.PACKAGE_USAGE_STATS)
                         == PackageManager.PERMISSION_GRANTED;
@@ -109,7 +113,7 @@ public final class AppUsageRanker {
         boolean access = hasAccess(context);
         if (!access) {
             return new Result(false, 0, Collections.emptyList(),
-                    WINDOW_MS, null, null);
+                    WINDOW_MS, null, null, null);
         }
         long end = System.currentTimeMillis();
         long start = end - WINDOW_MS;
@@ -121,12 +125,13 @@ public final class AppUsageRanker {
         } catch (Throwable ignored) {
         }
         if (events == null) {
-            return new Result(true, 0, Collections.emptyList(), WINDOW_MS, null, null);
+            return new Result(true, 0, Collections.emptyList(), WINDOW_MS, null, null, null);
         }
 
         String self = context.getPackageName();
         Map<String, Long> totals = new HashMap<>();
         String current = null;
+        String lastForeground = null;
         long currentStart = 0;
         UsageEvents.Event e = new UsageEvents.Event();
         while (events.hasNextEvent()) {
@@ -154,6 +159,7 @@ public final class AppUsageRanker {
                     || type == UsageEvents.Event.MOVE_TO_BACKGROUND
                     || type == UsageEvents.Event.ACTIVITY_STOPPED;
             if (foreground) {
+                lastForeground = pkg;
                 if (current != null && !current.equals(pkg)) {
                     add(totals, current, Math.max(0, ts - currentStart));
                 }
@@ -172,6 +178,7 @@ public final class AppUsageRanker {
         }
 
         PackageManager pm = context.getPackageManager();
+        String lastLabel = lastForeground == null ? null : labelOf(pm, lastForeground);
         List<Entry> raw = new ArrayList<>();
         long total = 0;
         for (Map.Entry<String, Long> me : totals.entrySet()) {
@@ -182,11 +189,34 @@ public final class AppUsageRanker {
             raw.add(new Entry(me.getKey(), labelOf(pm, me.getKey()),
                     isSystem(pm, me.getKey()), ms, 0, Double.NaN));
         }
+        // 事件为空/权限受限时，使用系统 lastTimeUsed 过滤的备用数据；
+        // 只保留最近 15 分钟内使用过的应用，绝不再按 24 小时聚合全部列出。
+        if (total <= 0) {
+            try {
+                android.app.usage.UsageStatsManager usm = (android.app.usage.UsageStatsManager)
+                        context.getSystemService(Context.USAGE_STATS_SERVICE);
+                List<android.app.usage.UsageStats> stats = usm == null ? null
+                        : usm.queryUsageStats(android.app.usage.UsageStatsManager.INTERVAL_DAILY,
+                        start, end);
+                if (stats != null) {
+                    for (android.app.usage.UsageStats u : stats) {
+                        if (u == null || u.getPackageName() == null
+                                || u.getPackageName().equals(self)) continue;
+                        if (u.getLastTimeUsed() < start) continue;
+                        long ms = Math.min(WINDOW_MS, u.getTotalTimeInForeground());
+                        if (ms < 500) continue;
+                        total += ms;
+                        raw.add(new Entry(u.getPackageName(), labelOf(pm, u.getPackageName()),
+                                isSystem(pm, u.getPackageName()), ms, 0, Double.NaN));
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+        }
         if (total <= 0) {
             return new Result(true, 0, Collections.emptyList(), WINDOW_MS, current,
-                    current == null ? null : labelOf(pm, current));
+                    current == null ? null : labelOf(pm, current), lastLabel);
         }
-
         List<Entry> out = new ArrayList<>(raw.size());
         for (Entry x : raw) {
             double pct = x.foregroundMs * 100.0 / total;
@@ -197,7 +227,7 @@ public final class AppUsageRanker {
         }
         Collections.sort(out, (a, b) -> Long.compare(b.foregroundMs, a.foregroundMs));
         String currentLabel = current == null ? null : labelOf(pm, current);
-        return new Result(true, total, out, WINDOW_MS, current, currentLabel);
+        return new Result(true, total, out, WINDOW_MS, current, currentLabel, lastLabel);
     }
 
     private static void add(Map<String, Long> map, String pkg, long ms) {
