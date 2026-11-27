@@ -284,7 +284,14 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         boolean hideForIdle = s != null && s.state == ChargeState.UNPLUGGED
                 && !s.realtime && !s.discharging;
         // 未充电且未开启实时功耗时，PRD 要求隐藏全部充电相关数值。
-        setMetricValue(cellVoltage, s == null || hideForIdle ? "--" : UiKit.volts(s.voltageV));
+        boolean dualVoltage = s != null && s.cells > 1
+                && Double.isFinite(s.cellVoltageV) && s.cellVoltageV > 0;
+        String voltageText = (s == null || hideForIdle) ? "--"
+                : (dualVoltage
+                ? UiKit.volts(s.voltageV) + " / " + UiKit.volts(s.cellVoltageV)
+                : UiKit.volts(s.voltageV));
+        setMetricValue(cellVoltage, voltageText);
+        cellVoltage.label.setText(dualVoltage ? "总压 / 单芯 (V)" : "电压 (V)");
         setMetricValue(cellCurrent, s == null || hideForIdle ? "--" : UiKit.amps(s.currentA));
         setMetricValue(cellTemp, s == null || hideForIdle ? "--" : UiKit.temp(s.temperatureC));
         boolean noPeak = s == null || !s.sessionActive || s.peakW <= 0.01;

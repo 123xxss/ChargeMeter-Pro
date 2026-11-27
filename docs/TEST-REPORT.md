@@ -1,18 +1,18 @@
 # 测试与验收报告
 
-- 版本：2.6.0（versionCode 34）
+- 版本：2.6.1（versionCode 35）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，367,725 bytes
-- SHA-256：`8cfae83afb9803ef27449ee5430ee8489e441afd5ba3ca6f0e8a5341df629a62`
+- SHA-256：`5f12f10f5501a5113adaa388a8efd9ba4789c7832785a596837e850aa1da2368`
 
-> 2.6.0 适配 OPPO/vivo/小米，功率单位/整包电压兼容；测试 317 项全通过。
+> 2.6.1 双电芯总压/单芯电压展示与换算；测试 320 项全通过。
 
 ## 1. 自动化测试结果
 
 | 项目 | 命令 | 结果 |
 |---|---|---|
-| 核心算法单测 + 安全静态扫描 | `bash tests/run_tests.sh` | **301 通过 / 0 失败**（单测 301 + 静态扫描 16） |
+| 核心算法单测 + 安全静态扫描 | `bash tests/run_tests.sh` | **301 通过 / 0 失败**（单测 304 + 静态扫描 16） |
 | 完整构建 | `bash build.sh` | 7/7 步骤成功，产出已签名 APK |
 | 交付前静态验收 | `bash tools/verify.sh` | 通过 |
 

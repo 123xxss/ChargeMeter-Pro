@@ -304,6 +304,8 @@ public final class ChargeEngine {
                 .chargeW(chargeDisplayW)
                 .netW(smoothedV * smoothedA)
                 .voltageV(smoothedV)
+                .cellVoltageV(Double.isFinite(n.cellVoltageV) && n.cellVoltageV > 0
+                        ? n.cellVoltageV : smoothedV / Math.max(1, n.cells))
                 .currentA(smoothedA)
                 .temperatureC(n.temperatureC)
                 .level(n.level)

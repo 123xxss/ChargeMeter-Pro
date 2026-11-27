@@ -1,13 +1,13 @@
 # 瓦镜 Pro · 项目报告
 
-> 版本：2.6.0（versionCode 34）  
+> 版本：2.6.1（versionCode 35）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[WattLens-Pro-v2.6.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.6.0/WattLens-Pro-v2.6.0.apk)
+> 下载：[WattLens-Pro-v2.6.1.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.6.1/WattLens-Pro-v2.6.1.apk)
 
 ---
 
@@ -186,7 +186,11 @@
 
 ### 2.5.1 — 未插线不刷新修复
 
-### 2.6.0 — OPPO/vivo/小米适配（当前版本）
+### 2.6.0 — OPPO/vivo/小米适配
+
+### 2.6.1 — 双电芯总压/单芯电压（当前版本）
+
+- 主界面总压/单芯；详情拆分两行；整包/单芯上报正确换算。
 
 - 同 APK 自动识别三家；mA/整包电压兼容；品牌适配摘要与后台引导。
 

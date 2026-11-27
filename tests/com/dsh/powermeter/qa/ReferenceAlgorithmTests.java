@@ -27,6 +27,7 @@ final class ReferenceAlgorithmTests {
         TestKit.isTrue("参考算法 3.95V/1.88A/2芯 → valid", r.valid);
         TestKit.eq("参考算法 → cells=2", 2, r.cells);
         TestKit.eqDouble("参考算法 → 整包电压 7.90V", 7.90, r.voltageV, 1e-6);
+        TestKit.eqDouble("参考算法 → 单芯电压 3.95V", 3.95, r.cellVoltageV, 1e-6);
         TestKit.eqDouble("参考算法 → 功率 14.85W", 14.85, r.chargeW, 0.01);
     }
 
@@ -36,6 +37,7 @@ final class ReferenceAlgorithmTests {
                 ChargeNormalizer.DUAL_AUTO, true, 1);
         TestKit.eq("参考算法单电芯 → cells=1", 1, r.cells);
         TestKit.eqDouble("参考算法单电芯 → 4.3×4.2=18.06W", 18.06, r.chargeW, 0.02);
+        TestKit.eqDouble("参考算法单电芯电压 4.30V", 4.30, r.cellVoltageV, 1e-6);
     }
 
     private static void packVoltage() {
@@ -45,6 +47,7 @@ final class ReferenceAlgorithmTests {
         TestKit.isTrue("部分品牌整包电压 8.6V/2 芯 → 按整包计算", r.valid);
         TestKit.eqDouble("整包 8.6V × 3.0A = 25.8W", 25.8, r.chargeW, 0.02);
         TestKit.eqDouble("整包电压显示仍为 8.60V", 8.60, r.voltageV, 1e-6);
+        TestKit.eqDouble("整包 8.6V 单芯为 4.30V", 4.30, r.cellVoltageV, 1e-6);
     }
 
     private static void milliAmpUnit() {

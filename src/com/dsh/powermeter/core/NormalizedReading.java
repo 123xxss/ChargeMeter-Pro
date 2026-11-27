@@ -17,6 +17,8 @@ public final class NormalizedReading {
     public final int level;
     public final ChargeState state;
     public final double voltageV;
+    /** 单电芯电压；不可用时 NaN。 */
+    public final double cellVoltageV;
     public final double currentA;
     public final double chargeW;
     public final double netW;
@@ -40,6 +42,7 @@ public final class NormalizedReading {
         this.level = b.level;
         this.state = b.state;
         this.voltageV = b.voltageV;
+        this.cellVoltageV = b.cellVoltageV;
         this.currentA = b.currentA;
         this.chargeW = b.chargeW;
         this.netW = b.netW;
@@ -68,6 +71,7 @@ public final class NormalizedReading {
         public int level = -1;
         public ChargeState state = ChargeState.UNPLUGGED;
         public double voltageV = 0;
+        public double cellVoltageV = Double.NaN;
         public double currentA = 0;
         public double chargeW = 0;
         public double netW = 0;
@@ -90,6 +94,7 @@ public final class NormalizedReading {
         public Builder level(int v) { level = v; return this; }
         public Builder state(ChargeState v) { state = v; return this; }
         public Builder voltageV(double v) { voltageV = v; return this; }
+        public Builder cellVoltageV(double v) { cellVoltageV = v; return this; }
         public Builder currentA(double v) { currentA = v; return this; }
         public Builder chargeW(double v) { chargeW = v; return this; }
         public Builder netW(double v) { netW = v; return this; }

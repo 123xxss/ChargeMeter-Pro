@@ -88,7 +88,8 @@ public final class DetailDialog {
         page.addView(UiKit.section(c, "充电数据"), UiKit.matchWrap());
         LinearLayout chargeCard = UiKit.card(c);
         Map<String, TextView> rows = new LinkedHashMap<>();
-        addRow(c, chargeCard, rows, "电压");
+        addRow(c, chargeCard, rows, "总电压");
+        addRow(c, chargeCard, rows, "单芯电压");
         addRow(c, chargeCard, rows, "电流");
         addRow(c, chargeCard, rows, "电池温度");
         addRow(c, chargeCard, rows, "平滑峰值");
@@ -235,8 +236,13 @@ public final class DetailDialog {
         boolean showTemp = s.showTemperature;
         boolean showEta = s.showEstimate;
         boolean showTier = s.showTier;
-        set(rows, "电压", UiKit.volts(s.voltageV) + " V"
+        boolean dualVoltage = s.cells > 1
+                && Double.isFinite(s.cellVoltageV) && s.cellVoltageV > 0;
+        set(rows, "总电压", UiKit.volts(s.voltageV) + " V"
                 + (s.voltageCorrected ? " · 2 芯合并" : ""));
+        set(rows, "单芯电压", dualVoltage
+                ? UiKit.volts(s.cellVoltageV) + " V"
+                : (s.cells <= 1 ? UiKit.volts(s.voltageV) + " V" : "--"));
         set(rows, "电流", UiKit.amps(s.currentA) + " A");
         set(rows, "电池温度", showTemp ? UiKit.temp(s.temperatureC) + " °C" : "已隐藏");
         set(rows, "平滑峰值", UiKit.watts(s.peakW) + " W");

@@ -25,6 +25,8 @@ public final class PowerSnapshot {
     public final double netW;
 
     public final double voltageV;
+    /** 单电芯电压；NaN 表示不可用。 */
+    public final double cellVoltageV;
     public final double currentA;
     public final double temperatureC;
     public final int level;
@@ -75,6 +77,7 @@ public final class PowerSnapshot {
         this.chargeW = b.chargeW;
         this.netW = b.netW;
         this.voltageV = b.voltageV;
+        this.cellVoltageV = b.cellVoltageV;
         this.currentA = b.currentA;
         this.temperatureC = b.temperatureC;
         this.level = b.level;
@@ -123,6 +126,7 @@ public final class PowerSnapshot {
         public double chargeW = 0;
         public double netW = 0;
         public double voltageV = 0;
+        public double cellVoltageV = Double.NaN;
         public double currentA = 0;
         public double temperatureC = Double.NaN;
         public int level = -1;
@@ -165,6 +169,7 @@ public final class PowerSnapshot {
         public Builder chargeW(double v) { chargeW = v; return this; }
         public Builder netW(double v) { netW = v; return this; }
         public Builder voltageV(double v) { voltageV = v; return this; }
+        public Builder cellVoltageV(double v) { cellVoltageV = v; return this; }
         public Builder currentA(double v) { currentA = v; return this; }
         public Builder temperatureC(double v) { temperatureC = v; return this; }
         public Builder level(int v) { level = v; return this; }

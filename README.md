@@ -6,13 +6,21 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.6.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.6.0/WattLens-Pro-v2.6.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.6.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.6.1/WattLens-Pro-v2.6.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.6.0.png)
+![主页、详情、应用耗电排行](docs/preview-v2.6.1.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.6.1 更新（双电芯总压 / 单芯电压）
+
+- 双电芯机型实时数据同时显示：`总压 / 单芯`，例如 `8.25 / 4.13`，标签为「总压 / 单芯 (V)」。
+- 详情页拆成「总电压」「单芯电压」两行，整包上报和单芯上报都能正确换算。
+- 单电芯机型仍只显示一个电压值。
+- 功率算法仍按整包电压 × 电流；单芯电压只做展示，不重复乘电芯数。
+- 版本 35 / 2.6.1；测试 320 项通过。
 
 ## 2.6.0 更新（OPPO/vivo/小米适配）
 
