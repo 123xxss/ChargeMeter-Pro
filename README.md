@@ -6,13 +6,21 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.7.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.7.0/WattLens-Pro-v2.7.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.7.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.7.1/WattLens-Pro-v2.7.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.7.0.png)
+![主页、详情、应用耗电排行](docs/preview-v2.7.1.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.7.1 更新（电压实时刷新）
+
+- 修复电压只随 `ACTION_BATTERY_CHANGED` 粘性广播更新、十几秒才变一次的问题。
+- 每秒优先读取标准 sysfs `voltage_now`，并与系统广播电压做整包/单芯一致性校验；可读时电压实时刷新。
+- sysfs 不可读时自动回退系统广播电压（可能较慢，详情页会说明）。
+- 保持总压/单芯电压、自动电芯识别、功率计算逻辑不变。
+- 版本 37 / 2.7.1；测试 328 项通过。
 
 ## 2.7.0 更新（双芯/单芯自动识别）
 

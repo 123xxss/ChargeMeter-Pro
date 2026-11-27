@@ -34,6 +34,20 @@ public final class SysfsReader {
     private SysfsReader() {
     }
 
+    /** 只读取 voltage_now，用于解决 BatteryManager 电压广播不够实时的问题。 */
+    public static double readVoltageNow() {
+        for (String base : BASE_DIRS) {
+            String raw = readFile(base + "/voltage_now");
+            if (raw == null) continue;
+            double v = parseDouble(raw);
+            if (v > 100_000) v = v / 1_000_000.0;
+            else if (v > 1_000) v = v / 1_000.0;
+            else if (v <= 1) continue;
+            if (v >= 2.0 && v <= 12.0) return v;
+        }
+        return Double.NaN;
+    }
+
     /** 只读取 voltage_max；不要求 voltage_now 可读，用于自动电芯识别。 */
     public static double readVoltageMax() {
         for (String base : BASE_DIRS) {

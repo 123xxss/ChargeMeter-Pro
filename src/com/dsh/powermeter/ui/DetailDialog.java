@@ -138,6 +138,7 @@ public final class DetailDialog {
         notes.setPadding(np, np, np, np);
         addNote(c, notes, "功率为进入电池的估算值，边充边用可能低于充电器实际输出功率。");
         addNote(c, notes, "CPU/内存/存储来自系统公开接口；GPU/系统温度部分机型只允许 Shizuku 读取。");
+        addNote(c, notes, "电压优先每秒读取标准 voltage_now；若系统不开放该节点，电压只能随电池广播刷新，可能比电流慢。");
         addNote(c, notes, "电芯数自动识别：voltage_max ≥6V 或整包电压 >5V 判双芯；已知双芯机型优先；"
                 + "voltage_max 3–5V 判单芯；否则品牌默认。可手动覆盖。单芯电压只展示，功率按整包 × 电流。");
         addNote(c, notes, DeviceInfo.compatibilityNote());

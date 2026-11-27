@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.7.0（versionCode 36）
+- 版本：2.7.1（versionCode 37）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，367,725 bytes
-- SHA-256：`0df867f9dd99e790fb902ae99e7cca73139244b22b9556ae7ae117fad44c9b09`
+- SHA-256：`d0a0edda3b5f76cd320283b7e693d98c68713e7c85c90b3bb9e3c3847423b46b`
 
-> 2.7.0 双芯/单芯自动识别与电压解释；测试 328 项全通过。
+> 2.7.1 电压优先 voltage_now 实时读取；测试 328 项全通过。
 
 ## 1. 自动化测试结果
 

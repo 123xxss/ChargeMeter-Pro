@@ -1,13 +1,13 @@
 # 瓦镜 Pro · 项目报告
 
-> 版本：2.7.0（versionCode 36）  
+> 版本：2.7.1（versionCode 37）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[WattLens-Pro-v2.7.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.7.0/WattLens-Pro-v2.7.0.apk)
+> 下载：[WattLens-Pro-v2.7.1.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.7.1/WattLens-Pro-v2.7.1.apk)
 
 ---
 
@@ -190,7 +190,11 @@
 
 ### 2.6.1 — 双电芯总压/单芯电压
 
-### 2.7.0 — 双芯/单芯自动识别（当前版本）
+### 2.7.0 — 双芯/单芯自动识别
+
+### 2.7.1 — 电压实时刷新（当前版本）
+
+- 每秒临时读 voltage_now；广播电压只做兜底；总压/单芯与功率逻辑不变。
 
 - voltage_max/整包电压/机型/品牌默认自动判定；总压/单芯显示与解释。
 

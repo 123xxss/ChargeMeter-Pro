@@ -36,6 +36,8 @@ public final class BatteryReader {
     private long sysfsCacheAt;
     private double voltageMaxCache = Double.NaN;
     private long voltageMaxCacheAt;
+    private double voltageNowCache = Double.NaN;
+    private long voltageNowCacheAt;
     private boolean started;
     private Runnable onEvent;
 
@@ -199,6 +201,25 @@ public final class BatteryReader {
             }
         }
 
+        // ACTION_BATTERY_CHANGED 的 EXTRA_VOLTAGE 在某些 ROM 上十几秒才更新；
+        // 优先用只读 voltage_now 补实时电压；数值须与系统电压接近，避免整包/单芯混淆。
+        double sysV = readVoltageNowCached();
+        if (Double.isFinite(sysV) && sysV >= 2.0 && sysV <= 12.0) {
+            double sysMv = sysV * 1000.0;
+            if (voltageMv <= 0) {
+                voltageMv = (int) Math.round(sysMv);
+            } else if (voltageMv >= 2500 && voltageMv <= 5000
+                    && sysMv >= 2500 && sysMv <= 5000) {
+                // 两者都是单芯电压：用 sysfs 的实时值
+                voltageMv = (int) Math.round(sysMv);
+            } else if (voltageMv > 5000 && sysMv > 5000) {
+                // 两者都是整包电压：用 sysfs 的实时值
+                voltageMv = (int) Math.round(sysMv);
+            } else if (Math.abs(sysMv - voltageMv) <= Math.max(300.0, voltageMv * 0.12)) {
+                // 同一数量级且差异在 12%/300mV 内，允许用 sysfs 实时值
+                voltageMv = (int) Math.round(sysMv);
+            }
+        }
         b.status(status).plugged(plugged).level(level)
                 .voltageMv(voltageMv)
                 .temperatureDeciC(tempDeci)
@@ -287,6 +308,20 @@ public final class BatteryReader {
         }
         b.sysfsVoltageMaxV(voltageMaxHint);
         return b.build();
+    }
+
+    private double readVoltageNowCached() {
+        long now = System.currentTimeMillis();
+        if (!Double.isNaN(voltageNowCache) && now - voltageNowCacheAt < 300) {
+            return voltageNowCache;
+        }
+        try {
+            voltageNowCache = SysfsReader.readVoltageNow();
+            voltageNowCacheAt = now;
+        } catch (Throwable ignored) {
+            voltageNowCache = Double.NaN;
+        }
+        return voltageNowCache;
     }
 
     private double readVoltageMaxCached() {
