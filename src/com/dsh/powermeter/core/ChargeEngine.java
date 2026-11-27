@@ -389,10 +389,10 @@ public final class ChargeEngine {
             delay = INTERVAL_FULL_MS;
         } else if (s.plugged) {
             delay = now < turboUntil ? INTERVAL_TURBO_MS : INTERVAL_CHARGING_MS;
-        } else if (prefs.realtimePowerEnabled()) {
-            delay = reader.screenOn() ? INTERVAL_DISCHARGE_MS : 0;
         } else {
-            delay = 0; // 未充电：完全休眠，等插电/亮屏广播唤醒
+            // 未插电：屏幕亮时始终 1 秒刷新，保证放电功耗/电压/电流/温度/曲线都实时；
+            // 屏幕关闭时休眠，等 SCREEN_ON / 插电广播唤醒。
+            delay = reader.screenOn() ? INTERVAL_DISCHARGE_MS : 0;
         }
         if (delay > 0) {
             main.postDelayed(tickRunnable, delay);

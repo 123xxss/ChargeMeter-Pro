@@ -6,13 +6,20 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.5.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.5.0/WattLens-Pro-v2.5.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.5.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.5.1/WattLens-Pro-v2.5.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.5.0.png)
+![主页、详情、应用耗电排行](docs/preview-v2.5.1.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.5.1 更新（修复未插线不刷新）
+
+- 根因：`scheduleNext()` 在未插电且未开「实时功耗检测」时把轮询间隔设为 0/休眠，导致所有实时显示冻结。
+- 现在未插电、屏幕亮时固定 **1 秒采样**；屏幕关闭才休眠，亮屏/插电广播唤醒。
+- 同时检查：主页功率卡、实时数据、功率曲线、系统状态、详情弹窗、通知栏、应用排行刷新链路。
+- 版本 33 / 2.5.1；测试 313 项通过。
 
 ## 2.5.0 更新（不插线显示放电功耗）
 

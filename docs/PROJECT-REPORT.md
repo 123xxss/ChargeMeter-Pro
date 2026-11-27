@@ -1,13 +1,13 @@
 # 瓦镜 Pro · 项目报告
 
-> 版本：2.5.0（versionCode 32）  
+> 版本：2.5.1（versionCode 33）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[WattLens-Pro-v2.5.0.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.5.0/WattLens-Pro-v2.5.0.apk)
+> 下载：[WattLens-Pro-v2.5.1.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.5.1/WattLens-Pro-v2.5.1.apk)
 
 ---
 
@@ -182,7 +182,11 @@
 
 ### 2.4.3 — 旧小图标资源修复
 
-### 2.5.0 — 不插线放电功耗（当前版本）
+### 2.5.0 — 不插线放电功耗
+
+### 2.5.1 — 未插线不刷新修复（当前版本）
+
+- 未插电屏幕亮时固定 1 秒采样，恢复所有实时显示。
 
 - 未接电源自动显示放电功耗；主界面/曲线/详情/通知同步。
 
