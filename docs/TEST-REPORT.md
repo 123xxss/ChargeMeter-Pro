@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.7.1（versionCode 37）
+- 版本：2.7.2（versionCode 38）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，367,725 bytes
-- SHA-256：`d0a0edda3b5f76cd320283b7e693d98c68713e7c85c90b3bb9e3c3847423b46b`
+- SHA-256：`85974d337eea6081b4c5609796f27d976759b12d47a3fdc5a304d4ef27e11fdc`
 
-> 2.7.1 电压优先 voltage_now 实时读取；测试 328 项全通过。
+> 2.7.2 增强/Shizuku 电压实时兜底；测试 328 项全通过。
 
 ## 1. 自动化测试结果
 

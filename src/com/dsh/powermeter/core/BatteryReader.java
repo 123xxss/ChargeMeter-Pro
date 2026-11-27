@@ -271,12 +271,15 @@ public final class BatteryReader {
         // 自动电芯识别需要 voltage_max；即使未开启增强读取，也尝试只读一次。
         // 读不到返回 NaN，不影响标准路径。
         double voltageMaxHint = readVoltageMaxCached();
+        // 广播电压可能很慢；记录增强/Shizuku 的实时电压，稍后做量级校验后回填。
+        double extraVoltageV = Double.NaN;
 
         // 增强读取（只读标准 sysfs 节点）
         if (enhanced) {
             SysfsReader.Values v = readSysfsCached();
             if (v != null) {
                 if (!Double.isNaN(v.voltageMaxV)) voltageMaxHint = v.voltageMaxV;
+                if (Double.isFinite(v.voltageV) && v.voltageV > 0) extraVoltageV = v.voltageV;
                 b.sysfsVoltageV(v.voltageV)
                         .sysfsCurrentA(v.currentA)
                         .sysfsTempC(v.tempC)
@@ -301,12 +304,25 @@ public final class BatteryReader {
                         b.chargeCounterUah(v.chargeCounterUah);
                     }
                     if (!Double.isNaN(v.voltageMaxV)) voltageMaxHint = v.voltageMaxV;
+                    if (Double.isFinite(v.voltageV) && v.voltageV > 0) extraVoltageV = v.voltageV;
                 }
             } catch (Throwable ignored) {
                 // fail-closed：Shizuku 不可用时完全走标准路径
             }
         }
         b.sysfsVoltageMaxV(voltageMaxHint);
+        // 增强/Shizuku 电压做实时回填；只接受与广播电压同量级/同范围的值，
+        // 避免把整包电压误写到单芯字段。
+        if (Double.isFinite(extraVoltageV) && extraVoltageV >= 2.0 && extraVoltageV <= 12.0) {
+            double extraMv = extraVoltageV * 1000.0;
+            boolean sameRange = (voltageMv >= 2500 && voltageMv <= 5000
+                    && extraMv >= 2500 && extraMv <= 5000)
+                    || (voltageMv > 5000 && extraMv > 5000);
+            if (voltageMv <= 0 || sameRange
+                    || Math.abs(extraMv - voltageMv) <= Math.max(300.0, voltageMv * 0.12)) {
+                b.voltageMv((int) Math.round(extraMv));
+            }
+        }
         return b.build();
     }
 

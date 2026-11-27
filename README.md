@@ -6,13 +6,20 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.7.1](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.7.1/WattLens-Pro-v2.7.1.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.7.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.7.2/WattLens-Pro-v2.7.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.7.1.png)
+![主页、详情、应用耗电排行](docs/preview-v2.7.2.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.7.2 更新（增强/Shizuku 电压实时兜底）
+
+- 标准 sysfs 被 ROM 阻挡时，开启「增强读取」或「Shizuku 增强读取」也可用每秒实时电压刷新。
+- 增强/Shizuku 电压会先做整包/单芯量级校验，避免把整包电压写到单芯字段。
+- 未开启增强时仍优先直接读 `voltage_now`；都不可读才回退系统广播电压（可能较慢）。
+- 版本 38 / 2.7.2；测试 328 项通过。
 
 ## 2.7.1 更新（电压实时刷新）
 
