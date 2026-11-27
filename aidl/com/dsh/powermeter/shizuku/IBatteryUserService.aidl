@@ -7,6 +7,9 @@ interface IBatteryUserService {
     /** "voltage_now;current_now;temp;charge_counter;status;voltage_max"（只读电池白名单）。 */
     String readBattery() = 2;
 
-    /** "thermalMaxC;gpuPercent"（只读 thermal/GPU sysfs，不可读返回空/nan）。 */
+    /** "thermalMaxC;gpuPercent;cpuLine;cpuFreq"（只读 sysfs）。 */
     String readSystem() = 3;
+
+    /** 固定只读命令 dumpsys batterystats 的原始输出；仅用于实验性精准模式。 */
+    String readBatteryStats() = 4;
 }

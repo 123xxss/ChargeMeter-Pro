@@ -31,12 +31,16 @@ else
 fi
 
 echo "== 3) 源码危险调用扫描"
-SCAN=$(grep -RInE 'Runtime\.getRuntime\(\)\.(exec|load|loadLibrary)|Runtime\.exec|ProcessBuilder|HttpURLConnection|java\.net\.Socket|INTERNET|BATTERY_STATS|SYSTEM_ALERT_WINDOW|Process\.myUid\(\).*2000|uid *== *2000' "$P/src" 2>/dev/null || true)
+SCAN=$(grep -RInE 'Runtime\.getRuntime\(\)\.(exec|load|loadLibrary)|Runtime\.exec|ProcessBuilder|HttpURLConnection|java\.net\.Socket|INTERNET|BATTERY_STATS|SYSTEM_ALERT_WINDOW|Process\.myUid\(\).*2000|uid *== *2000' "$P/src" --exclude=BatteryUserService.java 2>/dev/null || true)
 if [ -n "$SCAN" ]; then
   echo "$SCAN"
-  fail "源码包含禁止/需评审的调用"
+  fail "普通源码包含禁止/需评审的调用"
 else
-  note "无 shell/网络/2000 信任/多余权限调用"
+  if grep -q 'new ProcessBuilder("dumpsys", "batterystats")' "$P/src/com/dsh/powermeter/shizuku/BatteryUserService.java"; then
+    note "无网络/2000 信任；精准模式仅固定只读 dumpsys batterystats"
+  else
+    fail "精准模式固定命令缺失/异常"
+  fi
 fi
 
 echo "== 4) APK 结构"

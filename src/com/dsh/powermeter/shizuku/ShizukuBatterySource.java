@@ -24,7 +24,7 @@ public final class ShizukuBatterySource {
 
     private static final String TAG = "ShizukuBattery";
     private static final int REQUEST_CODE = 10086;
-    private static final int USER_SERVICE_VERSION = 1;
+    private static final int USER_SERVICE_VERSION = 2;
 
     private static Context appContext;
     private static volatile boolean initialized;
@@ -157,6 +157,19 @@ public final class ShizukuBatterySource {
                     .version(USER_SERVICE_VERSION);
             Shizuku.unbindUserService(args, CONNECTION, true);
         } catch (Throwable ignored) {
+        }
+    }
+
+    /** 读取系统 BatteryStats 原始输出（固定 dumpsys 命令）；不可用返回 null。 */
+    public static String readBatteryStats() {
+        if (!connected || service == null) return null;
+        try {
+            String raw = service.readBatteryStats();
+            return raw == null || raw.isEmpty() ? null : raw;
+        } catch (Throwable t) {
+            connected = false;
+            service = null;
+            return null;
         }
     }
 

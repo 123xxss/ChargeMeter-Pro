@@ -6,13 +6,25 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.2.4](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.2.4/WattLens-Pro-v2.2.4.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.3.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.3.0/WattLens-Pro-v2.3.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.2.4.png)
+![主页、详情、应用耗电排行](docs/preview-v2.3.0.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.3.0 更新（Shizuku 精准模式开关）
+
+- 设置 → 数据口径新增 **精准模式（实验性）**，并带完整说明：
+  - 需要 Shizuku 授权；
+  - 只读执行固定命令 `dumpsys batterystats`；
+  - 读取系统估算的每应用 mAh；
+  - 约 30 秒刷新，不是实时；
+  - 不同 ROM 可能不完整/重置，失败自动回退最近 15 分钟前台排行。
+- 精准模式在应用排行页生效，显示“系统估算 · 总 mAh”，与前台排行区分。
+- 普通路径仍无 shell/网络；精准模式只允许这一条固定只读命令，无调用方参数。
+- 版本 27 / 2.3.0；测试 313 项通过。
 
 ## 2.2.4 更新（排行“不显示/不正确”修复）
 
@@ -226,7 +238,7 @@
 - **系统状态**：CPU 使用率/频率、可用内存、GPU、系统温度、存储；不可读时可用 Shizuku 只读兜底。
 - **应用耗电排行**：主界面 Top 3（3 秒）+ 完整页前 30（2 秒）；可选使用情况访问；按前台时长和电池功率估算，含系统应用。
 - **应用排行限制**：普通 Android 应用无法读取精确每应用 BatteryStats，排行是估算，不是系统后台耗电账单。
-- **隐私**：无 INTERNET、无广告、数据仅本机处理；使用情况访问是可选特殊权限，只读前台时长。
+- **隐私**：无 INTERNET、无广告、数据仅本机处理；使用情况访问是可选特殊权限，只读前台时长；精准模式只读固定 `dumpsys batterystats`，不执行任意命令。
 
 ## 功能
 

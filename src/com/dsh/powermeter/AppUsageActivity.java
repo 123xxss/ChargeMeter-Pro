@@ -18,7 +18,9 @@ import android.widget.TextView;
 
 import com.dsh.powermeter.core.AppUsageRanker;
 import com.dsh.powermeter.core.PowerSnapshot;
+import com.dsh.powermeter.core.PrecisePowerRanker;
 import com.dsh.powermeter.core.StateStore;
+import com.dsh.powermeter.shizuku.ShizukuBatterySource;
 import com.dsh.powermeter.ui.UiKit;
 
 import java.util.HashMap;
@@ -38,6 +40,8 @@ public final class AppUsageActivity extends Activity {
     private LinearLayout listContainer;
     private TextView summary;
     private TextView stateText;
+    private TextView livePill;
+    private boolean preciseLoading;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Map<String, Drawable> iconCache = new HashMap<>();
     private boolean firstRows = true;
@@ -47,7 +51,8 @@ public final class AppUsageActivity extends Activity {
         @Override
         public void run() {
             refreshData();
-            handler.postDelayed(this, 2000L);
+            handler.postDelayed(this, Prefs.get(AppUsageActivity.this).shizukuPreciseEnabled()
+                    ? 30000L : 2000L);
         }
     };
 
@@ -97,10 +102,12 @@ public final class AppUsageActivity extends Activity {
         header.addView(UiKit.backButton(this, v -> finish()));
         TextView title = UiKit.text(this, "应用耗电排行", 20f, R.color.text_primary, true);
         header.addView(title, UiKit.left(this, UiKit.weighted(1f), 2));
-        TextView live = UiKit.pill(this, "每 2 秒", getColor(R.color.accent),
-                getColor(R.color.card_alt));
-        live.setTextSize(10.5f);
-        header.addView(live);
+        livePill = UiKit.pill(this,
+                Prefs.get(this).shizukuPreciseEnabled() ? "精准·30秒" : "每 2 秒",
+                getColor(R.color.accent), getColor(R.color.card_alt));
+        livePill.setTextSize(10.5f);
+        livePill.setMaxWidth(UiKit.dp(this, 118));
+        header.addView(livePill);
         root.addView(header, UiKit.matchWrap());
 
         ScrollView scroll = new ScrollView(this);
@@ -139,17 +146,123 @@ public final class AppUsageActivity extends Activity {
 
     private void refreshData() {
         if (refreshing) return;
+        PowerSnapshot snapshot = StateStore.get().latest();
+        final double batteryW = snapshot != null ? snapshot.powerW : Double.NaN;
+        Prefs prefs = Prefs.get(this);
+        if (prefs.shizukuPreciseEnabled()
+                && ShizukuBatterySource.isAvailable() && ShizukuBatterySource.hasPermission()) {
+            refreshPrecise(batteryW);
+            return;
+        }
         refreshing = true;
         try {
-            PowerSnapshot snapshot = StateStore.get().latest();
-            double batteryW = snapshot != null ? snapshot.powerW : Double.NaN;
             AppUsageRanker.Result result = AppUsageRanker.load(this, batteryW);
             render(result, batteryW);
+            if (prefs.shizukuPreciseEnabled()) {
+                stateText.setText("精准模式需要 Shizuku 授权，当前已回退前台排行；" + stateText.getText());
+            }
         } catch (Throwable t) {
             renderError();
         } finally {
             refreshing = false;
         }
+    }
+
+    private void refreshPrecise(final double batteryW) {
+        if (preciseLoading) return;
+        preciseLoading = true;
+        if (livePill != null) livePill.setText("精准·30秒");
+        summary.setText("正在通过 Shizuku 读取系统 BatteryStats…");
+        stateText.setText("只读执行固定命令 dumpsys batterystats；约 30 秒刷新，不是实时。");
+        new Thread(() -> {
+            String raw = null;
+            try {
+                raw = ShizukuBatterySource.readBatteryStats();
+            } catch (Throwable ignored) {
+            }
+            final PrecisePowerRanker.Result result =
+                    PrecisePowerRanker.parse(this, raw, batteryW);
+            runOnUiThread(() -> {
+                preciseLoading = false;
+                if (isFinishing()) return;
+                if (result != null && result.available) {
+                    renderPrecise(result);
+                } else {
+                    // 精准模式失败/ROM 不兼容：自动回退 UsageEvents 前台排行。
+                    refreshing = true;
+                    try {
+                        AppUsageRanker.Result normal = AppUsageRanker.load(
+                                AppUsageActivity.this, batteryW);
+                        render(normal, batteryW);
+                        stateText.setText((result != null && result.message != null
+                                ? result.message + "；" : "") + "已回退最近 15 分钟前台排行。");
+                    } catch (Throwable ignored) {
+                    } finally {
+                        refreshing = false;
+                    }
+                }
+            });
+        }, "wattlens-batterystats").start();
+    }
+
+    private void renderPrecise(PrecisePowerRanker.Result result) {
+        listContainer.removeAllViews();
+        summary.setText(String.format(Locale.ROOT,
+                "系统估算 · 总 %.1f mAh · Shizuku 精准模式", result.totalMah));
+        stateText.setText("来自 dumpsys batterystats 的系统估算；约 30 秒刷新，非实时，"
+                + "不同 ROM 可能不完整或重置。");
+        listContainer.addView(noteCard(), UiKit.top(this, UiKit.matchWrap(), 12));
+        int count = Math.min(result.entries.size(), 30);
+        for (int i = 0; i < count; i++) {
+            listContainer.addView(preciseRow(result.entries.get(i), i + 1),
+                    UiKit.top(this, UiKit.matchWrap(), 7));
+        }
+        if (firstRows) {
+            firstRows = false;
+            animateIn(listContainer);
+        }
+    }
+
+    private LinearLayout preciseRow(PrecisePowerRanker.Entry e, int rank) {
+        LinearLayout card = UiKit.row(this);
+        card.setBackground(UiKit.rounded(this, getColor(R.color.card), 18f));
+        int p = UiKit.dp(this, 12);
+        card.setPadding(p, UiKit.dp(this, 10), p, UiKit.dp(this, 10));
+        TextView rankView = UiKit.textColor(this, String.valueOf(rank), 17f,
+                rank <= 3 ? getColor(R.color.accent) : getColor(R.color.text_muted), true);
+        rankView.setGravity(Gravity.CENTER);
+        card.addView(rankView, new LinearLayout.LayoutParams(
+                UiKit.dp(this, 28), UiKit.dp(this, 36)));
+        ImageView icon = new ImageView(this);
+        try {
+            icon.setImageDrawable(getPackageManager().getApplicationIcon(
+                    getPackageManager().getPackagesForUid(e.uid)[0]));
+        } catch (Throwable ignored) {
+        }
+        LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(
+                UiKit.dp(this, 34), UiKit.dp(this, 34));
+        iconLp.leftMargin = UiKit.dp(this, 4);
+        iconLp.rightMargin = UiKit.dp(this, 10);
+        card.addView(icon, iconLp);
+        LinearLayout texts = UiKit.column(this);
+        TextView name = UiKit.text(this, e.label, 14f, R.color.text_primary, true);
+        name.setSingleLine(true);
+        name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        texts.addView(name, UiKit.matchWrap());
+        String sub = (e.system ? "系统 · " : "")
+                + String.format(Locale.ROOT, "%.2f mAh · %.0f%%", e.mah, e.percent);
+        TextView subView = UiKit.text(this, sub, 11f, R.color.text_secondary, false);
+        subView.setSingleLine(true);
+        subView.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        texts.addView(subView, UiKit.top(this, UiKit.matchWrap(), 1));
+        card.addView(texts, UiKit.weighted(1f));
+        TextView right = UiKit.textColor(this,
+                PrecisePowerRanker.formatMah(e.mah), 12f,
+                rank <= 3 ? getColor(R.color.accent) : getColor(R.color.text_primary), true);
+        right.setSingleLine(true);
+        right.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        card.addView(right, UiKit.left(this, UiKit.wrapWrap(), 8));
+        return card;
     }
 
     private void render(AppUsageRanker.Result result, double batteryW) {

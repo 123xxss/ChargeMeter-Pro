@@ -1,7 +1,10 @@
 package com.dsh.powermeter.shizuku;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Shizuku UserService：在 shell/root 身份下只读标准 sysfs 电池节点。
@@ -86,6 +89,44 @@ public class BatteryUserService extends IBatteryUserService.Stub {
         String freq = read("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq");
         if (freq == null) freq = "";
         return thermal + ";" + gpu + ";" + cpuLine + ";" + freq;
+    }
+
+    @Override
+    public String readBatteryStats() {
+        // 只执行一条固定、只读的 dumpsys 命令；不接受调用方参数，不写文件。
+        Process process = null;
+        try {
+            ProcessBuilder builder = new ProcessBuilder("dumpsys", "batterystats");
+            builder.redirectErrorStream(true);
+            process = builder.start();
+            final Process p = process;
+            final ByteArrayOutputStream out = new ByteArrayOutputStream(64 * 1024);
+            Thread reader = new Thread(() -> {
+                try (InputStream in = p.getInputStream()) {
+                    byte[] buf = new byte[8192];
+                    int n;
+                    int total = 0;
+                    while ((n = in.read(buf)) != -1 && total < 700_000) {
+                        out.write(buf, 0, n);
+                        total += n;
+                    }
+                } catch (Throwable ignored) {
+                }
+            }, "batterystats-reader");
+            reader.setDaemon(true);
+            reader.start();
+            boolean finished = process.waitFor(20, TimeUnit.SECONDS);
+            if (!finished) process.destroy();
+            try { reader.join(1500); } catch (Throwable ignored) { }
+            String result = out.toString("UTF-8");
+            return result.length() > 700_000 ? result.substring(0, 700_000) : result;
+        } catch (Throwable t) {
+            return "";
+        } finally {
+            if (process != null) {
+                try { process.destroy(); } catch (Throwable ignored) { }
+            }
+        }
     }
 
     @Override

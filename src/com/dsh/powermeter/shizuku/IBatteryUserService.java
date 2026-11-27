@@ -16,8 +16,13 @@ public interface IBatteryUserService extends android.os.IInterface
     {
       return null;
     }
-    /** "thermalMaxC;gpuPercent"（只读 thermal/GPU sysfs，不可读返回空/nan）。 */
+    /** "thermalMaxC;gpuPercent;cpuLine;cpuFreq"（只读 sysfs）。 */
     @Override public java.lang.String readSystem() throws android.os.RemoteException
+    {
+      return null;
+    }
+    /** 固定只读命令 dumpsys batterystats 的原始输出；仅用于实验性精准模式。 */
+    @Override public java.lang.String readBatteryStats() throws android.os.RemoteException
     {
       return null;
     }
@@ -89,6 +94,13 @@ public interface IBatteryUserService extends android.os.IInterface
           reply.writeString(_result);
           break;
         }
+        case TRANSACTION_readBatteryStats:
+        {
+          java.lang.String _result = this.readBatteryStats();
+          reply.writeNoException();
+          reply.writeString(_result);
+          break;
+        }
         default:
         {
           return super.onTransact(code, data, reply, flags);
@@ -144,7 +156,7 @@ public interface IBatteryUserService extends android.os.IInterface
         }
         return _result;
       }
-      /** "thermalMaxC;gpuPercent"（只读 thermal/GPU sysfs，不可读返回空/nan）。 */
+      /** "thermalMaxC;gpuPercent;cpuLine;cpuFreq"（只读 sysfs）。 */
       @Override public java.lang.String readSystem() throws android.os.RemoteException
       {
         android.os.Parcel _data = android.os.Parcel.obtain();
@@ -162,16 +174,37 @@ public interface IBatteryUserService extends android.os.IInterface
         }
         return _result;
       }
+      /** 固定只读命令 dumpsys batterystats 的原始输出；仅用于实验性精准模式。 */
+      @Override public java.lang.String readBatteryStats() throws android.os.RemoteException
+      {
+        android.os.Parcel _data = android.os.Parcel.obtain();
+        android.os.Parcel _reply = android.os.Parcel.obtain();
+        java.lang.String _result;
+        try {
+          _data.writeInterfaceToken(DESCRIPTOR);
+          boolean _status = mRemote.transact(Stub.TRANSACTION_readBatteryStats, _data, _reply, 0);
+          _reply.readException();
+          _result = _reply.readString();
+        }
+        finally {
+          _reply.recycle();
+          _data.recycle();
+        }
+        return _result;
+      }
     }
     static final int TRANSACTION_destroy = (android.os.IBinder.FIRST_CALL_TRANSACTION + 16777114);
     static final int TRANSACTION_readBattery = (android.os.IBinder.FIRST_CALL_TRANSACTION + 2);
     static final int TRANSACTION_readSystem = (android.os.IBinder.FIRST_CALL_TRANSACTION + 3);
+    static final int TRANSACTION_readBatteryStats = (android.os.IBinder.FIRST_CALL_TRANSACTION + 4);
   }
   public static final java.lang.String DESCRIPTOR = "com.dsh.powermeter.shizuku.IBatteryUserService";
   /** Shizuku 保留的销毁事务号。 */
   public void destroy() throws android.os.RemoteException;
   /** "voltage_now;current_now;temp;charge_counter;status;voltage_max"（只读电池白名单）。 */
   public java.lang.String readBattery() throws android.os.RemoteException;
-  /** "thermalMaxC;gpuPercent"（只读 thermal/GPU sysfs，不可读返回空/nan）。 */
+  /** "thermalMaxC;gpuPercent;cpuLine;cpuFreq"（只读 sysfs）。 */
   public java.lang.String readSystem() throws android.os.RemoteException;
+  /** 固定只读命令 dumpsys batterystats 的原始输出；仅用于实验性精准模式。 */
+  public java.lang.String readBatteryStats() throws android.os.RemoteException;
 }

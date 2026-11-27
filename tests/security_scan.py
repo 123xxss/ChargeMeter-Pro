@@ -261,13 +261,29 @@ def main():
 
     ok("找到 Java 源文件（%d 个）" % len(sources))
 
+    # 普通路径禁止进程执行；仅 BatteryUserService 的固定 dumpsys 精准模式获准，
+    # 且不允许接收调用方参数/路径。
+    no_shell_sources = {p: t for p, t in sources.items()
+                        if not p.endswith("BatteryUserService.java")}
     check_no_hits(
-        sources, root,
+        no_shell_sources, root,
         [r"\bRuntime\s*\.\s*getRuntime\s*\(\s*\)\s*\.\s*(?:exec|load|loadLibrary)\s*\(", r"\bRuntime\s*\.\s*exec\s*\(",
          r"\bProcessBuilder\b", r"\bProcess\s*\.\s*start\s*\(",
          r"\bexec\s*\(\s*new\s+String\s*\["],
-        "源码无进程执行（Runtime.exec / ProcessBuilder）",
+        "普通源码无进程执行（Runtime.exec / ProcessBuilder）",
         "未发现 shell 调用")
+
+    service_text = ""
+    for p, t in sources.items():
+        if p.endswith("BatteryUserService.java"):
+            service_text = t
+            break
+    fixed_dumpsys = 'new ProcessBuilder("dumpsys", "batterystats")' in service_text
+    if fixed_dumpsys and service_text.count("new ProcessBuilder") == 1:
+        ok("Shizuku 精准模式仅执行固定只读 dumpsys batterystats（无调用方参数）")
+    else:
+        bad("Shizuku 精准模式仅执行固定只读 dumpsys batterystats（无调用方参数）",
+            "未找到唯一固定命令或发现额外 ProcessBuilder")
 
     check_no_hits(
         sources, root,

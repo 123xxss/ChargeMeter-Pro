@@ -309,6 +309,20 @@ public final class SettingsActivity extends Activity {
                 "默认关闭。通过 Shizuku UserService 只读标准电池节点，提升数据置信度；失败自动回退。",
                 prefs.shizukuReadEnabled(), true,
                 (button, checked) -> setShizukuEnabled(checked)));
+        addCard(new UiKit.SwitchRow(this, "精准模式（实验性）",
+                "需 Shizuku 授权；只读固定 dumpsys，约 30 秒刷新，非实时。",
+                prefs.shizukuPreciseEnabled(), true,
+                (button, checked) -> setPreciseMode(checked)));
+        LinearLayout preciseNote = UiKit.card(this);
+        TextView preciseText = UiKit.text(this,
+                "精准模式说明：通过 Shizuku 只读执行固定命令 dumpsys batterystats，"
+                        + "读取系统估算的每应用 mAh。它不是实时数据（约 30 秒刷新），"
+                        + "不同 ROM 可能不完整或在充电/重启后重置；读取失败会自动回退到"
+                        + "最近 15 分钟前台排行。该模式不会执行任意命令、不联网、不写文件。",
+                12f, R.color.text_secondary, false);
+        preciseText.setLineSpacing(UiKit.dp(this, 2), 1f);
+        preciseNote.addView(preciseText, UiKit.matchWrap());
+        addCard(preciseNote);
 
         // 后台运行
         content.addView(UiKit.section(this, "后台运行"), UiKit.matchWrap());
@@ -338,7 +352,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "2.2.4");
+        addInfo(about, "版本", "2.3.0");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
                 + " · " + DeviceInfo.model());
@@ -432,6 +446,23 @@ public final class SettingsActivity extends Activity {
             rebuildContent();
         } catch (Throwable t) {
             Toast.makeText(this, "Shizuku 操作失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void setPreciseMode(boolean enabled) {
+        Prefs.get(this).setShizukuPreciseEnabled(enabled);
+        if (enabled) {
+            try {
+                if (!ShizukuBatterySource.isAvailable()) {
+                    Toast.makeText(this, "精准模式需要先安装并启动 Shizuku", Toast.LENGTH_LONG).show();
+                } else if (!ShizukuBatterySource.hasPermission()) {
+                    ShizukuBatterySource.requestPermission(this);
+                } else {
+                    Prefs.get(this).setShizukuReadEnabled(true);
+                    ShizukuBatterySource.bindIfPossible();
+                }
+            } catch (Throwable ignored) {
+            }
         }
     }
 

@@ -1,18 +1,18 @@
 # 测试与验收报告
 
-- 版本：2.2.4（versionCode 26）
+- 版本：2.3.0（versionCode 27）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
-- APK：`powermeter.apk`，285,040 bytes
-- SHA-256：`5639c81fbd1a31a26900c9e9765cdbfef83c19805ccdcfec269a5235d484365a`
+- APK：`powermeter.apk`，289,136 bytes
+- SHA-256：`92ccebcc29a21a1108b7aa67761b02123800dd3dda398b2b0228b0001f32815f`
 
-> 2.2.4 排行不显示/旧数据修复；测试 312 项全通过。
+> 2.3.0 Shizuku 精准模式开关；测试 313 项全通过。
 
 ## 1. 自动化测试结果
 
 | 项目 | 命令 | 结果 |
 |---|---|---|
-| 核心算法单测 + 安全静态扫描 | `bash tests/run_tests.sh` | **301 通过 / 0 失败**（单测 297 + 静态扫描 15） |
+| 核心算法单测 + 安全静态扫描 | `bash tests/run_tests.sh` | **301 通过 / 0 失败**（单测 297 + 静态扫描 16） |
 | 完整构建 | `bash build.sh` | 7/7 步骤成功，产出已签名 APK |
 | 交付前静态验收 | `bash tools/verify.sh` | 通过 |
 

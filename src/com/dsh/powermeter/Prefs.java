@@ -174,6 +174,22 @@ public final class Prefs {
         }
     }
 
+    /** Shizuku 精准模式：固定只读 dumpsys batterystats，默认关闭。 */
+    public boolean shizukuPreciseEnabled() {
+        try {
+            return sp.getBoolean("shizuku_precise", false);
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    public void setShizukuPreciseEnabled(boolean enabled) {
+        try {
+            sp.edit().putBoolean("shizuku_precise", enabled).apply();
+        } catch (Throwable ignored) {
+        }
+    }
+
     /** 电芯数覆盖：0=按品牌推荐，1/2/3/4=手动。 */
     public int cellCountOverride() {
         try {
