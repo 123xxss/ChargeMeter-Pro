@@ -28,4 +28,11 @@
     <color name="neon_bg_start">#0B1020</color>
     <color name="neon_bg_end">#0E7490</color>
     <color name="neon_accent">#22D3EE</color>
+    <color name="mint_bg_start">#E9FBF4</color>
+    <color name="mint_bg_end">#D9F0FF</color>
+    <color name="mint_text">#0B3B36</color>
+    <color name="mint_accent">#00A88F</color>
+    <color name="violet_bg_start">#1B1035</color>
+    <color name="violet_bg_end">#4C1D95</color>
+    <color name="violet_accent">#C4B5FD</color>
 </resources>

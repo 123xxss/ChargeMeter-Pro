@@ -74,6 +74,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private LinearLayout chartCard;
     private long lastChartTimestamp = -1;
     private boolean lastSessionActive;
+    private boolean entranceAnimated;
     private LinearLayout systemCard;
     private UiKit.Metric sysCpu;
     private UiKit.Metric sysRam;
@@ -182,6 +183,26 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             render(snapshot);
         } catch (Throwable t) {
             showSafeFallback(t);
+        }
+    }
+
+    private void animateEntrance() {
+        if (entranceAnimated) return;
+        entranceAnimated = true;
+        View[] views = {heroCard, gridTitle, gridRow1, gridRow2, chartCard,
+                systemCard, sessionCard, footerCard};
+        int step = UiKit.dp(this, 10);
+        for (int i = 0; i < views.length; i++) {
+            View v = views[i];
+            if (v == null) continue;
+            v.setAlpha(0f);
+            v.setTranslationY(step);
+            v.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setStartDelay(i * 28L)
+                    .setDuration(220)
+                    .start();
         }
     }
 

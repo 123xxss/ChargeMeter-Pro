@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.dsh.powermeter.Prefs;
 import com.dsh.powermeter.R;
 import com.dsh.powermeter.core.ChargeState;
+import com.dsh.powermeter.core.DeviceInfo;
 import com.dsh.powermeter.core.PowerSnapshot;
 import com.dsh.powermeter.core.StateStore;
 import com.dsh.powermeter.core.SystemStats;
@@ -56,8 +57,11 @@ public final class DetailDialog {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         LinearLayout titleRow = UiKit.row(c);
-        TextView title = UiKit.text(c, "详情 · 实时刷新中", 17f, R.color.text_primary, true);
+        TextView title = UiKit.text(c, "详情", 18f, R.color.text_primary, true);
         titleRow.addView(title, UiKit.weighted(1f));
+        TextView live = UiKit.textColor(c, "实时刷新中", 11f, accent, true);
+        live.setPadding(0, UiKit.dp(c, 3), UiKit.dp(c, 10), 0);
+        titleRow.addView(live);
         TextView closeTop = UiKit.textColor(c, "关闭", 14f, accent, true);
         int cp = UiKit.dp(c, 8);
         closeTop.setPadding(cp, UiKit.dp(c, 4), cp, UiKit.dp(c, 4));
@@ -84,6 +88,13 @@ public final class DetailDialog {
         addRow(c, card, rows, "GPU");
         addRow(c, card, rows, "系统温度");
         addRow(c, card, rows, "存储");
+        addRow(c, card, rows, "厂商");
+        addRow(c, card, rows, "品牌");
+        addRow(c, card, rows, "型号");
+        addRow(c, card, rows, "设备代号");
+        addRow(c, card, rows, "Android 版本");
+        addRow(c, card, rows, "ROM 版本");
+        addRow(c, card, rows, "ABI");
 
         // 口径说明
         LinearLayout notes = UiKit.column(c);
@@ -155,18 +166,23 @@ public final class DetailDialog {
         StateStore.get().addListener(listener);
         dialog.setOnDismissListener(d -> StateStore.get().removeListener(listener));
 
-        dialog.show();
-
         Window window = dialog.getWindow();
         if (window != null) {
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
             window.setDimAmount(0.55f);
-            // 只占屏幕 78%，上下留出安全区；内容由 ScrollView 完整滚动。
+            window.setWindowAnimations(R.style.DialogAnimation);
+            // 动画开始前就设置好固定尺寸，避免“从全屏缩回”造成内容被裁切。
             int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.78f);
             window.setGravity(android.view.Gravity.CENTER);
             window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height);
             window.getDecorView().setPadding(0, UiKit.dp(c, 8), 0, UiKit.dp(c, 8));
+        }
+        dialog.show();
+        if (window != null) {
+            // 部分 ROM 在 show 之后才应用 Window 尺寸，再设置一次确保视口稳定。
+            int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.78f);
+            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height);
         }
     }
 
@@ -191,8 +207,11 @@ public final class DetailDialog {
         boolean showEta = has ? s.showEstimate : prefs.showEstimate();
         boolean showTier = has ? s.showTier : prefs.showTier();
 
+        setDeviceRows(rows);
         if (!has) {
-            for (TextView v : rows.values()) v.setText("--");
+            for (Map.Entry<String, TextView> e : rows.entrySet()) {
+                if (!isDeviceRow(e.getKey())) e.getValue().setText("--");
+            }
             return;
         }
 
@@ -237,6 +256,22 @@ public final class DetailDialog {
         boolean unavailable = st == null || Double.isNaN(st.cpuPercent)
                 || Double.isNaN(st.gpuPercent) || Double.isNaN(st.thermalMaxC);
         hint.setVisibility(unavailable ? View.VISIBLE : View.GONE);
+    }
+
+    private static void setDeviceRows(Map<String, TextView> rows) {
+        set(rows, "厂商", DeviceInfo.manufacturer());
+        set(rows, "品牌", DeviceInfo.brand());
+        set(rows, "型号", DeviceInfo.model());
+        set(rows, "设备代号", DeviceInfo.device());
+        set(rows, "Android 版本", DeviceInfo.androidVersion());
+        set(rows, "ROM 版本", DeviceInfo.romVersion());
+        set(rows, "ABI", DeviceInfo.abi());
+    }
+
+    private static boolean isDeviceRow(String key) {
+        return "厂商".equals(key) || "品牌".equals(key) || "型号".equals(key)
+                || "设备代号".equals(key) || "Android 版本".equals(key)
+                || "ROM 版本".equals(key) || "ABI".equals(key);
     }
 
     private static String powerText(PowerSnapshot s) {

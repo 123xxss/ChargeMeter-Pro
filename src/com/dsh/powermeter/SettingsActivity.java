@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dsh.powermeter.core.ChargeEngine;
+import com.dsh.powermeter.core.DeviceInfo;
 import com.dsh.powermeter.core.StateStore;
 import com.dsh.powermeter.service.PowerService;
 import com.dsh.powermeter.shizuku.ShizukuBatterySource;
@@ -31,6 +32,7 @@ import com.dsh.powermeter.ui.UiKit;
 public final class SettingsActivity extends Activity {
 
     private LinearLayout content;
+    private boolean firstAnimation = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +77,7 @@ public final class SettingsActivity extends Activity {
 
     private void showStyleDialog() {
         final Prefs prefs = Prefs.get(this);
-        final String[] items = {"Apple 极简", "经典渐变", "深色霓虹"};
+        final String[] items = {"Apple 极简", "经典渐变", "深色霓虹", "薄荷清透", "紫色星云"};
         AlertDialog.Builder builder = dialogBuilder("界面风格");
         builder.setSingleChoiceItems(items, prefs.uiStyle(), (dialog, which) -> {
             prefs.setUiStyle(which);
@@ -87,9 +89,13 @@ public final class SettingsActivity extends Activity {
     }
 
     private String styleLabel(int style) {
-        if (style == 2) return "深色霓虹";
-        if (style == 1) return "经典渐变";
-        return "Apple 极简";
+        switch (style) {
+            case 1: return "经典渐变";
+            case 2: return "深色霓虹";
+            case 3: return "薄荷清透";
+            case 4: return "紫色星云";
+            default: return "Apple 极简";
+        }
     }
 
     private void showCellDialog() {
@@ -229,7 +235,7 @@ public final class SettingsActivity extends Activity {
         // 显示与通知
         content.addView(UiKit.section(this, "显示与通知"), UiKit.matchWrap());
         addCard(UiKit.actionRow(this, "界面风格",
-                "Apple 极简 / 经典渐变 / 深色霓虹；功率卡与曲线同步切换",
+                "Apple 极简 / 经典渐变 / 深色霓虹 / 薄荷 / 紫色星云；功率卡与曲线同步切换",
                 styleLabel(prefs.uiStyle()), v -> showStyleDialog()));
         String notifSubtitle = notificationsAllowed
                 ? "在状态栏常驻显示充电功率与电量"
@@ -308,8 +314,13 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.7.2");
+        addInfo(about, "版本", "1.8.0");
         addInfo(about, "作者", "123xxss");
+        addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
+                + " · " + DeviceInfo.model());
+        addInfo(about, "系统", DeviceInfo.androidVersion());
+        addInfo(about, "ROM", DeviceInfo.romVersion());
+        addInfo(about, "适配", DeviceInfo.compatibilityNote());
         addInfo(about, "开源仓库", "github.com/123xxss/ChargeMeter-Pro");
         addInfo(about, "数据", "只在本机处理，无网络权限，不上传任何信息。");
         addInfo(about, "口径", "功率为进入电池的功率估算值；边充边用时可能低于充电器实际输出功率。");
@@ -321,6 +332,25 @@ public final class SettingsActivity extends Activity {
         repoRow.addView(repoButton, UiKit.weighted(1f));
         about.addView(repoRow, UiKit.matchWrap());
         addCard(about);
+        animateContentOnce();
+    }
+
+    private void animateContentOnce() {
+        if (!firstAnimation || content == null) return;
+        firstAnimation = false;
+        int step = UiKit.dp(this, 9);
+        int count = Math.min(content.getChildCount(), 18);
+        for (int i = 0; i < count; i++) {
+            View child = content.getChildAt(i);
+            child.setAlpha(0f);
+            child.setTranslationY(step);
+            child.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setStartDelay(i * 18L)
+                    .setDuration(190)
+                    .start();
+        }
     }
 
     private void openUrl(String url) {

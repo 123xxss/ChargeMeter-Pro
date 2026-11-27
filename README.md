@@ -4,9 +4,19 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v1.7.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.7.2/ChargeMeter-Pro-v1.7.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v1.8.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v1.8.0/ChargeMeter-Pro-v1.8.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 1.8.0 更新（五风格 + 全 App 动画 + 设备信息）
+
+- 新增两种风格：**薄荷清透、紫色星云**；现在共 5 种：Apple 极简 / 经典渐变 / 深色霓虹 / 薄荷 / 紫色星云。
+- 全 App 动画优化：页面进入/退出淡入滑动、主界面卡片错峰入场、设置二级页入场、详情弹窗缩放淡入；修复弹窗尺寸跳变导致的内容显示不完整。
+- 详情页新增设备信息：厂商、品牌、型号、设备代号、Android 版本、ROM 版本、ABI。
+- CPU/GPU/系统温度不可读时，可通过 Shizuku 只读 `readSystem()` 读取；主界面与详情页都有入口。
+- 保留详情弹窗固定视口 + ScrollView，关闭按钮和说明均可滚动看到。
+- 适配说明：通用 Android，不含 iOS/苹果；华为/荣耀私有快充不做专门适配，可用功率校准修正。
+- 版本 17 / 1.8.0；测试 312 项通过。
 
 ## 1.7.2 更新（CPU 兜底 + 详情滚动）
 
@@ -133,7 +143,7 @@
 - **充电预估**：不使用 `computeChargeTimeRemaining()`，按当前功率 + 电池容量 + CC/CV 两阶段修正自研估算，统一标注「估算」。
 - **实时功率曲线**：最近 2 分钟、1 秒采样、120 点。
 - **系统状态**：CPU 使用率/频率、可用内存、GPU 使用率、系统最高温度，详情页含存储剩余。
-- **三种界面风格**：Apple 极简 / 经典渐变 / 深色霓虹。
+- **五种界面风格**：Apple 极简 / 经典渐变 / 深色霓虹 / 薄荷清透 / 紫色星云。
 - **功率校准**：输入系统/功率计读数反推本机倍率。
 - **本次充电摘要**：仅记录本次/上次的平滑峰值、平均功率、时长、起止电量，本地保存，不做长期历史。
 - **后台白名单引导**：首次使用按 vivo / OPPO / 小米弹对应设置说明，并尝试品牌深链跳转，失败自动回退系统页面。

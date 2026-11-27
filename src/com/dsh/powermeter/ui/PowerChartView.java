@@ -37,6 +37,8 @@ public final class PowerChartView extends View {
     private final int colorMuted;
     private final int colorAppleAccent;
     private final int colorNeonAccent;
+    private final int colorMintAccent;
+    private final int colorVioletAccent;
 
     public PowerChartView(Context context) {
         super(context);
@@ -47,6 +49,8 @@ public final class PowerChartView extends View {
         colorMuted = context.getColor(R.color.text_muted);
         colorAppleAccent = context.getColor(R.color.apple_accent);
         colorNeonAccent = context.getColor(R.color.neon_accent);
+        colorMintAccent = context.getColor(R.color.mint_accent);
+        colorVioletAccent = context.getColor(R.color.violet_accent);
         line.setStyle(Paint.Style.STROKE);
         line.setStrokeWidth(dp(2.2f));
         line.setStrokeCap(Paint.Cap.ROUND);
@@ -68,6 +72,12 @@ public final class PowerChartView extends View {
         } else if (style == 2) {
             colorAccent = colorNeonAccent;
             colorAccentEnd = contextColorTeal();
+        } else if (style == 3) {
+            colorAccent = colorMintAccent;
+            colorAccentEnd = colorMintAccent;
+        } else if (style == 4) {
+            colorAccent = colorVioletAccent;
+            colorAccentEnd = colorVioletAccent;
         } else {
             colorAccent = getContext().getColor(R.color.accent);
             colorAccentEnd = contextColorTeal();

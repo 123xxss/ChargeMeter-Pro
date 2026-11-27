@@ -30,6 +30,8 @@ public final class PowerCardView extends View {
     public static final int STYLE_APPLE = 0;
     public static final int STYLE_CLASSIC = 1;
     public static final int STYLE_NEON = 2;
+    public static final int STYLE_MINT = 3;
+    public static final int STYLE_VIOLET = 4;
 
     private static final int HEIGHT_DP = 236;
 
@@ -63,6 +65,13 @@ public final class PowerCardView extends View {
     private final int cNeonStart;
     private final int cNeonEnd;
     private final int cNeonAccent;
+    private final int cMintStart;
+    private final int cMintEnd;
+    private final int cMintText;
+    private final int cMintAccent;
+    private final int cVioletStart;
+    private final int cVioletEnd;
+    private final int cVioletAccent;
 
     private final Runnable pulseTick = new Runnable() {
         @Override
@@ -92,13 +101,20 @@ public final class PowerCardView extends View {
         cNeonStart = context.getColor(R.color.neon_bg_start);
         cNeonEnd = context.getColor(R.color.neon_bg_end);
         cNeonAccent = context.getColor(R.color.neon_accent);
+        cMintStart = context.getColor(R.color.mint_bg_start);
+        cMintEnd = context.getColor(R.color.mint_bg_end);
+        cMintText = context.getColor(R.color.mint_text);
+        cMintAccent = context.getColor(R.color.mint_accent);
+        cVioletStart = context.getColor(R.color.violet_bg_start);
+        cVioletEnd = context.getColor(R.color.violet_bg_end);
+        cVioletAccent = context.getColor(R.color.violet_accent);
         setClickable(true);
         setFocusable(true);
         setContentDescription("充电功率卡片，点击查看详情");
     }
 
     public void setStyle(int style) {
-        this.style = Math.max(0, Math.min(2, style));
+        this.style = Math.max(0, Math.min(4, style));
         updateShader();
         invalidate();
     }
@@ -190,6 +206,12 @@ public final class PowerCardView extends View {
         } else if (style == STYLE_NEON) {
             bgPaint.setShader(new LinearGradient(0, 0, widthPx, heightPx,
                     cNeonStart, cNeonEnd, Shader.TileMode.CLAMP));
+        } else if (style == STYLE_MINT) {
+            bgPaint.setShader(new LinearGradient(0, 0, widthPx, heightPx,
+                    cMintStart, cMintEnd, Shader.TileMode.CLAMP));
+        } else if (style == STYLE_VIOLET) {
+            bgPaint.setShader(new LinearGradient(0, 0, widthPx, heightPx,
+                    cVioletStart, cVioletEnd, Shader.TileMode.CLAMP));
         } else {
             bgPaint.setShader(new LinearGradient(0, 0, widthPx, heightPx,
                     cHeroStart, cHeroEnd, Shader.TileMode.CLAMP));
@@ -214,22 +236,28 @@ public final class PowerCardView extends View {
         if (widthPx == 0 || heightPx == 0) return;
         float pad = dp(20);
         float right = widthPx - pad;
-        float radius = dp(style == STYLE_APPLE ? 26 : 24);
+        float radius = dp((style == STYLE_APPLE || style == STYLE_MINT) ? 26 : 24);
 
         rect.set(0, 0, widthPx, heightPx);
         canvas.drawRoundRect(rect, radius, radius, bgPaint);
 
         boolean apple = style == STYLE_APPLE;
-        boolean neon = style == STYLE_NEON;
-        int fg = apple ? cTextPrimary : 0xFFFFFFFF;
-        int soft = apple ? cTextSecondary : 0xD9FFFFFF;
-        int muted = apple ? cTextMuted : 0xB3FFFFFF;
-        int pillBg = apple ? cAppleSoft : 0x33FFFFFF;
-        int pillFg = apple ? cAppleAccent : 0xFFFFFFFF;
-        int tierBg = apple ? cCardAlt : 0x26FFFFFF;
-        int tierFg = apple ? cTextSecondary : 0xFFFFFFFF;
-        int track = apple ? cDivider : 0x3DFFFFFF;
-        int accent = apple ? cAppleAccent : (neon ? cNeonAccent : 0xFFFFFFFF);
+        boolean mint = style == STYLE_MINT;
+        boolean violet = style == STYLE_VIOLET;
+        boolean light = apple || mint;
+        int fg = apple ? cTextPrimary : (mint ? cMintText : 0xFFFFFFFF);
+        int soft = apple ? cTextSecondary : (mint ? cMintText : 0xD9FFFFFF);
+        int muted = apple ? cTextMuted : (mint ? cMintText : 0xB3FFFFFF);
+        int pillBg = apple ? cAppleSoft : (mint ? 0x2200A88F : 0x33FFFFFF);
+        int pillFg = apple ? cAppleAccent : (mint ? cMintAccent
+                : (violet ? cVioletAccent : 0xFFFFFFFF));
+        int tierBg = light ? cCardAlt : 0x26FFFFFF;
+        int tierFg = light ? cTextSecondary : 0xFFFFFFFF;
+        int track = light ? cDivider : 0x3DFFFFFF;
+        int accent = apple ? cAppleAccent
+                : (mint ? cMintAccent
+                : (violet ? cVioletAccent
+                : (style == STYLE_NEON ? cNeonAccent : 0xFFFFFFFF)));
 
         PowerSnapshot s = snapshot;
         if (s == null) {
@@ -289,7 +317,8 @@ public final class PowerCardView extends View {
             sub = s.modeLabel + " · 1 秒刷新";
         }
 
-        int powerColor = (s.state == ChargeState.ABNORMAL) ? cWarnStart : (apple ? accent : fg);
+        int powerColor = (s.state == ChargeState.ABNORMAL) ? cWarnStart
+                : (apple || mint || violet || style == STYLE_NEON ? accent : fg);
         float baseline = top + pillH + dp(44);
         if (value != null) {
             text.setTextSize(scaledDensity * 52f);
@@ -300,15 +329,15 @@ public final class PowerCardView extends View {
             text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             float uw = text.measureText(unit);
             float totalW = vw + dp(6) + uw;
-            float x = apple ? (widthPx - totalW) / 2f : pad;
+            float x = light ? (widthPx - totalW) / 2f : pad;
             text.setTextSize(scaledDensity * 52f);
             text.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
             canvas.drawText(value, x, baseline, text);
             text.setTextSize(scaledDensity * 20f);
             text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            text.setColor(apple ? cTextSecondary : 0xCCFFFFFF);
+            text.setColor(light ? cTextSecondary : 0xCCFFFFFF);
             canvas.drawText(unit, x + vw + dp(6), baseline, text);
-            if (apple) {
+            if (light) {
                 text.setTextSize(scaledDensity * 11f);
                 text.setColor(muted);
                 text.setTextAlign(Paint.Align.CENTER);
@@ -320,7 +349,7 @@ public final class PowerCardView extends View {
             text.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             text.setColor(fg);
             String ph = placeholder == null ? "功率读取中" : placeholder;
-            if (apple) {
+            if (light) {
                 text.setTextAlign(Paint.Align.CENTER);
                 canvas.drawText(ph, widthPx / 2f, baseline, text);
                 text.setTextAlign(Paint.Align.LEFT);
@@ -333,7 +362,7 @@ public final class PowerCardView extends View {
             text.setTextSize(scaledDensity * 12.5f);
             text.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
             text.setColor(soft);
-            if (apple) {
+            if (light) {
                 text.setTextAlign(Paint.Align.CENTER);
                 canvas.drawText(ellipsize(sub, right - pad), widthPx / 2f,
                         top + pillH + dp(76), text);
@@ -375,7 +404,7 @@ public final class PowerCardView extends View {
         text.setTextSize(scaledDensity * 11.5f);
         text.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
         text.setColor(soft);
-        if (apple) {
+        if (light) {
             text.setTextAlign(Paint.Align.CENTER);
             canvas.drawText(ellipsize(info.toString(), right - pad), widthPx / 2f,
                     barTop + barH + dp(22), text);
@@ -396,7 +425,7 @@ public final class PowerCardView extends View {
                 heightPx - dp(15), text);
         text.setTextSize(scaledDensity * 11f);
         text.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        text.setColor(apple ? accent : 0xE6FFFFFF);
+        text.setColor(light ? accent : (violet || style == STYLE_NEON ? accent : 0xE6FFFFFF));
         canvas.drawText("详情 ›", right - dp(44), heightPx - dp(15), text);
 
         if (isCharging(s)) {
@@ -421,7 +450,7 @@ public final class PowerCardView extends View {
             float glow = (float) (0.55 + 0.45 * Math.sin(phase * Math.PI * 2));
             float cx = stateWidth + pad + dp(15);
             float cy = top + dp(12);
-            fill.setColor(apple ? cAppleSoft : 0x2EFFFFFF);
+            fill.setColor(apple ? cAppleSoft : (mint ? 0x2200A88F : 0x2EFFFFFF));
             fill.setAlpha((int) (90 + 90 * glow));
             canvas.drawCircle(cx, cy, dp(9), fill);
             bolt.reset();
@@ -432,7 +461,7 @@ public final class PowerCardView extends View {
             bolt.lineTo(cx + dp(5.2f), cy - dp(1.2f));
             bolt.lineTo(cx + dp(0.8f), cy - dp(1.2f));
             bolt.close();
-            fill.setColor(apple ? accent : 0xFFFFFFFF);
+            fill.setColor(apple || mint || violet || style == STYLE_NEON ? accent : 0xFFFFFFFF);
             fill.setAlpha((int) (150 + 105 * glow));
             canvas.drawPath(bolt, fill);
             fill.setAlpha(255);

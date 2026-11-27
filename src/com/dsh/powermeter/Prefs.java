@@ -142,7 +142,7 @@ public final class Prefs {
         setBool("shizuku_read_enabled", enabled);
     }
 
-    /** 界面风格：0=Apple 极简（默认），1=经典渐变，2=深色霓虹。 */
+    /** 界面风格：0=Apple 极简（默认），1=经典渐变，2=深色霓虹，3=薄荷，4=紫色星云。 */
     public int uiStyle() {
         try {
             return sp.getInt("ui_style", 0);
@@ -153,7 +153,7 @@ public final class Prefs {
 
     public void setUiStyle(int style) {
         try {
-            sp.edit().putInt("ui_style", Math.max(0, Math.min(2, style))).apply();
+            sp.edit().putInt("ui_style", Math.max(0, Math.min(4, style))).apply();
         } catch (Throwable ignored) {
         }
     }

@@ -10,5 +10,18 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowAnimationStyle">@style/AppWindowAnimation</item>
+    </style>
+
+    <style name="AppWindowAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/activity_open</item>
+        <item name="android:activityOpenExitAnimation">@anim/activity_close</item>
+        <item name="android:activityCloseEnterAnimation">@anim/activity_open</item>
+        <item name="android:activityCloseExitAnimation">@anim/activity_close</item>
+    </style>
+
+    <style name="DialogAnimation" parent="@android:style/Animation.Dialog">
+        <item name="android:windowEnterAnimation">@anim/dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/dialog_exit</item>
     </style>
 </resources>
