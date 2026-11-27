@@ -1,0 +1,10 @@
+build/
+*.apk
+*.apk.idsig
+signing.keystore
+.idea/
+local.properties
+*.iml
+.DS_Store
+
+*.zip
