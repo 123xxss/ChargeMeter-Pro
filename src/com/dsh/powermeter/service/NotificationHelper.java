@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.graphics.drawable.Icon;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
@@ -82,6 +83,8 @@ public final class NotificationHelper {
         public final String title;
         public final String text;
         public final int progress;
+        /** >0 时显示系统计时器（本轮充电时长），状态栏会持续走秒。 */
+        public long chronometerBase = -1;
 
         Content(String title, String text, int progress) {
             this.title = title == null ? "" : title;
@@ -216,10 +219,11 @@ public final class NotificationHelper {
 
         Notification.Builder builder = new Notification.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notify)
+                .setColor(context.getColor(R.color.apple_accent))
+                .setLargeIcon(Icon.createWithResource(context, R.mipmap.ic_launcher))
                 .setContentTitle(content.title)
                 .setContentText(content.text)
                 .setContentIntent(openMain)
-                .setShowWhen(true)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setCategory(Notification.CATEGORY_STATUS)
                 .setOnlyAlertOnce(true)
@@ -229,6 +233,13 @@ public final class NotificationHelper {
                 // 平台 Notification.Builder 没有 setSilent（那是 NotificationCompat 的方法）
                 .setDefaults(0);
 
+        if (content.chronometerBase > 0) {
+            builder.setUsesChronometer(true)
+                    .setWhen(content.chronometerBase)
+                    .setShowWhen(true);
+        } else {
+            builder.setUsesChronometer(false).setShowWhen(false);
+        }
         if (content.text.length() > BIG_TEXT_THRESHOLD) {
             builder.setStyle(new Notification.BigTextStyle().bigText(content.text));
         }

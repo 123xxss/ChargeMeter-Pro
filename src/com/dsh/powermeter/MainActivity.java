@@ -38,6 +38,7 @@ import com.dsh.powermeter.core.DeviceInfo;
 import com.dsh.powermeter.core.PowerSnapshot;
 import com.dsh.powermeter.core.SessionTracker;
 import com.dsh.powermeter.core.StateStore;
+import com.dsh.powermeter.service.NotificationHelper;
 import com.dsh.powermeter.service.PowerService;
 import com.dsh.powermeter.shizuku.ShizukuBatterySource;
 import com.dsh.powermeter.ui.DetailDialog;
@@ -105,6 +106,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
     private LinearLayout gridCard;
     private TextView headerStatus;
+    private ImageView statusBarToggle;
     private TextView gridTitle;
     private LinearLayout gridRow1;
     private LinearLayout gridRow2;
@@ -148,7 +150,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         if (!uiReady) return;
         try {
             Prefs prefs = Prefs.get(this);
-            if (prefs.masterEnabled()) {
+            if (prefs.masterEnabled() && prefs.notificationEnabled()) {
                 try {
                     // 从可见界面用 startService，避免 FGS 启动失败时触发系统
                     // “did not call startForeground” 的进程级崩溃。
@@ -177,6 +179,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             applySystemBars();
             if (heroCard != null) heroCard.setStyle(Prefs.get(this).uiStyle());
             if (chart != null) chart.setStyle(Prefs.get(this).uiStyle());
+            updateStatusBarToggle();
             render(StateStore.get().latest());
         } catch (Throwable t) {
             showSafeFallback(t);
@@ -355,6 +358,39 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         sysThermal.label.setText(Double.isNaN(st.thermalMaxC) ? "温度 · 未开放" : "系统最高温度");
     }
 
+    private void updateStatusBarToggle() {
+        if (statusBarToggle == null) return;
+        boolean on = Prefs.get(this).notificationEnabled();
+        statusBarToggle.setColorFilter(getColor(on ? R.color.accent : R.color.text_muted));
+        statusBarToggle.setContentDescription(on ? "关闭状态栏通知" : "开启状态栏通知");
+    }
+
+    private void toggleStatusBar() {
+        boolean next = !Prefs.get(this).notificationEnabled();
+        if (next && !notificationsAllowed()) {
+            BrandCompat.openNotificationSettings(this);
+            Toast.makeText(this, "请先允许通知权限", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Prefs.get(this).setNotificationEnabled(next);
+        try {
+            if (!next) {
+                PowerService.stop(this);
+                NotificationManager nm = (NotificationManager)
+                        getSystemService(Context.NOTIFICATION_SERVICE);
+                if (nm != null) nm.cancel(NotificationHelper.NOTIFICATION_ID);
+            } else if (Prefs.get(this).masterEnabled()) {
+                NotificationHelper.ensureChannel(this);
+                PowerService.startFromActivity(this);
+            }
+        } catch (Throwable ignored) {
+        }
+        updateStatusBarToggle();
+        updateBanner();
+        Toast.makeText(this, next ? "状态栏通知已开启" : "状态栏通知已关闭",
+                Toast.LENGTH_SHORT).show();
+    }
+
     private void openShizukuForStats() {
         try {
             if (!ShizukuBatterySource.isAvailable()) {
@@ -524,9 +560,11 @@ public final class MainActivity extends Activity implements StateStore.Listener 
 
     private void enableMaster() {
         Prefs.get(this).setMasterEnabled(true);
-        try {
-            PowerService.startFromActivity(this);
-        } catch (Throwable ignored) {
+        if (Prefs.get(this).notificationEnabled()) {
+            try {
+                PowerService.startFromActivity(this);
+            } catch (Throwable ignored) {
+            }
         }
         ChargeEngine.get(this).sampleNow();
         render(StateStore.get().latest());
@@ -743,6 +781,10 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         headerStatus.setMaxWidth(UiKit.dp(this, 108));
         headerStatus.setEllipsize(TextUtils.TruncateAt.END);
         header.addView(headerStatus, UiKit.left(this, UiKit.wrapWrap(), 6));
+        statusBarToggle = UiKit.iconButton(this, R.drawable.ic_bell,
+                R.color.text_secondary, v -> toggleStatusBar());
+        statusBarToggle.setContentDescription("状态栏开关");
+        header.addView(statusBarToggle);
         ImageView settings = UiKit.iconButton(this, R.drawable.ic_settings,
                 R.color.text_secondary,
                 v -> startActivity(new Intent(this, SettingsActivity.class)));

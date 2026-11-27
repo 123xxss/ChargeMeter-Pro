@@ -94,13 +94,21 @@ def notify(size):
     img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     c = s / 2
+    # 与桌面图标一致的镜头环 + 闪电白色剪影（状态栏要求透明单色）
+    ring_r = s * 0.35
+    ring_w = max(2, int(s * 0.045))
+    d.ellipse([c - ring_r, c - ring_r, c + ring_r, c + ring_r],
+              outline=(255, 255, 255, 255), width=ring_w)
+    inner_r = s * 0.23
+    d.ellipse([c - inner_r, c - inner_r, c + inner_r, c + inner_r],
+              outline=(255, 255, 255, 210), width=max(2, int(s * 0.035)))
     bolt = [
-        (c + s * 0.08, c - s * 0.40),
-        (c - s * 0.26, c + s * 0.06),
-        (c - s * 0.03, c + s * 0.06),
-        (c - s * 0.10, c + s * 0.40),
-        (c + s * 0.27, c - s * 0.10),
-        (c + s * 0.02, c - s * 0.10),
+        (c + s * 0.08, c - s * 0.32),
+        (c - s * 0.23, c + s * 0.05),
+        (c - s * 0.02, c + s * 0.05),
+        (c - s * 0.09, c + s * 0.32),
+        (c + s * 0.24, c - s * 0.07),
+        (c + s * 0.01, c - s * 0.07),
     ]
     d.polygon(bolt, fill=WHITE)
     return img.resize((size, size), Image.LANCZOS)

@@ -22,8 +22,9 @@ public final class BootReceiver extends BroadcastReceiver {
         if (context == null || intent == null) return;
         if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) return;
         try {
-            if (!Prefs.get(context).masterEnabled()) {
-                Log.i(TAG, "总开关关闭，开机不启动监测服务");
+            if (!Prefs.get(context).masterEnabled()
+                    || !Prefs.get(context).notificationEnabled()) {
+                Log.i(TAG, "总开关或状态栏关闭，开机不启动监测服务");
                 return;
             }
             PowerService.start(context);

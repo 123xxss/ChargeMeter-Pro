@@ -29,8 +29,9 @@ public final class PowerConnectionReceiver extends BroadcastReceiver {
             return;
         }
         try {
-            // 总开关关闭时不去唤起服务，避免通知栏闪一下
-            if (!Prefs.get(context).masterEnabled()) return;
+            // 总开关或状态栏关闭时不去唤起服务，避免通知栏闪一下
+            if (!Prefs.get(context).masterEnabled()
+                    || !Prefs.get(context).notificationEnabled()) return;
         } catch (Throwable t) {
             Log.w(TAG, "读取总开关失败：" + t.getClass().getSimpleName());
         }

@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.dsh.powermeter.core.ChargeEngine;
 import com.dsh.powermeter.core.DeviceInfo;
 import com.dsh.powermeter.core.StateStore;
+import com.dsh.powermeter.service.NotificationHelper;
 import com.dsh.powermeter.service.PowerService;
 import com.dsh.powermeter.shizuku.ShizukuBatterySource;
 import com.dsh.powermeter.ui.UiKit;
@@ -266,7 +267,7 @@ public final class SettingsActivity extends Activity {
                 : "系统未允许通知，开启后才能显示状态栏卡片";
         addCard(new UiKit.SwitchRow(this, "状态栏通知", notifSubtitle,
                 prefs.notificationEnabled(), true,
-                (button, checked) -> Prefs.get(this).setNotificationEnabled(checked)));
+                (button, checked) -> setNotificationEnabled(checked)));
         if (!notificationsAllowed) {
             addCard(UiKit.actionRow(this, "通知权限",
                     "系统未允许本应用发送通知", "去开启",
@@ -352,7 +353,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "2.3.0");
+        addInfo(about, "版本", "2.4.0");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
                 + " · " + DeviceInfo.model());
@@ -447,6 +448,23 @@ public final class SettingsActivity extends Activity {
         } catch (Throwable t) {
             Toast.makeText(this, "Shizuku 操作失败", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void setNotificationEnabled(boolean enabled) {
+        Prefs.get(this).setNotificationEnabled(enabled);
+        try {
+            if (!enabled) {
+                PowerService.stop(this);
+                NotificationManager nm = (NotificationManager)
+                        getSystemService(NOTIFICATION_SERVICE);
+                if (nm != null) nm.cancel(NotificationHelper.NOTIFICATION_ID);
+            } else if (Prefs.get(this).masterEnabled()) {
+                NotificationHelper.ensureChannel(this);
+                PowerService.startFromActivity(this);
+            }
+        } catch (Throwable ignored) {
+        }
+        rebuildContent();
     }
 
     private void setPreciseMode(boolean enabled) {

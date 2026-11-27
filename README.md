@@ -6,13 +6,22 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.3.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.3.0/WattLens-Pro-v2.3.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.4.0](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.4.0/WattLens-Pro-v2.4.0.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行](docs/preview-v2.3.0.png)
+![主页、详情、应用耗电排行](docs/preview-v2.4.0.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.4.0 更新（状态栏开关 + 图标统一 + 状态栏动画）
+
+- 主界面右上角新增**状态栏铃铛开关**；设置里的「状态栏通知」同步生效。
+- 关闭时停止前台通知服务并取消通知；重新开启时在可见界面恢复，避免后台启动限制。
+- 通知栏小图标改为与 App 图标一致的**镜头环+闪电**单色图标；大图标使用新 App 图标，强调色统一。
+- 状态栏动画：充电中显示**系统计时器（本轮充电时长，自动走秒）**和电量进度；静止状态不显示时间戳，减少刷新闪烁。
+- 通知栏仍每秒与主界面同步；精准模式仍只读固定 `dumpsys batterystats`（约 30 秒）。
+- 版本 28 / 2.4.0；测试 313 项通过。
 
 ## 2.3.0 更新（Shizuku 精准模式开关）
 

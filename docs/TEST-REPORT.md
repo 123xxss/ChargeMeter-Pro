@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.3.0（versionCode 27）
+- 版本：2.4.0（versionCode 28）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
-- APK：`powermeter.apk`，289,136 bytes
-- SHA-256：`92ccebcc29a21a1108b7aa67761b02123800dd3dda398b2b0228b0001f32815f`
+- APK：`powermeter.apk`，293,302 bytes
+- SHA-256：`d8b7e07e49ba6c81e27c971f40e543e60d914c4b787b444833537ff90d331ddc`
 
-> 2.3.0 Shizuku 精准模式开关；测试 313 项全通过。
+> 2.4.0 状态栏开关、图标统一与状态栏计时动画；测试 313 项全通过。
 
 ## 1. 自动化测试结果
 
