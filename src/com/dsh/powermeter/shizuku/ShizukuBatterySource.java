@@ -184,6 +184,12 @@ public final class ShizukuBatterySource {
             v.chargeCounterUah = rawCounter > 0 && rawCounter < 100_000_000
                     ? (long) rawCounter : -1;
             v.status = parts[4];
+            if (parts.length >= 6) {
+                double rawMax = num(parts[5]);
+                if (rawMax > 100_000) v.voltageMaxV = rawMax / 1_000_000.0;
+                else if (rawMax > 1_000) v.voltageMaxV = rawMax / 1_000.0;
+                else if (rawMax > 1) v.voltageMaxV = rawMax;
+            }
             if (!(v.voltageV >= 2.0 && v.voltageV <= 10.5)) return null;
             if (!Double.isFinite(v.currentA) || Math.abs(v.currentA) > 40) return null;
             return v;
@@ -211,5 +217,6 @@ public final class ShizukuBatterySource {
         public double tempC = Double.NaN;
         public long chargeCounterUah = -1;
         public String status;
+        public double voltageMaxV = Double.NaN;
     }
 }

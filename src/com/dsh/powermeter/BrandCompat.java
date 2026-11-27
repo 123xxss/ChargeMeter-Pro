@@ -83,6 +83,35 @@ public final class BrandCompat {
         }
     }
 
+    /** 已知/高置信度双电芯机型（g 用于自动修正；未知机型仍可手动强制）。 */
+    public static boolean isKnownDualCellDevice() {
+        try {
+            String id = (Build.MODEL + " " + Build.DEVICE + " " + Build.PRODUCT)
+                    .toLowerCase(Locale.ROOT);
+            switch (brand()) {
+                case VIVO:
+                    // iQOO 11/12/Neo 系列、vivo X90/X100 系列等 2S 高功率机型
+                    return id.contains("v2339") || id.contains("v2307") || id.contains("v2329")
+                            || id.contains("v2352") || id.contains("v2361") || id.contains("v2362")
+                            || id.contains("neo9") || id.contains("neo8") || id.contains("neo7")
+                            || id.contains("iqoo 12") || id.contains("iqoo 11")
+                            || id.contains("x100") || id.contains("x90");
+                case OPPO:
+                    return id.contains("phk110") || id.contains("phb110")
+                            || id.contains("pjd110") || id.contains("cph2447")
+                            || id.contains("cph2451") || id.contains("cph2525");
+                case XIAOMI:
+                    // 小米高功率机型通常有 POWER_MAX 广播；这里只兜底少数已知型号
+                    return id.contains("23127pn0cc") || id.contains("23113rkc6c")
+                            || id.contains("23049rad8c");
+                default:
+                    return false;
+            }
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     /** PRD 12.2 的引导文案。 */
     public static String guideSteps() {
         switch (brand()) {

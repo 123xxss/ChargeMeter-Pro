@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：1.2.0（versionCode 5）
+- 版本：1.3.0（versionCode 6）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，215,059 bytes
-- SHA-256：`f7cb6071eb8779e90a735e5745c307ff85e501e53bf5bea3714d8fccb97fc1af`
+- SHA-256：`adbe4e4a9fd29b12d18c21b19d6eab718c2c0cac47dc38775deae65174340519`
 
-> 1.2.0 新增自绘紧凑功率卡、充电动画与 Shizuku 只读增强；测试仍为 301 项全通过。
+> 1.3.0 修复双电芯自动匹配（已知机型 + voltage_max）；测试仍为 301 项全通过。
 
 ## 1. 自动化测试结果
 

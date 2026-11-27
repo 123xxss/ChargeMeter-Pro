@@ -19,10 +19,20 @@ public class BatteryUserService extends IBatteryUserService.Stub {
             "/sys/class/power_supply/battery/current_now",
             "/sys/class/power_supply/battery/temp",
             "/sys/class/power_supply/battery/charge_counter",
-            "/sys/class/power_supply/battery/status"
+            "/sys/class/power_supply/battery/status",
+            "/sys/class/power_supply/battery/voltage_max"
     };
 
     public BatteryUserService() {
+    }
+
+    @Override
+    public void destroy() {
+        // Shizuku 停止 UserService 时调用；只结束本进程，不改系统状态。
+        try {
+            System.exit(0);
+        } catch (Throwable ignored) {
+        }
     }
 
     @Override

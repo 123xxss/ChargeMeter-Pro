@@ -183,10 +183,13 @@ public final class ChargeNormalizer {
                 boolean corrected = false;
                 int cells;
                 if (v >= MIN_PACK_V) {
-                    cells = clampCells((int) Math.round(v / 3.85));
+                    cells = clampCells((int) Math.max(2, Math.round(v / 3.85)));
                 } else {
                     cells = 1;
-                    if (dualMode != DUAL_OFF && raw.powerMaxW >= 50) {
+                    boolean dualHint = raw.likelyDualCell
+                            || (!Double.isNaN(raw.sysfsVoltageMaxV) && raw.sysfsVoltageMaxV >= 7.0)
+                            || raw.powerMaxW >= 50;
+                    if (dualMode != DUAL_OFF && dualHint) {
                         v *= 2;
                         cells = 2;
                         corrected = true;
@@ -232,6 +235,8 @@ public final class ChargeNormalizer {
      * 低功率充电不乘 2，避免 18W 单电芯机型被翻倍。
      */
     private boolean autoDual(RawBattery raw, boolean dualCellBrand, double cellV) {
+        if (raw.likelyDualCell) return true;
+        if (!Double.isNaN(raw.sysfsVoltageMaxV) && raw.sysfsVoltageMaxV >= 7.0) return true;
         if (raw.powerMaxW >= 50) return true;
         if (!dualCellBrand) return false;
         if (cellV < MIN_CELL_V || cellV > MAX_CELL_V) return false;

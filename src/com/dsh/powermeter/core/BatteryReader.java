@@ -199,7 +199,8 @@ public final class BatteryReader {
 
         b.status(status).plugged(plugged).level(level)
                 .voltageMv(voltageMv)
-                .temperatureDeciC(tempDeci);
+                .temperatureDeciC(tempDeci)
+                .likelyDualCell(BrandCompat.isKnownDualCellDevice());
 
         // 电流：BatteryManager 标准属性
         boolean currentSupported = false;
@@ -251,7 +252,8 @@ public final class BatteryReader {
                 b.sysfsVoltageV(v.voltageV)
                         .sysfsCurrentA(v.currentA)
                         .sysfsTempC(v.tempC)
-                        .sysfsStatus(v.status);
+                        .sysfsStatus(v.status)
+                        .sysfsVoltageMaxV(v.voltageMaxV);
                 if (counter < 0 && v.chargeCounterUah > 0) {
                     b.chargeCounterUah(v.chargeCounterUah);
                 }
@@ -266,7 +268,8 @@ public final class BatteryReader {
                     b.sysfsVoltageV(v.voltageV)
                             .sysfsCurrentA(v.currentA)
                             .sysfsTempC(v.tempC)
-                            .sysfsStatus(v.status);
+                            .sysfsStatus(v.status)
+                            .sysfsVoltageMaxV(v.voltageMaxV);
                     if (counter < 0 && v.chargeCounterUah > 0) {
                         b.chargeCounterUah(v.chargeCounterUah);
                     }

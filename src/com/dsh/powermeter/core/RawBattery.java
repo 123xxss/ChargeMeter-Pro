@@ -26,6 +26,10 @@ public final class RawBattery {
     public final double sysfsCurrentA;
     public final double sysfsTempC;
     public final String sysfsStatus;
+    /** 已知双电芯机型提示（来自品牌/机型表），用于自动 ×2。 */
+    public final boolean likelyDualCell;
+    /** sysfs voltage_max（V，整包最大电压），NaN 表示未知。 */
+    public final double sysfsVoltageMaxV;
 
     private RawBattery(Builder b) {
         this.timestampMs = b.timestampMs;
@@ -43,6 +47,8 @@ public final class RawBattery {
         this.sysfsCurrentA = b.sysfsCurrentA;
         this.sysfsTempC = b.sysfsTempC;
         this.sysfsStatus = b.sysfsStatus;
+        this.likelyDualCell = b.likelyDualCell;
+        this.sysfsVoltageMaxV = b.sysfsVoltageMaxV;
     }
 
     public boolean isPlugged() {
@@ -81,6 +87,8 @@ public final class RawBattery {
         private double sysfsCurrentA = NO_SYSFS;
         private double sysfsTempC = NO_SYSFS;
         private String sysfsStatus;
+        private boolean likelyDualCell = false;
+        private double sysfsVoltageMaxV = NO_SYSFS;
 
         public Builder timestampMs(long v) { timestampMs = v; return this; }
         public Builder status(int v) { status = v; return this; }
@@ -97,6 +105,8 @@ public final class RawBattery {
         public Builder sysfsCurrentA(double v) { sysfsCurrentA = v; return this; }
         public Builder sysfsTempC(double v) { sysfsTempC = v; return this; }
         public Builder sysfsStatus(String v) { sysfsStatus = v; return this; }
+        public Builder likelyDualCell(boolean v) { likelyDualCell = v; return this; }
+        public Builder sysfsVoltageMaxV(double v) { sysfsVoltageMaxV = v; return this; }
 
         public RawBattery build() {
             return new RawBattery(this);

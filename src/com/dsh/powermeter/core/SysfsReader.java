@@ -28,6 +28,7 @@ public final class SysfsReader {
         public double tempC = Double.NaN;
         public String status;
         public int chargeCounterUah = -1;
+        public double voltageMaxV = Double.NaN;
     }
 
     private SysfsReader() {
@@ -56,6 +57,14 @@ public final class SysfsReader {
             } else if (raw > 1) {
                 v.voltageV = raw;                 // 少数节点上报 V
             }
+        }
+
+        String voltageMax = readFile(base + "/voltage_max");
+        if (voltageMax != null) {
+            double raw = parseDouble(voltageMax);
+            if (raw > 100_000) v.voltageMaxV = raw / 1_000_000.0;
+            else if (raw > 1_000) v.voltageMaxV = raw / 1_000.0;
+            else if (raw > 1) v.voltageMaxV = raw;
         }
 
         String current = readFile(base + "/current_now");

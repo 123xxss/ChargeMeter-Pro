@@ -7,7 +7,11 @@ public interface IBatteryUserService extends android.os.IInterface
   /** Default implementation for IBatteryUserService. */
   public static class Default implements com.dsh.powermeter.shizuku.IBatteryUserService
   {
-    /** 返回 "voltage_now;current_now;temp;charge_counter;status"（只读白名单节点）。 */
+    /** Shizuku 保留的销毁事务号，用于停止 UserService。 */
+    @Override public void destroy() throws android.os.RemoteException
+    {
+    }
+    /** 返回 "voltage_now;current_now;temp;charge_counter;status;voltage_max"（只读白名单节点）。 */
     @Override public java.lang.String readBattery() throws android.os.RemoteException
     {
       return null;
@@ -60,6 +64,12 @@ public interface IBatteryUserService extends android.os.IInterface
       }
       switch (code)
       {
+        case TRANSACTION_destroy:
+        {
+          this.destroy();
+          reply.writeNoException();
+          break;
+        }
         case TRANSACTION_readBattery:
         {
           java.lang.String _result = this.readBattery();
@@ -89,7 +99,22 @@ public interface IBatteryUserService extends android.os.IInterface
       {
         return DESCRIPTOR;
       }
-      /** 返回 "voltage_now;current_now;temp;charge_counter;status"（只读白名单节点）。 */
+      /** Shizuku 保留的销毁事务号，用于停止 UserService。 */
+      @Override public void destroy() throws android.os.RemoteException
+      {
+        android.os.Parcel _data = android.os.Parcel.obtain();
+        android.os.Parcel _reply = android.os.Parcel.obtain();
+        try {
+          _data.writeInterfaceToken(DESCRIPTOR);
+          boolean _status = mRemote.transact(Stub.TRANSACTION_destroy, _data, _reply, 0);
+          _reply.readException();
+        }
+        finally {
+          _reply.recycle();
+          _data.recycle();
+        }
+      }
+      /** 返回 "voltage_now;current_now;temp;charge_counter;status;voltage_max"（只读白名单节点）。 */
       @Override public java.lang.String readBattery() throws android.os.RemoteException
       {
         android.os.Parcel _data = android.os.Parcel.obtain();
@@ -108,9 +133,12 @@ public interface IBatteryUserService extends android.os.IInterface
         return _result;
       }
     }
-    static final int TRANSACTION_readBattery = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
+    static final int TRANSACTION_destroy = (android.os.IBinder.FIRST_CALL_TRANSACTION + 16777114);
+    static final int TRANSACTION_readBattery = (android.os.IBinder.FIRST_CALL_TRANSACTION + 2);
   }
   public static final java.lang.String DESCRIPTOR = "com.dsh.powermeter.shizuku.IBatteryUserService";
-  /** 返回 "voltage_now;current_now;temp;charge_counter;status"（只读白名单节点）。 */
+  /** Shizuku 保留的销毁事务号，用于停止 UserService。 */
+  public void destroy() throws android.os.RemoteException;
+  /** 返回 "voltage_now;current_now;temp;charge_counter;status;voltage_max"（只读白名单节点）。 */
   public java.lang.String readBattery() throws android.os.RemoteException;
 }

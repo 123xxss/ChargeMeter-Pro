@@ -22,8 +22,8 @@ Q="${QEMU:-}"
 if [ -z "$Q" ] && [ "$(uname -m)" != "x86_64" ]; then
   if command -v qemu-x86_64-static >/dev/null 2>&1; then Q="qemu-x86_64-static"; fi
 fi
-VERSION_CODE="${VERSION_CODE:-5}"
-VERSION_NAME="${VERSION_NAME:-1.2.0}"
+VERSION_CODE="${VERSION_CODE:-6}"
+VERSION_NAME="${VERSION_NAME:-1.3.0}"
 
 P="$(cd "$(dirname "$0")" && pwd)"
 OUT="$P/build"
