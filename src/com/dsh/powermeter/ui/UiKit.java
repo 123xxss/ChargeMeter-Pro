@@ -326,6 +326,8 @@ public final class UiKit {
         value.setEllipsize(TextUtils.TruncateAt.END);
         root.addView(value, matchWrap());
         TextView label = text(c, labelText, 11.5f, R.color.text_muted, false);
+        label.setSingleLine(true);
+        label.setEllipsize(TextUtils.TruncateAt.END);
         root.addView(label, top(c, matchWrap(), 2));
         return new Metric(root, value, label);
     }

@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：1.9.0（versionCode 18）
+- 版本：1.9.1（versionCode 19）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
-- APK：`powermeter.apk`，235,825 bytes
-- SHA-256：`9d37752cd5038bddd20a4b06d893b6ee9e15119592b4ab5a343fa44bae3c6995`
+- APK：`powermeter.apk`，235,888 bytes
+- SHA-256：`904f45a10d0e3c2462360010cdbc5a3eca5a6370f4ead763268554c2aa74b35d`
 
-> 1.9.0 主页与详情页 UI 重做、分组动画；测试 312 项全通过。
+> 1.9.1 详情圆角底板/防溢出、可选动效、通知同步；测试 312 项全通过。
 
 ## 1. 自动化测试结果
 

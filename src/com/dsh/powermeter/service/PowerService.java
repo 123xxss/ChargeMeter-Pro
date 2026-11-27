@@ -187,9 +187,9 @@ public final class PowerService extends Service implements StateStore.Listener {
                 Log.i(TAG, "状态切换：" + lastState);
             }
             NotificationHelper.Content content = NotificationHelper.content(prefs, snapshot);
-            String key = content.key();
-            if (key.equals(lastKey)) return; // 文本未变，不重复刷新
-            lastKey = key;
+            // 通知栏必须与主界面保持同一帧：不再用文本去重拦掉刷新。
+            // 每秒 notify 一次成本很低，却能避免二级文本/系统缓存导致的“慢一拍”。
+            lastKey = content.key();
             post(content);
         } catch (Throwable t) {
             Log.w(TAG, "刷新通知失败：" + t.getClass().getSimpleName());

@@ -191,9 +191,12 @@ public final class MainActivity extends Activity implements StateStore.Listener 
     private void animateEntrance() {
         if (entranceAnimated) return;
         entranceAnimated = true;
+        int motion = Prefs.get(this).motionStyle();
+        if (motion == 2) return;
+        boolean rich = motion == 1;
         View[] views = {heroCard, gridCard, chartCard,
                 systemCard, sessionCard, footerCard};
-        int step = UiKit.dp(this, 10);
+        int step = UiKit.dp(this, rich ? 14 : 10);
         for (int i = 0; i < views.length; i++) {
             View v = views[i];
             if (v == null) continue;
@@ -202,8 +205,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             v.animate()
                     .alpha(1f)
                     .translationY(0f)
-                    .setStartDelay(i * 28L)
-                    .setDuration(220)
+                    .setStartDelay(i * (rich ? 42L : 28L))
+                    .setDuration(rich ? 320 : 220)
                     .start();
         }
     }
@@ -711,6 +714,8 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         systemCard.addView(sysRow1, UiKit.top(this, UiKit.matchWrap(), 8));
         systemCard.addView(sysRow2, UiKit.matchWrap());
         systemHint = UiKit.textColor(this, "", 11f, getColor(R.color.accent), true);
+        systemHint.setMaxLines(2);
+        systemHint.setEllipsize(TextUtils.TruncateAt.END);
         systemHint.setPadding(0, UiKit.dp(this, 8), 0, 0);
         systemHint.setOnClickListener(v -> openShizukuForStats());
         systemCard.addView(systemHint, UiKit.matchWrap());
@@ -810,9 +815,16 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         String next = value == null ? "--" : value;
         if (next.contentEquals(metric.value.getText())) return;
         metric.value.animate().cancel();
+        int motion = Prefs.get(this).motionStyle();
+        if (motion == 2) {
+            metric.value.setAlpha(1f);
+            metric.value.setText(next);
+            return;
+        }
         metric.value.setAlpha(0.55f);
         metric.value.setText(next);
-        metric.value.animate().alpha(1f).setDuration(160).start();
+        metric.value.animate().alpha(1f)
+                .setDuration(motion == 1 ? 240 : 160).start();
     }
 
     private void updateHeaderStatus(boolean master, PowerSnapshot s) {

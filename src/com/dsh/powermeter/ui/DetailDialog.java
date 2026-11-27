@@ -50,19 +50,18 @@ public final class DetailDialog {
 
         LinearLayout page = UiKit.column(c);
         int margin = UiKit.dp(c, 16);
-        page.setPadding(margin, UiKit.dp(c, 4), margin, UiKit.dp(c, 8));
+        page.setPadding(margin, UiKit.dp(c, 6), margin, UiKit.dp(c, 10));
 
-        // 顶部标题栏
+        // 顶部：只保留实时状态和完成，不再出现“详情”大标题；整张弹窗用圆角背景包住。
         LinearLayout header = UiKit.row(c);
-        TextView title = UiKit.text(c, "详情", 21f, R.color.text_primary, true);
-        header.addView(title, UiKit.weighted(1f));
         TextView live = UiKit.pill(c, "● 实时", accent, cardAlt);
         live.setTextSize(11f);
-        header.addView(live, UiKit.left(c, UiKit.wrapWrap(), 8));
+        header.addView(live);
         TextView closeTop = UiKit.textColor(c, "完成", 14f, accent, true);
         int cp = UiKit.dp(c, 10);
         closeTop.setPadding(cp, UiKit.dp(c, 6), cp, UiKit.dp(c, 6));
         closeTop.setOnClickListener(v -> dialog.dismiss());
+        header.addView(new android.view.View(c), UiKit.weighted(1f));
         header.addView(closeTop, UiKit.left(c, UiKit.wrapWrap(), 4));
         page.addView(header, UiKit.matchWrap());
 
@@ -111,6 +110,8 @@ public final class DetailDialog {
         addRow(c, sysCard, rows, "存储");
         TextView shizukuHint = UiKit.textColor(c,
                 "CPU/GPU/系统温度未开放？点此用 Shizuku 尝试读取", 11.5f, accent, true);
+        shizukuHint.setMaxLines(2);
+        shizukuHint.setEllipsize(TextUtils.TruncateAt.END);
         shizukuHint.setPadding(0, UiKit.dp(c, 10), 0, 0);
         shizukuHint.setOnClickListener(v -> requestShizuku(activity, c));
         sysCard.addView(shizukuHint, UiKit.matchWrap());
@@ -149,7 +150,10 @@ public final class DetailDialog {
         scroll.setFillViewport(false);
         scroll.setVerticalScrollBarEnabled(true);
         scroll.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
-        scroll.setBackgroundColor(Color.TRANSPARENT);
+        // 关键：整张弹窗有一块实心圆角底板，阻断下层主页内容透出，避免截图里
+        // “详情”与底层充电中标签/曲线叠在一起。
+        scroll.setBackground(UiKit.rounded(c, c.getColor(R.color.bg), 32f));
+        scroll.setClipToOutline(true);
         scroll.addView(page, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         scroll.setLayoutParams(new ViewGroup.LayoutParams(
@@ -173,18 +177,21 @@ public final class DetailDialog {
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
             window.setDimAmount(0.5f);
-            window.setWindowAnimations(R.style.DialogAnimation);
+            window.setWindowAnimations(Prefs.get(c).motionStyle() == 2
+                    ? R.style.DialogAnimationNone : R.style.DialogAnimation);
             int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.80f);
+            int width = c.getResources().getDisplayMetrics().widthPixels - UiKit.dp(c, 24);
             window.setGravity(android.view.Gravity.CENTER);
-            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height);
+            window.setLayout(width, height);
             window.getDecorView().setPadding(0, UiKit.dp(c, 8), 0, UiKit.dp(c, 8));
         }
         dialog.show();
         if (window != null) {
             int height = (int) (c.getResources().getDisplayMetrics().heightPixels * 0.80f);
-            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height);
+            int width = c.getResources().getDisplayMetrics().widthPixels - UiKit.dp(c, 24);
+            window.setLayout(width, height);
         }
-        animateSections(page, 1); // 从 1 开始，跳过顶部标题栏
+        animateSections(page, 1); // 跳过顶部状态栏，从功率大卡开始
     }
 
     private static void addRow(Context c, LinearLayout parent, Map<String, TextView> rows,
@@ -298,14 +305,18 @@ public final class DetailDialog {
     }
 
     private static void animateSections(LinearLayout page, int from) {
-        int step = UiKit.dp(page.getContext(), 12);
+        Context c = page.getContext();
+        int motion = Prefs.get(c).motionStyle();
+        if (motion == 2) return;
+        boolean rich = motion == 1;
+        int step = UiKit.dp(c, rich ? 16 : 12);
         for (int i = from; i < page.getChildCount(); i++) {
             View v = page.getChildAt(i);
             v.setAlpha(0f);
             v.setTranslationY(step);
             v.animate().alpha(1f).translationY(0f)
-                    .setStartDelay((i - from) * 22L)
-                    .setDuration(200).start();
+                    .setStartDelay((i - from) * (rich ? 34L : 22L))
+                    .setDuration(rich ? 300 : 200).start();
         }
     }
 
@@ -326,9 +337,15 @@ public final class DetailDialog {
         String next = value == null ? "--" : value;
         if (next.contentEquals(v.getText())) return;
         v.animate().cancel();
+        int motion = Prefs.get(v.getContext()).motionStyle();
+        if (motion == 2) {
+            v.setAlpha(1f);
+            v.setText(next);
+            return;
+        }
         v.setAlpha(0.55f);
         v.setText(next);
-        v.animate().alpha(1f).setDuration(160).start();
+        v.animate().alpha(1f).setDuration(motion == 1 ? 240 : 160).start();
     }
 
     private static void addNote(Context c, LinearLayout parent, String text) {

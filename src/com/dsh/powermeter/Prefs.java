@@ -158,6 +158,22 @@ public final class Prefs {
         }
     }
 
+    /** 动效强度：0=标准，1=增强，2=关闭。 */
+    public int motionStyle() {
+        try {
+            return sp.getInt("motion_style", 0);
+        } catch (Throwable t) {
+            return 0;
+        }
+    }
+
+    public void setMotionStyle(int style) {
+        try {
+            sp.edit().putInt("motion_style", Math.max(0, Math.min(2, style))).apply();
+        } catch (Throwable ignored) {
+        }
+    }
+
     /** 电芯数覆盖：0=按品牌推荐，1/2/3/4=手动。 */
     public int cellCountOverride() {
         try {

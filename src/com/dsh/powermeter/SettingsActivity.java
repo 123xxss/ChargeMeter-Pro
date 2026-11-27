@@ -88,6 +88,25 @@ public final class SettingsActivity extends Activity {
         builder.show();
     }
 
+    private void showMotionDialog() {
+        final Prefs prefs = Prefs.get(this);
+        final String[] items = {"标准", "增强", "关闭"};
+        AlertDialog.Builder builder = dialogBuilder("动效");
+        builder.setSingleChoiceItems(items, prefs.motionStyle(), (dialog, which) -> {
+            prefs.setMotionStyle(which);
+            dialog.dismiss();
+            rebuildContent();
+        });
+        builder.setNegativeButton("取消", null);
+        builder.show();
+    }
+
+    private String motionLabel(int style) {
+        if (style == 2) return "关闭";
+        if (style == 1) return "增强";
+        return "标准";
+    }
+
     private String styleLabel(int style) {
         switch (style) {
             case 1: return "经典渐变";
@@ -237,6 +256,9 @@ public final class SettingsActivity extends Activity {
         addCard(UiKit.actionRow(this, "界面风格",
                 "Apple 极简 / 经典渐变 / 深色霓虹 / 薄荷 / 紫色星云；功率卡与曲线同步切换",
                 styleLabel(prefs.uiStyle()), v -> showStyleDialog()));
+        addCard(UiKit.actionRow(this, "动效",
+                "标准 / 增强 / 关闭；控制入场、分组、数值、弹窗动画",
+                motionLabel(prefs.motionStyle()), v -> showMotionDialog()));
         String notifSubtitle = notificationsAllowed
                 ? "在状态栏常驻显示充电功率与电量"
                 : "系统未允许通知，开启后才能显示状态栏卡片";
@@ -314,7 +336,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "1.9.0");
+        addInfo(about, "版本", "1.9.1");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
                 + " · " + DeviceInfo.model());
@@ -338,7 +360,10 @@ public final class SettingsActivity extends Activity {
     private void animateContentOnce() {
         if (!firstAnimation || content == null) return;
         firstAnimation = false;
-        int step = UiKit.dp(this, 9);
+        int motion = Prefs.get(this).motionStyle();
+        if (motion == 2) return;
+        boolean rich = motion == 1;
+        int step = UiKit.dp(this, rich ? 13 : 9);
         int count = Math.min(content.getChildCount(), 18);
         for (int i = 0; i < count; i++) {
             View child = content.getChildAt(i);
@@ -347,8 +372,8 @@ public final class SettingsActivity extends Activity {
             child.animate()
                     .alpha(1f)
                     .translationY(0f)
-                    .setStartDelay(i * 18L)
-                    .setDuration(190)
+                    .setStartDelay(i * (rich ? 30L : 18L))
+                    .setDuration(rich ? 280 : 190)
                     .start();
         }
     }
