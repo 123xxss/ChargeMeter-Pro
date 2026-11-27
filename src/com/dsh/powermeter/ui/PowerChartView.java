@@ -11,12 +11,12 @@ import android.view.View;
 import com.dsh.powermeter.R;
 
 /**
- * 最近 2 分钟的实时功率曲线（0.5 秒采样，最多 240 点）。
+ * 最近 2 分钟的实时功率曲线（1 秒采样，最多 120 点）。
  * 纯 Canvas 绘制，轻量、无第三方依赖；用于快速判断功率是否在实时变化。
  */
 public final class PowerChartView extends View {
 
-    private static final int MAX_POINTS = 240;
+    private static final int MAX_POINTS = 120;
 
     private final Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
