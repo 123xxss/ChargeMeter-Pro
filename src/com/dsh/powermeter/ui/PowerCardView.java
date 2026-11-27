@@ -187,7 +187,7 @@ public final class PowerCardView extends View {
                 sub = s.invalidReason;
             } else {
                 value = fmt(s.powerW);
-                sub = s.modeLabel + " · 平滑值";
+                sub = s.modeLabel + " · 0.5 秒实时刷新";
             }
         } else if (s.state == ChargeState.UNPLUGGED) {
             placeholder = "接入电源后自动显示";
@@ -206,7 +206,7 @@ public final class PowerCardView extends View {
             sub = "电池放电中，净功耗接近零";
         } else {
             value = fmt(s.powerW);
-            sub = s.modeLabel + " · 平滑值";
+            sub = s.modeLabel + " · 0.5 秒实时刷新";
         }
 
         if (value != null) {

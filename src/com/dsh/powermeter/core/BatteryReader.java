@@ -283,7 +283,7 @@ public final class BatteryReader {
 
     private SysfsReader.Values readSysfsCached() {
         long now = System.currentTimeMillis();
-        if (sysfsCache != null && now - sysfsCacheAt < 800) {
+        if (sysfsCache != null && now - sysfsCacheAt < 300) {
             return sysfsCache;
         }
         try {

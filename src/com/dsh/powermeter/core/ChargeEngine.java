@@ -21,10 +21,10 @@ import com.dsh.powermeter.Prefs;
 public final class ChargeEngine {
 
     private static final String TAG = "ChargeEngine";
-    private static final long INTERVAL_CHARGING_MS = 1000;
-    private static final long INTERVAL_TURBO_MS = 500;
-    private static final long INTERVAL_FULL_MS = 3000;
-    private static final long INTERVAL_DISCHARGE_MS = 2000;
+    private static final long INTERVAL_CHARGING_MS = 500;
+    private static final long INTERVAL_TURBO_MS = 250;
+    private static final long INTERVAL_FULL_MS = 1500;
+    private static final long INTERVAL_DISCHARGE_MS = 1000;
     private static final long INTERVAL_IDLE_MS = 5000;
 
     private static volatile ChargeEngine instance;

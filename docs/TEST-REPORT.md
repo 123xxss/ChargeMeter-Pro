@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：1.3.0（versionCode 6）
+- 版本：1.3.1（versionCode 7）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，215,059 bytes
-- SHA-256：`adbe4e4a9fd29b12d18c21b19d6eab718c2c0cac47dc38775deae65174340519`
+- SHA-256：`3e5b67fcea3ef01d6b32f464a4e3f7ec924a8304764444fecb1bffa526a9f68c`
 
-> 1.3.0 修复双电芯自动匹配（已知机型 + voltage_max）；测试仍为 301 项全通过。
+> 1.3.1 充电功率刷新提升到 0.5 秒；测试仍为 301 项全通过。
 
 ## 1. 自动化测试结果
 
