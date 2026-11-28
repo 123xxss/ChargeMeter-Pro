@@ -6,13 +6,23 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.10.3](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.10.3/WattLens-Pro-v2.10.3.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.10.4](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.10.4/WattLens-Pro-v2.10.4.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行、帮助页](docs/preview-v2.10.3.png)
+![主页、详情、应用耗电排行、帮助页](docs/preview-v2.10.4.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.10.4 更新（五套动效真正拉开差异）
+
+- **标准 · 轻弹**：9dp 位移、0.955 缩放、290ms、32ms 错峰。
+- **增强 · 大回弹**：20dp 位移、0.88 缩放、430ms、62ms 错峰，回弹更明显。
+- **vivo 原子 · 侧向吸附**：26dp 位移、0.84 缩放、470ms、72ms 错峰，并带左右侧向吸附。
+- **Apple 流畅 · 无回弹**：6dp 位移、520ms、平滑曲线、不 Overshoot。
+- **关闭**：不动画。
+- 按压回弹、数值回弹、铃铛弹跳也按风格区分；设置页明确标注每套效果。
+- 版本 45 / 2.10.4；328 项测试通过。
 
 ## 2.10.3 更新（全量 Q 弹动画 + UI 统一）
 

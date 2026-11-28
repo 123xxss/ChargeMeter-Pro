@@ -120,7 +120,7 @@ public final class HistoryActivity extends Activity {
             list.addView(card, UiKit.top(this, UiKit.matchWrap(), 8));
             int motion = com.dsh.powermeter.Prefs.get(this).motionStyle();
             if (motion != 2) {
-                MotionKit.fadeUp(card, i * 26, UiKit.dp(this, 8), 220, motion);
+                MotionKit.enterCard(card, i, motion);
             }
         }
     }

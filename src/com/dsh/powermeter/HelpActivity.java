@@ -74,7 +74,7 @@ public final class HelpActivity extends Activity {
                 13f, R.color.text_secondary, false);
         intro.setLineSpacing(UiKit.dp(this, 2), 1f);
         content.addView(intro, UiKit.top(this, UiKit.matchWrap(), 2));
-        if (motion != 2) MotionKit.fadeUp(intro, 0, UiKit.dp(this, 6), 220, motion);
+        if (motion != 2) MotionKit.fadeUp(intro, 0, motion);
 
         addGallery(content, motion);
 
@@ -89,7 +89,7 @@ public final class HelpActivity extends Activity {
             card.addView(heading, UiKit.matchWrap());
             card.addView(body, UiKit.top(this, UiKit.matchWrap(), 5));
             content.addView(card, UiKit.top(this, UiKit.matchWrap(), 9));
-            if (motion != 2) MotionKit.fadeUp(card, i * 28, UiKit.dp(this, 8), 230, motion);
+            if (motion != 2) MotionKit.fadeUp(card, i, motion);
         }
     }
 
@@ -112,7 +112,7 @@ public final class HelpActivity extends Activity {
             parent.addView(image, UiKit.top(this, UiKit.matchWrap(), 8));
             TextView caption = UiKit.text(this, captions[i], 11.5f, R.color.text_muted, false);
             parent.addView(caption, UiKit.top(this, UiKit.matchWrap(), 4));
-            if (motion != 2) MotionKit.fadeUp(image, i * 60, UiKit.dp(this, 8), 240, motion);
+            if (motion != 2) MotionKit.enterCard(image, i, motion);
         }
     }
 

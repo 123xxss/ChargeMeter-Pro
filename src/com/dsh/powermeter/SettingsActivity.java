@@ -92,7 +92,13 @@ public final class SettingsActivity extends Activity {
 
     private void showMotionDialog() {
         final Prefs prefs = Prefs.get(this);
-        final String[] items = {"标准", "增强", "关闭", "vivo 原子", "Apple 流畅"};
+        final String[] items = {
+                "标准 · 轻弹",
+                "增强 · 大回弹",
+                "关闭",
+                "vivo 原子 · 侧向吸附",
+                "Apple 流畅 · 无回弹"
+        };
         AlertDialog.Builder builder = dialogBuilder("动效");
         builder.setSingleChoiceItems(items, prefs.motionStyle(), (dialog, which) -> {
             prefs.setMotionStyle(which);
@@ -261,7 +267,7 @@ public final class SettingsActivity extends Activity {
                 "Apple 极简 / 经典渐变 / 深色霓虹 / 薄荷 / 紫色星云；功率卡与曲线同步切换",
                 styleLabel(prefs.uiStyle()), v -> showStyleDialog()));
         addCard(UiKit.actionRow(this, "动效",
-                "标准 / 增强 / 关闭；控制入场、分组、数值、弹窗动画",
+                "标准轻弹 / 增强大回弹 / 关闭 / vivo 侧向吸附 / Apple 无回弹流体；五套参数不同",
                 motionLabel(prefs.motionStyle()), v -> showMotionDialog()));
         String notifSubtitle = notificationsAllowed
                 ? "在状态栏常驻显示充电功率与电量"
@@ -364,7 +370,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "2.10.3");
+        addInfo(about, "版本", "2.10.4");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
                 + " · " + DeviceInfo.model());
@@ -392,15 +398,9 @@ public final class SettingsActivity extends Activity {
         firstAnimation = false;
         int motion = Prefs.get(this).motionStyle();
         if (motion == 2) return;
-        boolean rich = motion == 1;
-        boolean vivo = motion == 3;
-        boolean ios = motion == 4;
-        int step = UiKit.dp(this, vivo ? 16 : (rich ? 13 : 9));
-        int delay = vivo ? 34 : (rich ? 30 : 18);
-        int duration = vivo ? 300 : (rich ? 280 : (ios ? 240 : 190));
         int count = Math.min(content.getChildCount(), 18);
         for (int i = 0; i < count; i++) {
-            MotionKit.fadeUp(content.getChildAt(i), i * delay, step, duration, motion);
+            MotionKit.fadeUp(content.getChildAt(i), i, motion);
         }
     }
 

@@ -230,17 +230,9 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         entranceAnimated = true;
         int motion = Prefs.get(this).motionStyle();
         if (motion == 2) return;
-        boolean rich = motion == 1;
-        boolean vivo = motion == 3;
-        boolean ios = motion == 4;
         View[] views = {heroCard, gridCard, chartCard,
                 systemCard, usageCard, sessionCard, footerCard};
-        int step = UiKit.dp(this, vivo ? 18 : (rich ? 14 : 10));
-        int delay = vivo ? 44 : (rich ? 42 : 28);
-        int duration = vivo ? 340 : (rich ? 320 : (ios ? 260 : 220));
-        for (int i = 0; i < views.length; i++) {
-            MotionKit.enterCard(views[i], i * delay, step, duration, motion);
-        }
+        MotionKit.enterCards(views, motion);
     }
 
     private void render(PowerSnapshot snapshot) {
@@ -1081,14 +1073,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
             metric.value.setText(next);
             return;
         }
-        metric.value.setAlpha(0.55f);
-        metric.value.setTranslationY(UiKit.dp(this, 3));
-        metric.value.setScaleX(0.97f);
-        metric.value.setScaleY(0.97f);
-        metric.value.setText(next);
-        metric.value.animate().alpha(1f).translationY(0f).scaleX(1f).scaleY(1f)
-                .setInterpolator(MotionKit.value(motion))
-                .setDuration(motion == 3 || motion == 1 ? 250 : (motion == 4 ? 220 : 190)).start();
+        MotionKit.valueChange(metric.value, next, motion);
     }
 
     private void updateHeaderStatus(boolean master, PowerSnapshot s) {

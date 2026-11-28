@@ -401,10 +401,9 @@ public final class AppUsageActivity extends Activity {
     private void animateIn(LinearLayout parent) {
         int motion = Prefs.get(this).motionStyle();
         if (motion == 2) return;
-        int step = UiKit.dp(this, 8);
         int count = parent.getChildCount();
         for (int i = 0; i < count; i++) {
-            MotionKit.enterCard(parent.getChildAt(i), i * 30, step, 300, motion);
+            MotionKit.enterCard(parent.getChildAt(i), i, motion);
         }
     }
 
