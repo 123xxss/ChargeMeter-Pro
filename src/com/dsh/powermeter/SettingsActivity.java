@@ -23,6 +23,7 @@ import com.dsh.powermeter.core.StateStore;
 import com.dsh.powermeter.service.NotificationHelper;
 import com.dsh.powermeter.service.PowerService;
 import com.dsh.powermeter.shizuku.ShizukuBatterySource;
+import com.dsh.powermeter.ui.MotionKit;
 import com.dsh.powermeter.ui.UiKit;
 
 /**
@@ -363,7 +364,7 @@ public final class SettingsActivity extends Activity {
         // 关于
         content.addView(UiKit.section(this, "关于"), UiKit.matchWrap());
         LinearLayout about = UiKit.card(this);
-        addInfo(about, "版本", "2.10.2");
+        addInfo(about, "版本", "2.10.3");
         addInfo(about, "作者", "123xxss");
         addInfo(about, "设备", DeviceInfo.manufacturer() + " · " + DeviceInfo.brand()
                 + " · " + DeviceInfo.model());
@@ -399,14 +400,7 @@ public final class SettingsActivity extends Activity {
         int duration = vivo ? 300 : (rich ? 280 : (ios ? 240 : 190));
         int count = Math.min(content.getChildCount(), 18);
         for (int i = 0; i < count; i++) {
-            View child = content.getChildAt(i);
-            child.setAlpha(0f);
-            child.setTranslationY(step);
-            android.view.ViewPropertyAnimator anim = child.animate()
-                    .alpha(1f).translationY(0f).setStartDelay(i * (long) delay);
-            if (vivo) anim.setInterpolator(new android.view.animation.OvershootInterpolator(0.7f));
-            if (ios) anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
-            anim.setDuration(duration).start();
+            MotionKit.fadeUp(content.getChildAt(i), i * delay, step, duration, motion);
         }
     }
 

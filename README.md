@@ -6,13 +6,23 @@
 
 核心目标：显示**真正进入电池的功率**，而不是充电器协议协商的峰值；功率算法对齐 [ChargeMeter](https://github.com/123xxss/ChargeMeter)，并对 vivo / OPPO / 小米的电芯数、单位、越界读数做可解释处理。
 
-> [下载 APK v2.10.2](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.10.2/WattLens-Pro-v2.10.2.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
+> [下载 APK v2.10.3](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.10.3/WattLens-Pro-v2.10.3.apk) · [GitHub 仓库](https://github.com/123xxss/ChargeMeter-Pro) · [详细项目报告](docs/PROJECT-REPORT.md)
 
-![主页、详情、应用耗电排行、帮助页](docs/preview-v2.10.2.png)
+![主页、详情、应用耗电排行、帮助页](docs/preview-v2.10.3.png)
 
 <img src="docs/icon-512.png" width="88" alt="瓦镜 Pro 图标" />
 
 **详细项目报告（功能 / 更新 / Bug 修复 / 架构 / 测试）：[docs/PROJECT-REPORT.md](docs/PROJECT-REPORT.md)**
+
+## 2.10.3 更新（全量 Q 弹动画 + UI 统一）
+
+- 主界面卡片改为 **0.94 → 1** 的轻微回弹入场，错峰更自然。
+- 数值刷新改为淡入 + 上移 + **0.97 → 1** 回弹，不再是生硬跳变。
+- 所有按钮、设置行、可点击卡片加入 **按下 0.965 / 松开回弹**。
+- 状态栏铃铛切换加入 **1.16 倍弹跳**。
+- 设置页、详情页、充电历史、应用排行统一错峰入场。
+- 动画风格仍可设「关闭」，关闭后不执行这些动效。
+- 版本 44 / 2.10.3；328 项测试通过。
 
 ## 2.10.2 更新（帮助页精简 + 修重复图片）
 

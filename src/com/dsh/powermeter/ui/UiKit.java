@@ -81,6 +81,7 @@ public final class UiKit {
         Drawable content = view.getBackground();
         view.setBackground(new RippleDrawable(ColorStateList.valueOf(RIPPLE_COLOR), content, null));
         view.setClickable(true);
+        MotionKit.attachPress(view);
     }
 
     // ---------------------------------------------------------------- 文本

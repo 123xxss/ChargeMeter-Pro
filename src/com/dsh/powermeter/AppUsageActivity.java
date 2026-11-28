@@ -21,6 +21,7 @@ import com.dsh.powermeter.core.PowerSnapshot;
 import com.dsh.powermeter.core.PrecisePowerRanker;
 import com.dsh.powermeter.core.StateStore;
 import com.dsh.powermeter.shizuku.ShizukuBatterySource;
+import com.dsh.powermeter.ui.MotionKit;
 import com.dsh.powermeter.ui.UiKit;
 
 import java.util.HashMap;
@@ -403,11 +404,7 @@ public final class AppUsageActivity extends Activity {
         int step = UiKit.dp(this, 8);
         int count = parent.getChildCount();
         for (int i = 0; i < count; i++) {
-            View v = parent.getChildAt(i);
-            v.setAlpha(0f);
-            v.setTranslationY(step);
-            v.animate().alpha(1f).translationY(0f)
-                    .setStartDelay(i * 24L).setDuration(220).start();
+            MotionKit.enterCard(parent.getChildAt(i), i * 30, step, 300, motion);
         }
     }
 

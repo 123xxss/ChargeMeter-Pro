@@ -1,13 +1,13 @@
 # 瓦镜 Pro · 项目报告
 
-> 版本：2.10.2（versionCode 43）  
+> 版本：2.10.3（versionCode 44）  
 > 包名：`com.dsh.powermeter`  
 > 平台：Android 11–16（minSdk 29 / targetSdk 36）  
 > 参考项目：[ChargeMeter](https://github.com/123xxss/ChargeMeter)  
 > 当前状态：已在 Android 16 真机确认功率显示正常；312 项自动化检查通过。  
 > 作者：[123xxss](https://github.com/123xxss)  
 > 仓库：[123xxss/ChargeMeter-Pro](https://github.com/123xxss/ChargeMeter-Pro)  
-> 下载：[WattLens-Pro-v2.10.2.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.10.2/WattLens-Pro-v2.10.2.apk)
+> 下载：[WattLens-Pro-v2.10.3.apk](https://github.com/123xxss/ChargeMeter-Pro/releases/download/v2.10.3/WattLens-Pro-v2.10.3.apk)
 
 ---
 
@@ -202,7 +202,11 @@
 
 ### 2.10.1 — 完整内容包 + 动画统一
 
-### 2.10.2 — 帮助页精简 + 修重复图片（当前版本）
+### 2.10.2 — 帮助页精简 + 修重复图片
+
+### 2.10.3 — 全量 Q 弹动画 + UI 统一（当前版本）
+
+- 卡片/数值/按钮/铃铛/列表 Q 弹；设置、详情、历史、排行统一错峰。
 
 - 删除重复/不匹配插画、抽象背景和帮助字体；改真实页面截图 + 文字卡片；APK 约 671KB。
 

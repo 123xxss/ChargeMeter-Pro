@@ -400,6 +400,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         } catch (Throwable ignored) {
         }
         updateStatusBarToggle();
+        MotionKit.bounceIcon(statusBarToggle);
         updateBanner();
         Toast.makeText(this, next ? "状态栏通知已开启" : "状态栏通知已关闭",
                 Toast.LENGTH_SHORT).show();
@@ -995,6 +996,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         heroCard.setStyle(Prefs.get(this).uiStyle());
         heroCard.setOnClickListener(v -> DetailDialog.show(MainActivity.this,
                 StateStore.get().latest()));
+        MotionKit.attachPress(heroCard);
         heroCard.setOnLongClickListener(v -> {
             PowerSnapshot latest = StateStore.get().latest();
             if (latest != null) {
@@ -1038,6 +1040,7 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         historyRow.addView(historyMore);
         historyRow.setOnClickListener(v -> startActivity(
                 new Intent(MainActivity.this, HistoryActivity.class)));
+        MotionKit.attachPress(historyRow);
         sessionCard.addView(historyRow, UiKit.matchWrap());
     }
 
@@ -1073,15 +1076,19 @@ public final class MainActivity extends Activity implements StateStore.Listener 
         if (motion == 2) {
             metric.value.setAlpha(1f);
             metric.value.setTranslationY(0f);
+            metric.value.setScaleX(1f);
+            metric.value.setScaleY(1f);
             metric.value.setText(next);
             return;
         }
         metric.value.setAlpha(0.55f);
         metric.value.setTranslationY(UiKit.dp(this, 3));
+        metric.value.setScaleX(0.97f);
+        metric.value.setScaleY(0.97f);
         metric.value.setText(next);
-        metric.value.animate().alpha(1f).translationY(0f)
+        metric.value.animate().alpha(1f).translationY(0f).scaleX(1f).scaleY(1f)
                 .setInterpolator(MotionKit.value(motion))
-                .setDuration(motion == 3 || motion == 1 ? 240 : (motion == 4 ? 210 : 180)).start();
+                .setDuration(motion == 3 || motion == 1 ? 250 : (motion == 4 ? 220 : 190)).start();
     }
 
     private void updateHeaderStatus(boolean master, PowerSnapshot s) {

@@ -1,12 +1,12 @@
 # 测试与验收报告
 
-- 版本：2.10.2（versionCode 43）
+- 版本：2.10.3（versionCode 44）
 - 构建日期：2026-11-27
 - 构建环境：Android 手机上的 Ubuntu 24.04 proot（ARM）+ JDK 21 + Android build-tools 34 + compileSdk 36
 - APK：`powermeter.apk`，671,084 bytes（约 655 KiB）
-- SHA-256：`d08a1520bc418f1d2e4ba0dcbcbccd5720c2b0ff9528c87857767fa51e8b990f`
+- SHA-256：`aa2882c078bee2278adf5b3e037b247384a4bb94beb20a61d12ad36bdf740394`
 
-> 2.10.2 帮助页精简、真实截图与重复图片修复；测试 328 项全通过。
+> 2.10.3 全量 Q 弹动画与 UI 统一；测试 328 项全通过。
 
 ## 1. 自动化测试结果
 
